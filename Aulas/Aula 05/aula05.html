@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 05 - Coleções de Objetos</title>
+<style>
+  :root { --bg: #ffffff; --surface: #f5f7fa; --accent: #1a56db; --accent2: #0e7a5c; --accent3: #c0392b; --text: #111827; --muted: #4b5563; --border: #d1d5db; --code-bg: #f0f2f5; --highlight: #e8f0fe; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: Arial, Helvetica, sans-serif; height: 100vh; overflow: hidden; }
+  #deck { width: 100vw; height: 100vh; position: relative; }
+  .slide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: clamp(30px, 5vw, 80px); opacity: 0; pointer-events: none; transition: opacity 0.4s ease; background: var(--bg); }
+  .slide.active { opacity: 1; pointer-events: all; }
+  .content-box { max-width: 900px; width: 100%; padding: clamp(20px, 3vw, 40px); }
+  .slide-label { font-size: clamp(13px, 2vw, 17px); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; text-align: center; }
+  .slide-title { font-size: clamp(24px, 5vw, 48px); font-weight: 700; line-height: 1.2; margin-bottom: 24px; color: var(--text); text-align: center; border-bottom: 3px solid var(--accent); padding-bottom: 16px; }
+  .slide-title em { color: var(--accent); font-style: normal; }
+  .slide-hero { background: #f0f4f8; border-left: 8px solid var(--accent); justify-content: center; }
+  .hero-kicker { font-size: clamp(14px, 2.5vw, 19px); font-weight: 700; letter-spacing: 2px; color: var(--accent); margin-bottom: 16px; text-transform: uppercase; text-align: center; }
+  .hero-title { font-size: clamp(32px, 7vw, 68px); font-weight: 700; line-height: 1.1; margin-bottom: 16px; text-align: center; }
+  .hero-title span { color: var(--accent); }
+  .hero-subtitle { font-size: clamp(16px, 2.5vw, 22px); color: var(--muted); line-height: 1.6; margin-bottom: 28px; text-align: center; }
+  .hero-objectives { display: flex; flex-direction: column; gap: 12px; max-width: 700px; margin: 0 auto; }
+  .hero-obj-item { display: flex; align-items: flex-start; gap: 14px; font-size: clamp(15px, 2.2vw, 19px); line-height: 1.5; }
+  .hero-obj-item .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-top: 7px; flex-shrink: 0; }
+  .slide-section { background: #e8eef5; justify-content: center; }
+  .section-number { font-size: clamp(80px, 18vw, 180px); font-weight: 700; color: rgba(26,86,219,0.1); line-height: 1; margin-bottom: -10px; text-align: center; }
+  .section-part { font-size: clamp(14px, 2.5vw, 18px); font-weight: 700; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; text-align: center; }
+  .section-heading { font-size: clamp(28px, 6vw, 60px); font-weight: 700; line-height: 1.1; color: var(--text); text-align: center; }
+  .section-heading span { color: var(--accent); }
+  .section-sub { font-size: clamp(15px, 2.2vw, 20px); color: var(--muted); margin-top: 18px; max-width: 600px; line-height: 1.6; text-align: center; margin-left: auto; margin-right: auto; }
+  .prose { font-size: clamp(16px, 2.2vw, 20px); line-height: 1.7; color: var(--muted); margin: 16px 0; }
+  .prose strong { color: var(--text); font-weight: 700; }
+  .prose em { color: var(--accent); font-weight: 700; font-style: normal; }
+  .analogy-box { border-left: 4px solid var(--accent); background: var(--highlight); border-radius: 0 8px 8px 0; padding: clamp(16px, 2.5vw, 24px); margin: 20px 0; font-size: clamp(16px, 2.2vw, 19px); line-height: 1.7; }
+  .analogy-box strong { color: var(--accent); }
+  .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+  .bullet-list li { display: flex; align-items: flex-start; gap: 12px; font-size: clamp(16px, 2.2vw, 19px); line-height: 1.6; color: var(--muted); }
+  .bullet-list li::before { content: '▸'; color: var(--accent); font-size: 16px; margin-top: 4px; flex-shrink: 0; }
+  .bullet-list li strong { color: var(--text); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: clamp(18px, 2.5vw, 28px); margin: 16px 0; }
+  .card-title { font-size: clamp(14px, 2vw, 18px); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+  .card-title.yellow { color: #b45309; } .card-title.green { color: var(--accent2); } .card-title.red { color: var(--accent3); } .card-title.blue { color: var(--accent); }
+  .styled-table { width: 100%; border-collapse: collapse; font-size: clamp(15px, 2vw, 19px); margin: 20px 0; }
+  .styled-table thead tr { background: var(--accent); }
+  .styled-table th { padding: 14px 18px; text-align: left; font-weight: 700; color: #ffffff; font-size: clamp(14px, 2vw, 18px); }
+  .styled-table td { padding: 12px 18px; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  .styled-table tr:nth-child(even) td { background: var(--surface); }
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: clamp(16px, 2.5vw, 24px); font-family: 'Courier New', monospace; font-size: clamp(15px, 2vw, 18px); line-height: 1.7; overflow-x: auto; margin: 20px 0; }
+  .code-block .kw { color: #9b2335; font-weight: 700; } .code-block .cls { color: var(--accent); font-weight: 700; } .code-block .str { color: var(--accent2); } .code-block .cmt { color: #9ca3af; font-style: italic; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; justify-content: center; }
+  .badge { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 18px; font-family: 'Courier New', monospace; font-size: clamp(14px, 2vw, 18px); }
+  .badge.good { border-color: var(--accent2); color: var(--accent2); background: #f0fdf4; } .badge.bad { border-color: var(--accent3); color: var(--accent3); background: #fef2f2; text-decoration: line-through; }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: clamp(16px, 2.5vw, 24px); display: flex; gap: 18px; align-items: flex-start; margin: 12px 0; }
+  .step-number { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #ffffff; font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 700; font-size: clamp(16px, 2.2vw, 20px); color: var(--text); margin-bottom: 6px; }
+  .step-desc { font-size: clamp(15px, 2vw, 19px); color: var(--muted); line-height: 1.6; }
+  .checklist { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+  .check-item { display: flex; align-items: flex-start; gap: 14px; font-size: clamp(16px, 2.2vw, 20px); line-height: 1.5; }
+  .check-box { width: 22px; height: 22px; border: 2px solid var(--border); border-radius: 4px; flex-shrink: 0; margin-top: 2px; background: #fff; }
+  .rm-item { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 20px; font-size: clamp(15px, 2vw, 19px); margin: 8px 0; }
+  .rm-item.active { background: var(--highlight); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .rm-item.done { background: #f0fdf4; border-color: var(--accent2); color: var(--accent2); font-weight: 700; }
+  .faq-item { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: clamp(14px, 2vw, 20px); margin: 12px 0; }
+  .faq-q { font-weight: 700; color: var(--accent); font-size: clamp(16px, 2.2vw, 20px); margin-bottom: 8px; }
+  .faq-a { font-size: clamp(15px, 2vw, 19px); color: var(--muted); line-height: 1.65; }
+  #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: var(--accent); transition: width 0.4s ease; z-index: 100; }
+  #nav { position: fixed; bottom: 20px; right: 24px; display: flex; align-items: center; gap: 12px; z-index: 100; }
+  #slide-counter { font-size: clamp(14px, 1.8vw, 17px); color: var(--muted); font-weight: 700; }
+  .nav-btn { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--border); background: #fff; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  .nav-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  @media (max-width: 600px) { .slide { padding: 20px; } .content-box { padding: 16px; } }
+</style>
+</head>
+<body>
+<div id="deck">
+
+  <div class="slide slide-hero">
+    <div class="hero-kicker">ADS - Desenvolvimento Python</div>
+    <h1 class="hero-title">Aula 05: <span>Coleções de Objetos</span></h1>
+    <p class="hero-subtitle">Organizando e gerenciando múltiplos dados na memória de forma eficiente.</p>
+    <div class="hero-objectives">
+      <div class="hero-obj-item"><div class="dot"></div><span><strong>Identificar</strong> a estrutura, sintaxe e características fundamentais de listas, tuplas e dicionários em Python.</span></div>
+      <div class="hero-obj-item"><div class="dot"></div><span><strong>Aplicar</strong> coleções para armazenar, buscar e manipular dados dinâmicos em cenários reais de negócio.</span></div>
+      <div class="hero-obj-item"><div class="dot"></div><span><strong>Analisar</strong> decisões arquiteturais para evitar bugs e garantir um Clean Code no projeto final.</span></div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Contextualização</div>
+    <h2 class="slide-title">Um <em>Upgrade</em> na Stack</h2>
+    <div class="content-box">
+      <p class="prose">Chegou a hora de dar um <strong>upgrade</strong> na nossa stack! Até agora, armazenamos um dado de cada vez. Hoje, vamos aprender as principais ferramentas do Python para agrupar e organizar múltiplos objetos na memória.</p>
+      <p class="prose">Vamos entender como grandes plataformas guardam milhares de informações usando <em>Listas, Tuplas e Dicionários</em>, aplicando isso diretamente no primeiro esboço de "Banco de Dados" do nosso sistema.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-number">01</div>
+    <div class="section-part">Parte Um</div>
+    <h2 class="section-heading">Introdução às <span>Coleções</span></h2>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">01. Introdução</div>
+    <h2 class="slide-title">O que são <em>Coleções</em>?</h2>
+    <div class="content-box">
+      <p class="prose">As coleções em Python são ferramentas poderosas que permitem agrupar múltiplos itens em uma única variável, facilitando o armazenamento e o processamento eficiente de grandes volumes de dados.</p>
+      <div class="card">
+        <div class="card-title blue">Análise de Sistemas</div>
+        <p class="prose">Entender como esses dados fluem e se organizam é crucial para a criação de <strong>Modelos de Processos</strong> e <strong>Diagramas de Fluxo de Dados (DFD)</strong>, que ilustram as atividades do negócio e como a informação transita entre processos e depósitos.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-number">02</div>
+    <div class="section-part">Parte Dois</div>
+    <h2 class="section-heading">Listas <span>(Lists)</span></h2>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">02. Listas</div>
+    <h2 class="slide-title">Estruturas <em>Mutáveis</em></h2>
+    <div class="content-box">
+      <p class="prose">As listas são coleções <strong>ordenadas</strong>, heterogêneas (podem conter tipos diferentes) e, o mais importante: <strong>mutáveis</strong>. Isso significa que você pode alterar seu conteúdo após a criação.</p>
+      <ul class="bullet-list">
+        <li><strong>Sintaxe:</strong> Representadas por colchetes <code>[]</code>.</li>
+        <li><strong>Acesso:</strong> Utilizam índices que começam sempre em <strong>0</strong>.</li>
+      </ul>
+      <div class="analogy-box">
+        <strong>Analogia:</strong> Pense em uma <strong>playlist de músicas</strong> ou no feed de uma rede social. Você pode adicionar novas músicas, remover as que não gosta mais ou alterar a ordem delas livremente.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">02. Listas</div>
+    <h2 class="slide-title">Principais <em>Métodos</em></h2>
+    <div class="content-box">
+      <div class="code-block">
+        frutas = [<span class="str">"maçã"</span>, <span class="str">"banana"</span>]<br>
+        frutas.<span class="kw">append</span>(<span class="str">"uva"</span>) <span class="cmt"># Adiciona ao final</span><br>
+        frutas.<span class="kw">remove</span>(<span class="str">"banana"</span>) <span class="cmt"># Remove item específico</span><br>
+        frutas.<span class="kw">sort</span>() <span class="cmt"># Ordena a lista</span><br>
+        <span class="kw">print</span>(frutas[<span class="kw">0</span>]) <span class="cmt"># Saída: maçã</span>
+      </div>
+      <div class="badge-row">
+        <div class="badge good">.append()</div>
+        <div class="badge good">.insert()</div>
+        <div class="badge good">.pop()</div>
+        <div class="badge good">.clear()</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">02. Listas</div>
+    <h2 class="slide-title">Boas <em>Práticas</em></h2>
+    <div class="content-box">
+      <div class="badge-row">
+        <div class="badge good">nomes = ["Ana", "Beto"]</div>
+        <div class="badge bad">lista = ["Ana", "Beto"]</div>
+      </div>
+      <div class="card">
+        <div class="card-title yellow">Dica de Clean Code</div>
+        <p class="prose">Sempre use nomes de variáveis no <strong>plural</strong> para listas para indicar que ela contém múltiplos elementos. Evite nomes genéricos como 'lista' ou 'dados'.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-number">03</div>
+    <div class="section-part">Parte Três</div>
+    <h2 class="section-heading">Tuplas <span>(Tuples)</span></h2>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">03. Tuplas</div>
+    <h2 class="slide-title">Integridade dos <em>Dados</em></h2>
+    <div class="content-box">
+      <p class="prose">As tuplas funcionam de forma muito parecida com as listas, mas com uma regra de ouro: elas são <strong>imutáveis</strong>. Uma vez criadas, você não pode adicionar, remover ou alterar seus itens.</p>
+      <ul class="bullet-list">
+        <li><strong>Sintaxe:</strong> Representadas por parênteses <code>()</code>.</li>
+        <li><strong>Vantagem:</strong> São mais rápidas que as listas e garantem que os dados não sejam alterados acidentalmente.</li>
+      </ul>
+      <div class="analogy-box">
+        <strong>Analogia:</strong> Pense nas <strong>coordenadas de GPS</strong> de um local fixo ou nos <strong>status base</strong> de um personagem de jogo (HP, força). Você não quer que um bug altere a latitude da sua cidade no meio da execução.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">03. Tuplas</div>
+    <h2 class="slide-title">Uso de <em>Tuplas</em></h2>
+    <div class="content-box">
+      <div class="code-block">
+        <span class="cmt"># Definindo uma tupla de configuração</span><br>
+        CORES_SISTEMA = (<span class="str">"Red"</span>, <span class="str">"Green"</span>, <span class="str">"Blue"</span>)<br><br>
+        <span class="cmt"># Tentar alterar causará erro:</span><br>
+        CORES_SISTEMA[<span class="kw">0</span>] = <span class="str">"Yellow"</span> <span class="cmt"># TypeError!</span>
+      </div>
+      <div class="badge-row">
+        <div class="badge good">Integridade</div>
+        <div class="badge good">Performance</div>
+        <div class="badge bad">Alteração pós-criação</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-number">04</div>
+    <div class="section-part">Parte Quatro</div>
+    <h2 class="section-heading">Dicionários <span>(Dictionaries)</span></h2>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">04. Dicionários</div>
+    <h2 class="slide-title">Mapeamento <em>Chave-Valor</em></h2>
+    <div class="content-box">
+      <p class="prose">Diferente das listas e tuplas, os dicionários não são acessados por índices numéricos (0, 1, 2...), mas por <strong>chaves únicas</strong>. São coleções não ordenadas onde cada valor está associado a uma etiqueta.</p>
+      <ul class="bullet-list">
+        <li><strong>Sintaxe:</strong> Representados por chaves <code>{}</code> com pares <code>chave: valor</code>.</li>
+        <li><strong>Uso:</strong> Perfeitos para representar "objetos reais" como usuários, produtos ou clientes.</li>
+      </ul>
+      <div class="analogy-box">
+        <strong>Analogia:</strong> Pense em uma <strong>Pokédex</strong> ou catálogo de contatos. Você busca pelo nome (chave) para obter todos os atributos e informações (valor).
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">04. Dicionários</div>
+    <h2 class="slide-title">Sintaxe e <em>Acesso</em></h2>
+    <div class="content-box">
+      <div class="code-block">
+        usuario = {<br>
+        &nbsp;&nbsp;<span class="str">"nome"</span>: <span class="str">"Carlos"</span>,<br>
+        &nbsp;&nbsp;<span class="str">"idade"</span>: <span class="kw">30</span>,<br>
+        &nbsp;&nbsp;<span class="str">"ativo"</span>: <span class="kw">True</span><br>
+        }<br><br>
+        <span class="kw">print</span>(usuario[<span class="str">"nome"</span>]) <span class="cmt"># Saída: Carlos</span>
+      </div>
+      <div class="badge-row">
+        <div class="badge good">Busca Rápida</div>
+        <div class="badge good">Mapeamento Lógico</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">05. Conceitos Avançados</div>
+    <h2 class="slide-title">Estruturas <em>Aninhadas</em></h2>
+    <div class="content-box">
+      <p class="prose">A verdadeira magia acontece no <strong>aninhamento</strong>. Ao colocar dicionários dentro de listas ou listas dentro de dicionários, conseguimos mapear hierarquias complexas.</p>
+      <div class="card">
+        <div class="card-title green">Exemplo do Mundo Real</div>
+        <p class="prose">Uma <strong>lista de pedidos</strong> onde cada pedido é um <strong>dicionário</strong>, e esse dicionário contém uma <strong>lista de itens</strong> comprados.</p>
+      </div>
+      <div class="card">
+        <div class="card-title red">Atenção: Deep Copy</div>
+        <p class="prose">Ao copiar essas estruturas, lembre-se da importância da <strong>Cópia Profunda (deepcopy)</strong> para evitar que alterações em uma cópia afetem o dado original acidentalmente.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Comparação</div>
+    <h2 class="slide-title">O Trio de <em>Ferro</em></h2>
+    <div class="content-box">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Estrutura</th>
+            <th>Sintaxe</th>
+            <th>Mutável?</th>
+            <th>Uso Ideal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Lista</td>
+            <td><code>[]</code></td>
+            <td>Sim</td>
+            <td>Feeds, Playlists, Logs</td>
+          </tr>
+          <tr>
+            <td>Tupla</td>
+            <td><code>()</code></td>
+            <td>Não</td>
+            <td>Configurações, GPS</td>
+          </tr>
+          <tr>
+            <td>Dicionário</td>
+            <td><code>{}</code></td>
+            <td>Sim</td>
+            <td>Cadastros, APIs (JSON)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Prática</div>
+    <h2 class="slide-title">Desafio do <em>Inventário</em></h2>
+    <div class="content-box">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <div class="step-body">
+          <div class="step-title">Modelagem</div>
+          <div class="step-desc">Crie um dicionário onde cada chave é o nome de um produto e o valor é uma lista contendo [quantidade, preço].</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <div class="step-body">
+          <div class="step-title">Processamento</div>
+          <div class="step-desc">Simule uma venda: verifique se há estoque e subtraia a quantidade se o produto existir.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <div class="step-body">
+          <div class="step-title">Histórico</div>
+          <div class="step-desc">Adicione cada venda realizada em uma lista global chamada 'historico_vendas'.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Resumo Final</div>
+    <h2 class="slide-title">O que <em>Aprendemos</em></h2>
+    <div class="content-box">
+      <p class="prose">Vimos as três principais estruturas do Python que formam o "Banco de Dados em Memória" de qualquer sistema moderno:</p>
+      <ul class="bullet-list">
+        <li><strong>Listas:</strong> Ordenadas e mutáveis. Permitem append, remove e sort.</li>
+        <li><strong>Tuplas:</strong> Imutáveis. Garantem a integridade dos dados.</li>
+        <li><strong>Dicionários:</strong> Pares Chave-Valor. Extremamente velozes para buscas estruturadas.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Roadmap</div>
+    <h2 class="slide-title">Conexão com o <em>Projeto (SA)</em></h2>
+    <div class="content-box">
+      <div class="rm-item done">Variáveis e Tipos Simples</div>
+      <div class="rm-item active">Coleções de Objetos (Aula de Hoje)</div>
+      <div class="rm-item">Persistência em Arquivos e APIs</div>
+      <p class="prose" style="margin-top: 20px;">No projeto semestral, usaremos <strong>Listas</strong> para logs, <strong>Tuplas</strong> para taxas fixas e <strong>Dicionários</strong> para cadastros de usuários e produtos.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">FAQ</div>
+    <h2 class="slide-title">Perguntas <em>Comuns</em></h2>
+    <div class="content-box">
+      <div class="faq-item">
+        <div class="faq-q">Por que usar Tuplas se as Listas fazem a mesma coisa?</div>
+        <div class="faq-a">Segurança e velocidade. Tuplas impedem que um erro de lógica altere dados críticos do sistema e são processadas de forma mais eficiente pelo Python.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">O que acontece se eu usar uma chave repetida em um dicionário?</div>
+        <div class="faq-a">O Python irá sobrescrever o valor anterior. Chaves em dicionários devem ser sempre únicas para garantir a recuperação correta do dado.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="progress-bar"></div>
+<div id="nav">
+  <span id="slide-counter">01 / 20</span>
+  <button class="nav-btn" id="btn-prev">&#8592;</button>
+  <button class="nav-btn" id="btn-next">&#8594;</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  const counter = document.getElementById('slide-counter');
+  const bar = document.getElementById('progress-bar');
+
+  function pad(n) { return String(n).padStart(2,'0'); }
+
+  function goTo(next) {
+    if (next === current || next < 0 || next >= total) return;
+    slides[current].classList.remove('active');
+    current = next;
+    slides[current].classList.add('active');
+    counter.textContent = `${pad(current+1)} / ${pad(total)}`;
+    bar.style.width = `${((current+1)/total)*100}%`;
+  }
+
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current+1));
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current-1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(current+1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(current-1); }
+  });
+
+  let touchStart = null;
+  document.addEventListener('touchstart', (e) => { touchStart = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    if (touchStart === null) return;
+    const dx = e.changedTouches[0].clientX - touchStart;
+    if (Math.abs(dx) > 50) goTo(dx < 0 ? current+1 : current-1);
+    touchStart = null;
+  });
+
+  if(total > 0) { 
+    slides[0].classList.add('active'); 
+    counter.textContent = `01 / ${pad(total)}`; 
+    bar.style.width = `${(1/total)*100}%`; 
+  }
+</script>
+</body>
+</html>
