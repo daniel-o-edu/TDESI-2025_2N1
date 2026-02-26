@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 3 – Pensando em Objetos: Introdução à POO</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f5f7fa;
+    --surface2: #eef1f6;
+    --accent: #1a56db;
+    --accent2: #0e7a5c;
+    --accent3: #c0392b;
+    --text: #111827;
+    --muted: #4b5563;
+    --border: #d1d5db;
+    --code-bg: #f0f2f5;
+    --highlight: #e8f0fe;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  #deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(24px, 4vw, 52px) clamp(20px, 5vw, 72px) 64px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: translateX(50px);
+    overflow-y: auto;
+    background: var(--bg);
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0);
+  }
+  .slide.exit {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+
+  /* SLIDE LABEL */
+  .slide-label {
+    font-size: clamp(14px, 1.4vw, 17px);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  /* SLIDE TITLE */
+  .slide-title {
+    font-size: clamp(26px, 3.5vw, 48px);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 22px;
+    color: var(--text);
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 14px;
+  }
+  .slide-title em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  /* HERO SLIDE */
+  .slide-hero {
+    justify-content: center;
+    align-items: flex-start;
+    background: linear-gradient(135deg, #eef3ff 0%, #ffffff 60%);
+    border-left: 8px solid var(--accent);
+  }
+  .hero-kicker {
+    font-size: clamp(15px, 1.5vw, 19px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 18px;
+    text-transform: uppercase;
+  }
+  .hero-title {
+    font-size: clamp(36px, 5.5vw, 72px);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .hero-title span { color: var(--accent); }
+  .hero-subtitle {
+    font-size: clamp(17px, 1.8vw, 22px);
+    color: var(--muted);
+    max-width: 680px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+  }
+  .hero-objectives {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 700px;
+  }
+  .hero-obj-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    font-size: clamp(16px, 1.5vw, 19px);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .hero-obj-item .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+
+  /* SECTION DIVIDER */
+  .slide-section {
+    justify-content: center;
+    align-items: flex-start;
+    background: var(--accent);
+  }
+  .section-number {
+    font-size: clamp(80px, 14vw, 160px);
+    font-weight: 700;
+    color: rgba(255,255,255,0.12);
+    line-height: 1;
+    margin-bottom: -10px;
+    display: block;
+  }
+  .section-part {
+    font-size: clamp(15px, 1.5vw, 18px);
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.75);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .section-heading {
+    font-size: clamp(30px, 5vw, 62px);
+    font-weight: 700;
+    line-height: 1.1;
+    color: #ffffff;
+  }
+  .section-heading span { color: #ffd166; }
+  .section-sub {
+    font-size: clamp(17px, 1.7vw, 21px);
+    color: rgba(255,255,255,0.8);
+    margin-top: 18px;
+    max-width: 580px;
+    line-height: 1.6;
+  }
+
+  /* PROSE */
+  .prose {
+    font-size: clamp(16px, 1.5vw, 20px);
+    line-height: 1.75;
+    color: var(--muted);
+    max-width: 860px;
+  }
+  .prose strong { color: var(--text); font-weight: 700; }
+  .prose em { color: var(--accent); font-style: normal; font-weight: 700; }
+
+  /* ANALOGY BOX */
+  .analogy-box {
+    border-left: 4px solid var(--accent);
+    background: var(--highlight);
+    border-radius: 0 8px 8px 0;
+    padding: clamp(14px, 2vw, 20px) clamp(16px, 2.5vw, 26px);
+    margin: 16px 0;
+    font-size: clamp(16px, 1.5vw, 19px);
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .analogy-box strong { color: var(--accent); }
+
+  /* BULLET LIST */
+  .bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .bullet-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: clamp(16px, 1.5vw, 19px);
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .bullet-list li::before {
+    content: '▸';
+    color: var(--accent);
+    font-size: 14px;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .bullet-list li strong { color: var(--text); }
+
+  /* TWO COLUMN */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 12px 0;
+  }
+  @media (max-width: 680px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(14px, 2vw, 22px);
+  }
+  .card-title {
+    font-size: clamp(14px, 1.3vw, 17px);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .card-title.yellow { color: #b45309; }
+  .card-title.green  { color: var(--accent2); }
+  .card-title.red    { color: var(--accent3); }
+  .card-title.blue   { color: var(--accent); }
+
+  /* CLASS DIAGRAM */
+  .class-diagram {
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(15px, 1.4vw, 17px);
+  }
+  .cd-header {
+    background: var(--accent);
+    color: #ffffff;
+    text-align: center;
+    font-weight: 700;
+    padding: 12px 16px;
+    font-size: clamp(16px, 1.5vw, 19px);
+  }
+  .cd-section {
+    padding: 14px 18px;
+    border-top: 1px solid var(--accent);
+    background: var(--highlight);
+  }
+  .cd-section-label {
+    font-size: clamp(13px, 1.2vw, 15px);
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-family: Arial, sans-serif;
+  }
+  .cd-item {
+    color: var(--accent2);
+    padding: 3px 0;
+    font-size: clamp(14px, 1.3vw, 17px);
+  }
+  .cd-item::before { content: '• '; color: var(--border); }
+
+  /* TABLE */
+  .styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(15px, 1.4vw, 18px);
+    margin: 12px 0;
+  }
+  .styled-table thead tr { background: var(--accent); }
+  .styled-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 700;
+    color: #ffffff;
+    font-size: clamp(14px, 1.3vw, 17px);
+  }
+  .styled-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+  }
+  .styled-table tr:nth-child(even) td { background: var(--surface); }
+  .styled-table tr:hover td { background: var(--highlight); }
+  .styled-table td:first-child {
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--accent2);
+    font-weight: 700;
+    font-size: clamp(14px, 1.3vw, 17px);
+  }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: clamp(14px, 2vw, 20px);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(15px, 1.4vw, 18px);
+    line-height: 1.75;
+    overflow-x: auto;
+    margin: 12px 0;
+    color: var(--text);
+  }
+  .code-block .kw  { color: #9b2335; font-weight: 700; }
+  .code-block .cls { color: var(--accent); font-weight: 700; }
+  .code-block .str { color: var(--accent2); }
+  .code-block .cmt { color: #9ca3af; font-style: italic; }
+
+  /* BADGE ROW */
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .badge {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(14px, 1.3vw, 17px);
+    color: var(--text);
+  }
+  .badge.good { border-color: var(--accent2); color: var(--accent2); background: #f0fdf4; }
+  .badge.bad  { border-color: var(--accent3); color: var(--accent3); background: #fef2f2; text-decoration: line-through; }
+
+  /* CHECKLIST */
+  .checklist { display: flex; flex-direction: column; gap: 10px; margin: 10px 0; }
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: clamp(16px, 1.5vw, 19px);
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .check-box {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    background: #fff;
+  }
+
+  /* STEP CARD */
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(14px, 2vw, 20px);
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin: 8px 0;
+  }
+  .step-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-body { flex: 1; }
+  .step-title {
+    font-weight: 700;
+    font-size: clamp(16px, 1.5vw, 19px);
+    color: var(--text);
+    margin-bottom: 5px;
+  }
+  .step-desc {
+    font-size: clamp(15px, 1.4vw, 18px);
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ROADMAP */
+  .rm-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-size: clamp(15px, 1.4vw, 18px);
+    color: var(--muted);
+  }
+  .rm-item.active {
+    background: var(--highlight);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .rm-item.done {
+    background: #f0fdf4;
+    border-color: var(--accent2);
+    color: var(--accent2);
+    font-weight: 700;
+  }
+
+  /* FAQ */
+  .faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: clamp(12px, 1.5vw, 18px);
+    margin: 8px 0;
+  }
+  .faq-q {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: clamp(16px, 1.5vw, 19px);
+    margin-bottom: 6px;
+  }
+  .faq-a {
+    font-size: clamp(15px, 1.4vw, 18px);
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* PROGRESS BAR */
+  #progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 4px;
+    background: var(--accent);
+    transition: width 0.4s ease;
+    z-index: 100;
+  }
+
+  /* NAV */
+  #nav {
+    position: fixed;
+    bottom: 18px;
+    right: 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+  }
+  #slide-counter {
+    font-size: clamp(14px, 1.3vw, 17px);
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  }
+  .nav-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .slide::-webkit-scrollbar { width: 5px; }
+  .slide::-webkit-scrollbar-track { background: transparent; }
+  .slide::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .slide { padding: 18px 14px 64px; }
+  }
+</style>
+</head>
+<body>
+<div id="deck">
+
+  <!-- SLIDE 01 – CAPA -->
+  <div class="slide slide-hero active" id="s1">
+    <div class="hero-kicker">Programação Orientada a Objetos</div>
+    <h1 class="hero-title">Aula 3: <span>Pensando em Objetos</span></h1>
+    <p class="hero-subtitle">Introdução à Programação Orientada a Objetos – da modelagem ao código Python</p>
+    <div class="hero-objectives">
+      <div class="hero-obj-item"><div class="dot"></div><span>Compreender a diferença entre <strong>Classe</strong> e <strong>Objeto</strong> e reconhecer quando usá-los</span></div>
+      <div class="hero-obj-item"><div class="dot"></div><span>Modelar a entidade principal do sistema de forma visual e organizada</span></div>
+      <div class="hero-obj-item"><div class="dot"></div><span>Criar a primeira classe Python do projeto com nome significativo e documentação</span></div>
+      <div class="hero-obj-item"><div class="dot"></div><span>Conectar o conceito de classe aos requisitos reais do cliente</span></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 02 – DIVISOR PARTE 1 -->
+  <div class="slide slide-section" id="s2">
+    <span class="section-number">01</span>
+    <div class="section-part">Parte 1</div>
+    <h2 class="section-heading">Entendendo <span>Classe e Objeto</span></h2>
+    <p class="section-sub">O que são, como se relacionam e por que são a base de tudo em POO.</p>
+  </div>
+
+  <!-- SLIDE 03 – O QUE É UMA CLASSE -->
+  <div class="slide" id="s3">
+    <div class="slide-label">Parte 1 · 1.1</div>
+    <h2 class="slide-title">O que é uma <em>Classe</em>?</h2>
+    <p class="prose">Uma classe é um <strong>molde, receita ou planta</strong> para criar objetos de um tipo específico. Ela define:</p>
+    <ul class="bullet-list" style="margin-top:16px;">
+      <li>Quais <strong>dados (informações)</strong> um objeto desse tipo terá.</li>
+      <li>Quais <strong>ações (comportamentos)</strong> um objeto desse tipo pode realizar.</li>
+    </ul>
+    <div class="analogy-box" style="margin-top:20px;">
+      <strong>Analogia no mundo real — A Receita do Bolo</strong><br><br>
+      Pense em uma classe como a receita de um bolo:<br>
+      • A <strong>receita</strong> é a classe. Não é um bolo de verdade; é um manual que diz como fazer um bolo.<br>
+      • Um <strong>bolo feito</strong> a partir da receita é um objeto.<br>
+      • Se você fizer o mesmo bolo 3 vezes, tem <strong>3 objetos diferentes</strong> (cada bolo é uma instância).
+    </div>
+  </div>
+
+  <!-- SLIDE 04 – O QUE É UM OBJETO -->
+  <div class="slide" id="s4">
+    <div class="slide-label">Parte 1 · 1.2</div>
+    <h2 class="slide-title">O que é um <em>Objeto</em>?</h2>
+    <p class="prose">Um objeto é uma <strong>instância concreta</strong> criada a partir de uma classe. É quando você realmente faz o bolo.</p>
+    <div style="margin-top:20px;">
+      <div class="card" style="max-width:720px;">
+        <div class="card-title blue">Exemplo – Sistema de Hospital</div>
+        <p style="font-size:clamp(16px,1.5vw,19px); color:var(--muted); margin-bottom:14px;"><strong style="color:var(--text);">Classe: Paciente</strong></p>
+        <ul class="bullet-list">
+          <li>Define: "Todo paciente tem um nome, uma idade e um convênio."</li>
+          <li>Define: "Todo paciente pode marcar uma consulta, atualizar seu telefone."</li>
+        </ul>
+        <div style="height:16px;"></div>
+        <p style="font-size:clamp(16px,1.5vw,19px); color:var(--muted); margin-bottom:10px;"><strong style="color:var(--text);">Objetos (instâncias da classe Paciente):</strong></p>
+        <div class="badge-row">
+          <span class="badge good">Paciente João, 30 anos, tem convênio</span>
+          <span class="badge good">Paciente Maria, 45 anos, sem convênio</span>
+          <span class="badge good">Paciente Carlos, 62 anos, tem convênio</span>
+        </div>
+        <p class="prose" style="margin-top:12px;">Cada um é um objeto diferente, mas todos seguem o <strong>molde da classe Paciente</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 05 – COMPARAÇÃO VISUAL -->
+  <div class="slide" id="s5">
+    <div class="slide-label">Parte 1 · 1.3</div>
+    <h2 class="slide-title"><em>Comparação</em> Visual</h2>
+    <div style="overflow-x:auto;">
+      <table class="styled-table">
+        <thead><tr><th>Conceito</th><th>Classe</th><th>Objeto</th></tr></thead>
+        <tbody>
+          <tr><td>O que é?</td><td>Molde, plano, receita</td><td>Algo concreto e real</td></tr>
+          <tr><td>Existe de verdade?</td><td>Não, é uma ideia</td><td>Sim, é uma instância</td></tr>
+          <tr><td>Quantas vezes?</td><td>Uma classe por tipo</td><td>Muitos objetos da mesma classe</td></tr>
+          <tr><td>Exemplo – Hospital</td><td>Classe Paciente</td><td>Paciente João, Paciente Maria</td></tr>
+          <tr><td>Exemplo – Delivery</td><td>Classe Pedido</td><td>Pedido #001, Pedido #002</td></tr>
+          <tr><td>Exemplo – Carro</td><td>Classe Veículo</td><td>Veículo Placa ABC-1234</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SLIDE 06 – DIVISOR PARTE 2 -->
+  <div class="slide slide-section" id="s6">
+    <span class="section-number">02</span>
+    <div class="section-part">Parte 2</div>
+    <h2 class="section-heading">Atributos e <span>Comportamentos</span></h2>
+    <p class="section-sub">O que o objeto TEM e o que o objeto FAZ.</p>
+  </div>
+
+  <!-- SLIDE 07 – ATRIBUTOS -->
+  <div class="slide" id="s7">
+    <div class="slide-label">Parte 2 · 2.1</div>
+    <h2 class="slide-title">Atributos: o que o Objeto <em>"TEM"</em></h2>
+    <p class="prose">Atributos são as <strong>características ou propriedades</strong> que um objeto possui. São os dados que descrevem aquele objeto.</p>
+    <div class="two-col" style="margin-top:16px;">
+      <div class="card">
+        <div class="card-title yellow">Paciente · Hospital</div>
+        <ul class="bullet-list"><li>nome</li><li>idade</li><li>número_cpf</li><li>tem_convenio</li><li>telefone_contato</li><li>data_cadastro</li></ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <div class="card-title green">Pedido · Delivery</div>
+          <ul class="bullet-list"><li>numero_pedido</li><li>cliente_nome</li><li>endereco_entrega</li><li>valor_total</li><li>status_pedido</li><li>data_criacao</li></ul>
+        </div>
+        <div class="card">
+          <div class="card-title red">Veículo · Frota</div>
+          <ul class="bullet-list"><li>placa</li><li>modelo</li><li>kilometragem</li><li>status_manutencao</li><li>motorista_responsavel</li></ul>
+        </div>
+      </div>
+    </div>
+    <div class="analogy-box"><strong>Importante:</strong> Cada atributo deve ter uma razão de existir no contexto do cliente real. Não inventem atributos "só porque sim".</div>
+  </div>
+
+  <!-- SLIDE 08 – COMPORTAMENTOS -->
+  <div class="slide" id="s8">
+    <div class="slide-label">Parte 2 · 2.2</div>
+    <h2 class="slide-title">Comportamentos: o que o Objeto <em>"FAZ"</em></h2>
+    <p class="prose">Comportamentos (ou <strong>métodos</strong>) são as ações que um objeto pode realizar. São funções que manipulam os dados (atributos) do objeto.</p>
+    <div class="two-col" style="margin-top:16px;">
+      <div class="card">
+        <div class="card-title yellow">Paciente · Hospital</div>
+        <ul class="bullet-list"><li>marcar_consulta</li><li>cancelar_consulta</li><li>atualizar_telefone</li><li>renovar_convenio</li></ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <div class="card-title green">Pedido · Delivery</div>
+          <ul class="bullet-list"><li>calcular_tempo_entrega</li><li>atualizar_status</li><li>cancelar_pedido</li><li>calcular_taxa_entrega</li></ul>
+        </div>
+        <div class="card">
+          <div class="card-title red">Veículo · Frota</div>
+          <ul class="bullet-list"><li>registrar_manutencao</li><li>atualizar_kilometragem</li><li>liberar_para_viagem</li><li>retornar_garagem</li></ul>
+        </div>
+      </div>
+    </div>
+    <div class="analogy-box"><strong>Nota:</strong> Hoje, vamos modelar esses comportamentos em linguagem natural (português). Na <strong>Aula 4 e 5</strong>, vamos transformá-los em código Python real.</div>
+  </div>
+
+  <!-- SLIDE 09 – DIVISOR PARTE 3 -->
+  <div class="slide slide-section" id="s9">
+    <span class="section-number">03</span>
+    <div class="section-part">Parte 3</div>
+    <h2 class="section-heading">Modelagem <span>Prática</span></h2>
+    <p class="section-sub">Como identificar a entidade principal do seu sistema e definir seus atributos e comportamentos com clareza.</p>
+  </div>
+
+  <!-- SLIDE 10 – ENTIDADE PRINCIPAL -->
+  <div class="slide" id="s10">
+    <div class="slide-label">Parte 3 · 3.1</div>
+    <h2 class="slide-title">Escolhendo a <em>Entidade Principal</em></h2>
+    <p class="prose">A entidade principal é o <strong>"personagem" mais importante do negócio do cliente</strong>. Tudo no sistema gira em torno dela.</p>
+    <div class="badge-row" style="margin:18px 0;">
+      <div class="card" style="padding:14px 18px;font-size:clamp(16px,1.5vw,19px);">🏥 Hospital → <strong style="color:var(--accent);">Paciente</strong></div>
+      <div class="card" style="padding:14px 18px;font-size:clamp(16px,1.5vw,19px);">🍔 Delivery → <strong style="color:var(--accent);">Pedido</strong></div>
+      <div class="card" style="padding:14px 18px;font-size:clamp(16px,1.5vw,19px);">🚌 Frota → <strong style="color:var(--accent);">Veículo / Trajeto</strong></div>
+      <div class="card" style="padding:14px 18px;font-size:clamp(16px,1.5vw,19px);">🏫 Escola → <strong style="color:var(--accent);">Aluno / Turma</strong></div>
+    </div>
+    <div class="card" style="max-width:720px;">
+      <div class="card-title blue">Como descobrir qual é a entidade principal?</div>
+      <ul class="bullet-list">
+        <li>"Qual é o 'objeto' que o cliente mais quer <strong>controlar e acompanhar</strong>?"</li>
+        <li>"Se o sistema desaparecesse, qual informação seria a mais valiosa para manter?"</li>
+        <li>"Em que <strong>tabela do banco de dados</strong> essa entidade se transformaria?"</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SLIDE 11 – ATRIBUTOS ESSENCIAIS -->
+  <div class="slide" id="s11">
+    <div class="slide-label">Parte 3 · 3.2</div>
+    <h2 class="slide-title">Identificando <em>Atributos Essenciais</em></h2>
+    <p class="prose">Para a entidade principal do seu sistema, liste os atributos que realmente importam para o cliente.</p>
+    <div class="card" style="max-width:720px;margin:16px 0;">
+      <div class="card-title green">Roteiro</div>
+      <ul class="bullet-list">
+        <li>Pergunte-se: "O que o cliente precisa GUARDAR sobre cada [sua entidade]?"</li>
+        <li>Liste entre 5 e 7 atributos essenciais.</li>
+        <li>Para cada atributo, pense: "Por quê? Para quê? Como o cliente usará essa informação?"</li>
+      </ul>
+    </div>
+    <p style="font-size:clamp(15px,1.4vw,18px);font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Exemplo – Paciente no Hospital</p>
+    <div style="overflow-x:auto;">
+      <table class="styled-table">
+        <thead><tr><th>Atributo</th><th>Por quê?</th></tr></thead>
+        <tbody>
+          <tr><td>nome</td><td>Identificar o paciente</td></tr>
+          <tr><td>cpf</td><td>Registro oficial único</td></tr>
+          <tr><td>idade</td><td>Determinar riscos e tratamentos</td></tr>
+          <tr><td>tem_convenio</td><td>Definir tipo de atendimento e cobrança</td></tr>
+          <tr><td>telefone</td><td>Entrar em contato para consultas</td></tr>
+          <tr><td>data_cadastro</td><td>Controlar quanto tempo é paciente ativo</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SLIDE 12 – COMPORTAMENTOS ESSENCIAIS -->
+  <div class="slide" id="s12">
+    <div class="slide-label">Parte 3 · 3.3</div>
+    <h2 class="slide-title">Identificando <em>Comportamentos Essenciais</em></h2>
+    <p class="prose">Para a mesma entidade, liste os comportamentos (ações) que ela precisa realizar.</p>
+    <div class="card" style="max-width:720px;margin:16px 0;">
+      <div class="card-title green">Roteiro</div>
+      <ul class="bullet-list">
+        <li>Pense: "O que o cliente quer que o sistema FAÇA com cada [sua entidade]?"</li>
+        <li>Liste 5 a 7 comportamentos principais.</li>
+        <li>Use a estrutura: verbo + complemento — ex: marcar_consulta, atualizar_telefone</li>
+      </ul>
+    </div>
+    <p style="font-size:clamp(15px,1.4vw,18px);font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Exemplo – Paciente no Hospital</p>
+    <div style="overflow-x:auto;">
+      <table class="styled-table">
+        <thead><tr><th>Comportamento</th><th>O que faz?</th></tr></thead>
+        <tbody>
+          <tr><td>marcar_consulta</td><td>Agenda uma consulta para o paciente em uma data específica</td></tr>
+          <tr><td>cancelar_consulta</td><td>Remove a consulta da agenda</td></tr>
+          <tr><td>atualizar_telefone</td><td>Atualiza o número de contato para emergências</td></tr>
+          <tr><td>renovar_convenio</td><td>Renova a validade do convênio de saúde</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SLIDE 13 – DIVISOR PARTE 4 -->
+  <div class="slide slide-section" id="s13">
+    <span class="section-number">04</span>
+    <div class="section-part">Parte 4</div>
+    <h2 class="section-heading">Atividade 1: <span>Modelagem de Classe</span></h2>
+    <p class="section-sub">Criar um diagrama simples da entidade principal, documentando atributos e comportamentos.</p>
+  </div>
+
+  <!-- SLIDE 14 – PASSOS 1-2 -->
+  <div class="slide" id="s14">
+    <div class="slide-label">Atividade 1 · Passos 1 e 2</div>
+    <h2 class="slide-title">Escolher a entidade e <em>desenhar a estrutura</em></h2>
+    <div class="two-col" style="margin-top:14px;align-items:start;">
+      <div>
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-body">
+            <div class="step-title">Escolher a entidade principal</div>
+            <div class="step-desc">Em grupo, respondam: "Qual é o 'personagem' mais importante do sistema que estamos construindo?" Vejam os exemplos anteriores se estiverem em dúvida.</div>
+          </div>
+        </div>
+        <div class="step-card" style="margin-top:10px;">
+          <div class="step-number">2</div>
+          <div class="step-body">
+            <div class="step-title">Desenhar a estrutura</div>
+            <div class="step-desc">Desenhem um retângulo com três seções: Nome da Classe, Atributos e Comportamentos — como o modelo ao lado.</div>
+          </div>
+        </div>
+      </div>
+      <div class="class-diagram">
+        <div class="cd-header">NOME DA CLASSE</div>
+        <div class="cd-section">
+          <div class="cd-section-label">Atributos (O que TEM)</div>
+          <div class="cd-item">atributo_1</div>
+          <div class="cd-item">atributo_2</div>
+          <div class="cd-item">atributo_3</div>
+          <div class="cd-item">atributo_4</div>
+          <div class="cd-item">atributo_5</div>
+        </div>
+        <div class="cd-section">
+          <div class="cd-section-label">Comportamentos (O que FAZ)</div>
+          <div class="cd-item">acao_1</div>
+          <div class="cd-item">acao_2</div>
+          <div class="cd-item">acao_3</div>
+          <div class="cd-item">acao_4</div>
+          <div class="cd-item">acao_5</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15 – PASSOS 3-4 -->
+  <div class="slide" id="s15">
+    <div class="slide-label">Atividade 1 · Passos 3 e 4</div>
+    <h2 class="slide-title">Nome da classe e <em>listagem de atributos</em></h2>
+    <div class="two-col" style="margin-top:14px;align-items:start;">
+      <div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-body">
+            <div class="step-title">Nome da classe em CamelCase</div>
+            <div class="step-desc">Primeira letra maiúscula em cada palavra, sem espaços.</div>
+          </div>
+        </div>
+        <p style="font-weight:700;color:var(--accent2);font-size:clamp(15px,1.4vw,18px);margin:12px 0 6px;">✅ Exemplos bons:</p>
+        <div class="badge-row">
+          <span class="badge good">PacienteHospital</span>
+          <span class="badge good">PedidoEntrega</span>
+          <span class="badge good">VeiculoFrota</span>
+          <span class="badge good">AlunoEscola</span>
+        </div>
+        <p style="font-weight:700;color:var(--accent3);font-size:clamp(15px,1.4vw,18px);margin:12px 0 6px;">❌ Exemplos ruins:</p>
+        <div class="badge-row">
+          <span class="badge bad">paciente</span>
+          <span class="badge bad">p</span>
+          <span class="badge bad">obj123</span>
+        </div>
+      </div>
+      <div>
+        <div class="step-card">
+          <div class="step-number">4</div>
+          <div class="step-body">
+            <div class="step-title">Atributos em snake_case</div>
+            <div class="step-desc">Letras minúsculas com underscore. Exemplo – Paciente Hospital:</div>
+          </div>
+        </div>
+        <div class="code-block" style="margin-top:10px;">
+• nome_completo<br>• cpf<br>• idade<br>• tem_convenio<br>• telefone_contato<br>• data_cadastro
+        </div>
+        <div class="analogy-box" style="margin-top:10px;"><strong>Dica:</strong> O atributo é o "espaço" para guardar a informação, não o valor específico.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16 – PASSOS 5-6 -->
+  <div class="slide" id="s16">
+    <div class="slide-label">Atividade 1 · Passos 5 e 6</div>
+    <h2 class="slide-title">Comportamentos e <em>revisão final</em></h2>
+    <div class="two-col" style="margin-top:14px;align-items:start;">
+      <div>
+        <div class="step-card">
+          <div class="step-number">5</div>
+          <div class="step-body">
+            <div class="step-title">Comportamentos em snake_case</div>
+            <div class="step-desc">Verbo no infinitivo. Exemplo – Paciente Hospital:</div>
+          </div>
+        </div>
+        <div class="code-block" style="margin-top:10px;">
+• marcar_consulta<br>• cancelar_consulta<br>• atualizar_telefone<br>• renovar_convenio
+        </div>
+      </div>
+      <div>
+        <div class="step-card">
+          <div class="step-number">6</div>
+          <div class="step-body">
+            <div class="step-title">Revisar e validar</div>
+            <div class="step-desc">Antes de terminar, pergunte-se:</div>
+          </div>
+        </div>
+        <ul class="bullet-list" style="margin-top:12px;">
+          <li>Cada atributo é realmente necessário para o cliente?</li>
+          <li>Algum atributo importante está faltando?</li>
+          <li>Cada comportamento descreve uma ação real que o sistema vai fazer?</li>
+          <li>O nome da classe descreve bem o que ela representa?</li>
+        </ul>
+        <div class="analogy-box" style="margin-top:14px;"><strong>Entregável:</strong> Um diagrama de classe simples preenchido. Guarde esse arquivo — você vai precisar na Aula 4 e 5!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17 – DIVISOR PARTE 5 -->
+  <div class="slide slide-section" id="s17">
+    <span class="section-number">05</span>
+    <div class="section-part">Parte 5</div>
+    <h2 class="section-heading">Atividade 2: <span>Criando a Classe no Python</span></h2>
+    <p class="section-sub">Transformar o diagrama do papel em código Python real no repositório Git.</p>
+  </div>
+
+  <!-- SLIDE 18 – PREPARAÇÃO -->
+  <div class="slide" id="s18">
+    <div class="slide-label">Atividade 2 · 5.2</div>
+    <h2 class="slide-title"><em>Preparação</em> do Repositório</h2>
+    <p class="prose">Abra o repositório do seu projeto (já criado nas aulas anteriores) e verifique a estrutura:</p>
+    <div class="code-block" style="margin:18px 0;max-width:460px;">
+seu_projeto/<br>
+├── .git/<br>
+├── main.py<br>
+├── <span class="cls">modelos.py</span>   ← criar se não existir<br>
+└── README.md
+    </div>
+    <div class="step-card" style="max-width:640px;">
+      <div class="step-number">!</div>
+      <div class="step-body">
+        <div class="step-title">Se modelos.py não existir</div>
+        <div class="step-desc">Crie-o agora: <strong>Arquivo → Novo Arquivo → Salvar Como → modelos.py</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 19 – CABEÇALHO DO ARQUIVO -->
+  <div class="slide" id="s19">
+    <div class="slide-label">Atividade 2 · Passo 2</div>
+    <h2 class="slide-title">Escrever o <em>cabeçalho do arquivo</em></h2>
+    <p class="prose">No topo do arquivo <code style="background:var(--code-bg);padding:2px 8px;border-radius:4px;">modelos.py</code>, adicione:</p>
+    <div class="code-block" style="margin-top:18px;max-width:760px;">
+<span class="str">"""</span><br>
+<span class="str">Módulo modelos.py - Definição das classes do sistema.</span><br><br>
+<span class="str">Este módulo contém a modelagem das entidades principais do projeto.</span><br>
+<span class="str">Cada classe representa um tipo de objeto que o sistema precisa gerenciar.</span><br><br>
+<span class="str">Criado em: 19/02/2026</span><br>
+<span class="str">Autor: [Seu Nome/Nome do Grupo]</span><br>
+<span class="str">Última atualização: 19/02/2026</span><br>
+<span class="str">"""</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 20 – EXEMPLOS DE CLASSES -->
+  <div class="slide" id="s20">
+    <div class="slide-label">Atividade 2 · Passo 3</div>
+    <h2 class="slide-title">Criar a <em>classe principal</em></h2>
+    <p class="prose" style="margin-bottom:14px;">Logo após o cabeçalho, escreva a classe com docstring explicando seu propósito.</p>
+    <div class="two-col">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <p style="font-size:clamp(15px,1.4vw,18px);font-weight:700;color:var(--accent);margin-bottom:8px;">Hospital</p>
+          <div class="code-block"><span class="kw">class</span> <span class="cls">PacienteHospital</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"""</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">Representa um paciente</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">atendido pelo hospital.</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">Contém informações básicas</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">de identificação, contato</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">e status de convênio.</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"""</span></div>
+        </div>
+        <div>
+          <p style="font-size:clamp(15px,1.4vw,18px);font-weight:700;color:var(--accent);margin-bottom:8px;">Delivery</p>
+          <div class="code-block"><span class="kw">class</span> <span class="cls">PedidoEntrega</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"""</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">Representa um pedido de</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">entrega de comida. Armazena</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">informações sobre o cliente,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">endereço e status da entrega.</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"""</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <p style="font-size:clamp(15px,1.4vw,18px);font-weight:700;color:var(--accent);margin-bottom:8px;">Frota de Transporte</p>
+          <div class="code-block"><span class="kw">class</span> <span class="cls">VeiculoFrota</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"""</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">Representa um veículo</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">pertencente à frota de</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">transporte. Contém dados</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">de identificação (placa,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">modelo) e status de</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">manutenção do veículo.</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"""</span></div>
+        </div>
+        <div class="analogy-box"><strong>Dicas:</strong><br>• Use <strong>CamelCase</strong> no nome da classe<br>• Docstring pode ter múltiplas linhas<br>• Hoje, a classe fica vazia — sem atributos nem métodos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 21 – GIT -->
+  <div class="slide" id="s21">
+    <div class="slide-label">Atividade 2 · Passos 4, 5 e 6</div>
+    <h2 class="slide-title">Salvar e fazer <em>commit no Git</em></h2>
+    <div class="two-col" style="margin-top:14px;align-items:start;">
+      <div>
+        <p class="prose" style="margin-bottom:12px;">No terminal (dentro da pasta do projeto), execute:</p>
+        <div class="code-block">
+<span class="cmt"># Ver o status dos arquivos</span><br>
+git status<br><br>
+<span class="cmt"># Adicionar o arquivo</span><br>
+git add modelos.py<br><br>
+<span class="cmt"># Criar um commit com mensagem clara</span><br>
+git commit -m <span class="str">"Aula 3: Criar classe principal"</span><br><br>
+<span class="cmt"># Verificar que funcionou</span><br>
+git log --oneline
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <div class="card-title green">✅ Mensagens boas</div>
+          <div class="code-block" style="margin-top:8px;"><span class="str">"Aula 3: Criar classe PacienteHospital com docstring"</span><br><span class="str">"Aula 3: Adicionar classe PedidoEntrega ao modelos.py"</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title red">❌ Mensagens ruins</div>
+          <div class="code-block" style="margin-top:8px;"><span style="text-decoration:line-through;color:var(--accent3);">"alteracao"</span><br><span style="text-decoration:line-through;color:var(--accent3);">"asdadasd"</span></div>
+        </div>
+        <div class="analogy-box"><strong>Saída esperada de git log --oneline:</strong><br><code>a1b2c3d</code> Aula 3: Criar classe PacienteHospital<br><code>x9y8z7w</code> Aula 2: Adicionar variáveis de tipo<br><code>k5l4m3n</code> Aula 1: Hello World da Empresa</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 22 – ENTREGÁVEL ATIVIDADE 2 -->
+  <div class="slide" id="s22">
+    <div class="slide-label">Atividade 2 · 5.4</div>
+    <h2 class="slide-title">Entregável da <em>Atividade 2</em></h2>
+    <p class="prose" style="margin-bottom:22px;">Ao final dessa atividade, você deve ter:</p>
+    <div class="checklist" style="max-width:680px;">
+      <div class="check-item"><div class="check-box"></div><span>Arquivo <strong>modelos.py</strong> criado no repositório.</span></div>
+      <div class="check-item"><div class="check-box"></div><span>Classe principal do seu sistema <strong>definida</strong>.</span></div>
+      <div class="check-item"><div class="check-box"></div><span><strong>Docstring</strong> completa e clara descrevendo o propósito da classe.</span></div>
+      <div class="check-item"><div class="check-box"></div><span>Commit registrado no Git com <strong>mensagem descritiva</strong>.</span></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 23 – DIVISOR PARTE 6 -->
+  <div class="slide slide-section" id="s23">
+    <span class="section-number">06</span>
+    <div class="section-part">Parte 6</div>
+    <h2 class="section-heading">Revisão e <span>Síntese</span></h2>
+    <p class="section-sub">Consolidando tudo que foi aprendido hoje e conectando ao projeto final.</p>
+  </div>
+
+  <!-- SLIDE 24 – REVISÃO -->
+  <div class="slide" id="s24">
+    <div class="slide-label">Parte 6 · 6.1</div>
+    <h2 class="slide-title">O que você <em>aprendeu hoje</em>?</h2>
+    <div style="overflow-x:auto;">
+      <table class="styled-table" style="margin-top:12px;">
+        <thead><tr><th>Conceito</th><th>Definição</th><th>Exemplo</th></tr></thead>
+        <tbody>
+          <tr><td>Classe</td><td>Molde que define como objetos de um tipo são estruturados</td><td>Classe Paciente</td></tr>
+          <tr><td>Objeto</td><td>Instância concreta criada a partir de uma classe</td><td>Paciente João</td></tr>
+          <tr><td>Atributo</td><td>Dado/propriedade que o objeto tem</td><td>nome, idade, cpf</td></tr>
+          <tr><td>Comportamento</td><td>Ação que o objeto pode executar</td><td>marcar_consulta, atualizar_telefone</td></tr>
+          <tr><td>POO</td><td>Paradigma que organiza código em torno de classes e objetos</td><td>Estrutura do projeto inteiro</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SLIDE 25 – ROADMAP -->
+  <div class="slide" id="s25">
+    <div class="slide-label">Parte 6 · 6.2</div>
+    <h2 class="slide-title">Como isso se <em>conecta ao projeto final</em>?</h2>
+    <div style="margin-top:18px;display:flex;flex-direction:column;gap:8px;max-width:720px;">
+      <div class="rm-item active">📍 Aula 3 (Hoje) — Modelamos a entidade principal</div>
+      <div style="padding-left:22px;color:var(--border);font-size:22px;">↓</div>
+      <div class="rm-item">Aula 4 — Adicionamos ATRIBUTOS (dados) à classe com __init__</div>
+      <div style="padding-left:22px;color:var(--border);font-size:22px;">↓</div>
+      <div class="rm-item">Aula 5 — Adicionamos MÉTODOS (comportamentos) à classe</div>
+      <div style="padding-left:22px;color:var(--border);font-size:22px;">↓</div>
+      <div class="rm-item">Aula 7 — Criamos COLEÇÕES (listas) de objetos</div>
+      <div style="padding-left:22px;color:var(--border);font-size:22px;">↓</div>
+      <div class="rm-item">Bloco 3 — BANCO DE DADOS recebe esses objetos</div>
+      <div style="padding-left:22px;color:var(--border);font-size:22px;">↓</div>
+      <div class="rm-item">Bloco 4 — INTERFACE WEB exibe esses objetos</div>
+      <div style="padding-left:22px;color:var(--border);font-size:22px;">↓</div>
+      <div class="rm-item done">🏁 Final — APLICAÇÃO COMPLETA funcionando!</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 26 – DIVISOR PARTE 7 -->
+  <div class="slide slide-section" id="s26">
+    <span class="section-number">07</span>
+    <div class="section-part">Parte 7</div>
+    <h2 class="section-heading">Tarefa de <span>Casa</span></h2>
+    <p class="section-sub">Reflexão, revisão do código e preparação para a próxima aula.</p>
+  </div>
+
+  <!-- SLIDE 27 – TAREFA DE CASA -->
+  <div class="slide" id="s27">
+    <div class="slide-label">Parte 7 · 7.1 / 7.2 / 7.3</div>
+    <h2 class="slide-title"><em>Reflexão, revisão</em> e preparação</h2>
+    <div class="two-col" style="margin-top:14px;align-items:start;">
+      <div class="card">
+        <div class="card-title yellow">7.1 · Reflexão Escrita (Opcional)</div>
+        <ul class="bullet-list" style="margin-top:10px;">
+          <li>"Qual é a entidade principal que escolhi?"</li>
+          <li>"Quais são os 5 atributos mais importantes dela?"</li>
+          <li>"Quais são os 3 comportamentos mais importantes que o cliente espera?"</li>
+          <li>"Há algo que faltou ser capturado no diagrama de hoje?"</li>
+        </ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <div class="card-title green">7.2 · Revisão do Código</div>
+          <ul class="bullet-list" style="margin-top:10px;">
+            <li>Verifique o arquivo <strong>modelos.py</strong> que criou.</li>
+            <li>Certifique-se de que o nome da classe descreve bem o que ela faz.</li>
+            <li>Veja se a docstring está clara e coerente.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title red">7.3 · Preparação para Aula 4</div>
+          <p style="font-size:clamp(16px,1.5vw,19px);color:var(--muted);margin-top:8px;line-height:1.6;">Na <strong>Aula 4 (Atributos e Estado)</strong>, você vai:</p>
+          <ul class="bullet-list" style="margin-top:8px;">
+            <li>Adicionar os atributos da classe usando <strong>__init__</strong> (construtor).</li>
+            <li>Criar instâncias reais de objetos.</li>
+            <li>Imprimir os dados desses objetos.</li>
+          </ul>
+          <div class="analogy-box" style="margin-top:10px;"><strong>Traga o diagrama que fez hoje!</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 28 – CHECKLIST FINAL -->
+  <div class="slide" id="s28">
+    <div class="slide-label">Parte 8</div>
+    <h2 class="slide-title">Checklist Final — <em>Você completou tudo?</em></h2>
+    <div class="two-col" style="margin-top:14px;align-items:start;">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <div class="card-title yellow">Atividade 1 – Modelagem de Classes</div>
+          <div class="checklist" style="margin-top:10px;">
+            <div class="check-item"><div class="check-box"></div><span>Escolhemos a entidade principal do sistema.</span></div>
+            <div class="check-item"><div class="check-box"></div><span>Desenhamos um diagrama com nome, atributos e comportamentos.</span></div>
+            <div class="check-item"><div class="check-box"></div><span>Validamos que os atributos fazem sentido para o cliente.</span></div>
+            <div class="check-item"><div class="check-box"></div><span>Temos uma foto ou arquivo digital do diagrama.</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title green">Atividade 2 – Código Python</div>
+          <div class="checklist" style="margin-top:10px;">
+            <div class="check-item"><div class="check-box"></div><span>Criamos o arquivo <strong>modelos.py</strong> no repositório.</span></div>
+            <div class="check-item"><div class="check-box"></div><span>Definimos a classe principal com nome descritivo em CamelCase.</span></div>
+            <div class="check-item"><div class="check-box"></div><span>Escrevemos uma docstring clara explicando o propósito da classe.</span></div>
+            <div class="check-item"><div class="check-box"></div><span>Fizemos um commit no Git com mensagem descritiva.</span></div>
+            <div class="check-item"><div class="check-box"></div><span>Verificamos no <strong>git log</strong> que o commit foi registrado.</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title red">Compreensão Conceitual</div>
+        <div class="checklist" style="margin-top:10px;">
+          <div class="check-item"><div class="check-box"></div><span>Entendo a diferença entre <strong>Classe e Objeto</strong>.</span></div>
+          <div class="check-item"><div class="check-box"></div><span>Consigo distinguir <strong>Atributos de Comportamentos</strong>.</span></div>
+          <div class="check-item"><div class="check-box"></div><span>Sei por que <strong>POO é útil</strong> para este projeto.</span></div>
+          <div class="check-item"><div class="check-box"></div><span>Consigo conectar minha classe ao <strong>diagrama de negócio do cliente</strong>.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 29 – FAQ -->
+  <div class="slide" id="s29">
+    <div class="slide-label">Parte 9</div>
+    <h2 class="slide-title">Dúvidas <em>Frequentes</em></h2>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px;max-width:860px;">
+      <div class="faq-item">
+        <div class="faq-q">P: Posso ter mais de uma entidade principal?</div>
+        <div class="faq-a">Não, cada grupo deve escolher UMA entidade principal para começar. As outras virão depois (Pedido pode ter Cliente, Veículo pode ter Motorista). Mas a entidade principal é aquela que tudo gira em torno.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">P: Quantos atributos a classe deve ter?</div>
+        <div class="faq-a">Entre 4 e 7 atributos essenciais. Se tiver menos, está incompleto. Se tiver mais de 10, você pode estar misturando conceitos.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">P: Preciso escrever o código da docstring exatamente como nos exemplos?</div>
+        <div class="faq-a">Não! Os exemplos são modelos. Adapte para seu contexto e cliente real. Seja criativo e sincero sobre o que a classe faz.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">P: E se eu não souber que comportamentos a classe deve ter?</div>
+        <div class="faq-a">Pense no fluxo real. Se é um paciente, ele pode marcar e cancelar consultas. Se é um pedido, pode ser cancelado ou rastreado. Comece simples; você pode adicionar mais na Aula 5.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">P: O arquivo modelos.py fica para sempre ou é descartado depois?</div>
+        <div class="faq-a">Fica para sempre! Você vai expandir esse arquivo nas próximas aulas. Hoje é só o começo.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">P: O que fazer se o Git estiver dando erro?</div>
+        <div class="faq-a">Chame o docente. Pode ser configuração ou repositório não inicializado. Melhor resolver agora do que arrastar para as próximas aulas.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 30 – REFERÊNCIAS -->
+  <div class="slide" id="s30">
+    <div class="slide-label">Parte 10</div>
+    <h2 class="slide-title">Referências e <em>Recursos</em></h2>
+    <div style="max-width:760px;margin-top:18px;display:flex;flex-direction:column;gap:18px;">
+      <div class="card">
+        <div class="card-title yellow">Leitura Complementar</div>
+        <ul class="bullet-list" style="margin-top:10px;">
+          <li>De Negreiros, N.N.C. (2014). <em>Introdução à Programação com Python</em>. Novatec. — Capítulo 4: Introdução a Classes e Objetos.</li>
+          <li>PYTHON (2024). Official Python Documentation – Classes.<br><code style="background:var(--code-bg);padding:2px 8px;border-radius:4px;font-size:clamp(14px,1.3vw,16px);">https://docs.python.org/3/tutorial/classes.html</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title green">Próximas Aulas</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+          <div class="rm-item">📅 Aula 4 — 24/02/2026 — Atributos e Estado: Usando __init__ e self</div>
+          <div class="rm-item">📅 Aula 5 — 26/02/2026 — Métodos e Comportamento: Criando ações reais</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 31 – CONCLUSÃO -->
+  <div class="slide slide-hero" id="s31">
+    <div class="hero-kicker">Aula 3 concluída</div>
+    <h1 class="hero-title">Parabéns! <span>Bom trabalho!</span></h1>
+    <p class="hero-subtitle">Você completou a Aula 3 e deu um passo essencial para transformar a ideia do cliente em código organizado.</p>
+    <div class="analogy-box" style="max-width:680px;margin-bottom:20px;">
+      A classe que você criou hoje é o <strong>coração do seu sistema</strong>. Nas próximas aulas, você vai dar vida a ela com dados e comportamentos. E no final, será a base de um aplicativo completo que funciona de verdade.<br><br>
+      <strong>Lembre-se: Código de qualidade começa com uma boa modelagem. Você já fez isso hoje.</strong>
+    </div>
+  </div>
+
+</div><!-- end #deck -->
+
+<div id="progress-bar"></div>
+
+<div id="nav">
+  <span id="slide-counter">01 / 31</span>
+  <button class="nav-btn" id="btn-prev" title="Anterior (←)">&#8592;</button>
+  <button class="nav-btn" id="btn-next" title="Próximo (→)">&#8594;</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  let transitioning = false;
+
+  const counter = document.getElementById('slide-counter');
+  const bar = document.getElementById('progress-bar');
+
+  function pad(n) { return String(n).padStart(2,'0'); }
+
+  function goTo(next) {
+    if (transitioning || next === current || next < 0 || next >= total) return;
+    transitioning = true;
+    const prev = current;
+    slides[prev].classList.add('exit');
+    slides[prev].classList.remove('active');
+    current = next;
+    slides[current].classList.add('active');
+    slides[current].scrollTop = 0;
+    counter.textContent = `${pad(current+1)} / ${pad(total)}`;
+    bar.style.width = `${((current+1)/total)*100}%`;
+    setTimeout(() => { slides[prev].classList.remove('exit'); transitioning = false; }, 440);
+  }
+
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current+1));
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current-1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current+1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current-1); }
+  });
+
+  let touchStart = null;
+  document.addEventListener('touchstart', (e) => { touchStart = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    if (touchStart === null) return;
+    const dx = e.changedTouches[0].clientX - touchStart;
+    if (Math.abs(dx) > 50) goTo(dx < 0 ? current+1 : current-1);
+    touchStart = null;
+  });
+
+  bar.style.width = `${(1/total)*100}%`;
+  slides[0].scrollTop = 0;
+</script>
+</body>
+</html>

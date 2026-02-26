@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 04 — Fundamentos de Python</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --surface2: #f0f2f7;
+    --accent: #1a56db;
+    --accent2: #0e7a5c;
+    --accent3: #c0392b;
+    --accent4: #b45309;
+    --text: #111827;
+    --muted: #374151;
+    --border: #d1d5db;
+    --code-bg: #1e2330;
+    --code-border: #2e3a50;
+    --highlight: rgba(26,86,219,0.07);
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+    --font-body: 'Inter', system-ui, sans-serif;
+
+    --text-xs:   clamp(11px, 1.3vw, 13px);
+    --text-sm:   clamp(13px, 1.6vw, 15px);
+    --text-base: clamp(14px, 1.8vw, 17px);
+    --text-md:   clamp(15px, 2vw,   19px);
+    --text-lg:   clamp(17px, 2.3vw, 21px);
+    --text-xl:   clamp(20px, 3vw,   28px);
+    --text-2xl:  clamp(24px, 4vw,   38px);
+    --text-3xl:  clamp(28px, 5vw,   50px);
+    --text-hero: clamp(36px, 7vw,   72px);
+    --text-section-num: clamp(80px, 16vw, 160px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  #deck { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: clamp(24px, 4vw, 60px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .slide.active { opacity: 1; pointer-events: all; }
+
+  .content-box {
+    width: 100%;
+    max-width: 1000px;
+    padding: clamp(16px, 2.5vw, 36px);
+  }
+
+  .slide-label {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .slide-title {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    color: var(--text);
+    text-align: center;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 14px;
+  }
+  .slide-title em { color: var(--accent); font-style: normal; }
+
+  .slide-hero {
+    background: linear-gradient(135deg, #eef2ff 0%, #f0f7ff 100%);
+    justify-content: center;
+  }
+  .slide-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(26,86,219,0.07) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-kicker {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    text-align: center;
+    font-family: var(--font-mono);
+  }
+  .hero-title {
+    font-size: var(--text-hero);
+    font-weight: 700;
+    line-height: 1.05;
+    margin-bottom: 16px;
+    text-align: center;
+    color: var(--text);
+  }
+  .hero-title span { color: var(--accent); }
+  .hero-subtitle {
+    font-size: var(--text-md);
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 28px;
+    text-align: center;
+    max-width: 720px;
+  }
+
+  .hero-objectives { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+  .hero-obj-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: var(--text-base);
+    line-height: 1.55;
+    color: var(--text);
+  }
+  .hero-obj-item .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .slide-section {
+    background: linear-gradient(135deg, #e8eef8 0%, #edf4ff 100%);
+    justify-content: center;
+    text-align: center;
+  }
+  .slide-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(26,86,219,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .section-number {
+    font-size: var(--text-section-num);
+    font-weight: 700;
+    color: rgba(26,86,219,0.08);
+    line-height: 1;
+    margin-bottom: -10px;
+    font-family: var(--font-mono);
+  }
+  .section-part {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-family: var(--font-mono);
+  }
+  .section-heading {
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text);
+  }
+  .section-heading span { color: var(--accent); }
+  .section-sub {
+    font-size: var(--text-md);
+    color: var(--muted);
+    margin-top: 18px;
+    max-width: 600px;
+    line-height: 1.6;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .prose {
+    font-size: var(--text-base);
+    line-height: 1.7;
+    color: var(--muted);
+    margin: 12px 0;
+  }
+  .prose strong { color: var(--text); font-weight: 600; }
+  .prose em { color: var(--accent); font-weight: 600; font-style: normal; }
+
+  .analogy-box {
+    border-left: 3px solid var(--accent);
+    background: var(--highlight);
+    border-radius: 0 8px 8px 0;
+    padding: clamp(14px, 2vw, 20px);
+    margin: 14px 0;
+    font-size: var(--text-base);
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .analogy-box strong { color: var(--accent); }
+
+  .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+  .bullet-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: var(--text-base);
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .bullet-list li::before {
+    content: '▸';
+    color: var(--accent);
+    font-size: 13px;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+  .bullet-list li strong { color: var(--text); font-weight: 600; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(14px, 2vw, 22px);
+    margin: 12px 0;
+  }
+  .card-title {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-family: var(--font-mono);
+  }
+  .card-title.yellow { color: var(--accent4); }
+  .card-title.green  { color: var(--accent2); }
+  .card-title.red    { color: var(--accent3); }
+  .card-title.blue   { color: var(--accent); }
+
+  .styled-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); margin: 16px 0; }
+  .styled-table thead tr { background: rgba(26,86,219,0.08); }
+  .styled-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: var(--text-sm);
+    border-bottom: 1px solid var(--border);
+  }
+  .styled-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+    font-size: var(--text-sm);
+  }
+  .styled-table tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+
+  .terminal {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 14px 0;
+    font-family: var(--font-mono);
+  }
+  .terminal-bar {
+    background: #161b28;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--code-border);
+  }
+  .terminal-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .terminal-dot.red    { background: #ff5f57; }
+  .terminal-dot.yellow { background: #febc2e; }
+  .terminal-dot.green  { background: #28c840; }
+  .terminal-title {
+    font-size: var(--text-xs);
+    color: #4a5568;
+    margin-left: auto;
+    font-family: var(--font-mono);
+  }
+  .terminal-body {
+    padding: clamp(14px, 2vw, 20px);
+    font-size: clamp(12px, 1.5vw, 15px);
+    line-height: 1.75;
+    overflow-x: auto;
+    white-space: pre;
+    color: #c9d1d9;
+  }
+
+  .kw  { color: #ff7ab2; font-weight: 700; }
+  .cls { color: #4fc1ff; font-weight: 700; }
+  .fn  { color: #dcdcaa; }
+  .str { color: #3ecf8e; }
+  .num { color: #b5cea8; }
+  .cmt { color: #6a9955; font-style: italic; }
+  .var { color: #c9d1d9; }
+  .dec { color: #c792ea; }
+  .ps1 { color: #3ecf8e; user-select: none; }
+  .ps2 { color: #4f8ef7; user-select: none; }
+  .out { color: #8b8fa8; }
+  .err { color: #f97070; }
+
+  .algo-block {
+    background: #f5f7fa;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent4);
+    border-radius: 0 8px 8px 0;
+    padding: clamp(14px, 2vw, 20px);
+    font-family: var(--font-mono);
+    font-size: clamp(12px, 1.5vw, 15px);
+    line-height: 1.8;
+    margin: 14px 0;
+    white-space: pre;
+    color: var(--text);
+    overflow-x: auto;
+  }
+
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; justify-content: center; }
+  .badge {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .badge.good { border-color: var(--accent2); color: var(--accent2); background: #f0fdf4; }
+  .badge.bad  { border-color: var(--accent3); color: var(--accent3); background: #fef2f2; text-decoration: line-through; }
+
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(12px, 2vw, 20px);
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin: 10px 0;
+  }
+  .step-number {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+  }
+  .step-number.hash { font-size: 18px; }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 700; font-size: var(--text-base); color: var(--text); margin-bottom: 4px; }
+  .step-desc  { font-size: var(--text-sm); color: var(--muted); line-height: 1.6; }
+
+  .checklist { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+  .check-item { display: flex; align-items: flex-start; gap: 12px; font-size: var(--text-base); line-height: 1.5; color: var(--muted); }
+  .check-box {
+    width: 20px; height: 20px;
+    border: 2px solid var(--accent);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .check-box svg { width: 12px; height: 12px; }
+
+  .rm-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-size: var(--text-base);
+    margin: 7px 0;
+    color: var(--muted);
+  }
+  .rm-item.active { background: var(--highlight); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .rm-item.done   { background: #f0fdf4; border-color: var(--accent2); color: var(--accent2); font-weight: 600; }
+
+  #progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); transition: width 0.4s ease; z-index: 100; }
+  #nav { position: fixed; bottom: 20px; right: 24px; display: flex; align-items: center; gap: 10px; z-index: 100; }
+  #slide-counter { font-size: var(--text-sm); color: var(--muted); font-weight: 700; font-family: var(--font-mono); }
+  .nav-btn {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .nav-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+  @media (max-width: 700px) {
+    .two-col { grid-template-columns: 1fr; }
+    .slide { padding: 16px; }
+    .content-box { padding: 12px; }
+  }
+
+  .chip {
+    font-family: var(--font-mono);
+    background: #eef2ff;
+    color: var(--accent);
+    border: 1px solid #c7d4f5;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<div class="slide slide-hero active">
+  <div class="hero-kicker">// Aula 04 — Fundamentos de Python</div>
+  <h1 class="hero-title">Programação em <span>Python</span></h1>
+  <h2 class="hero-title" style="font-size: var(--text-xl); font-weight: 500; color: var(--muted); margin-bottom: 24px;">Estruturada e Orientada a Objetos</h2>
+  <p class="hero-subtitle">Uma jornada progressiva pelos fundamentos do desenvolvimento de software com Python — da lógica básica até os quatro pilares da POO.</p>
+</div>
+
+<div class="slide slide-hero">
+  <div class="content-box" style="max-width: 820px;">
+    <div class="card-title blue" style="font-size: var(--text-sm); margin-bottom: 18px; text-align: center;">O que você vai aprender nesta aula</div>
+    <div class="hero-objectives">
+      <div class="hero-obj-item"><div class="dot"></div><div><strong>Introdução ao Python</strong> — história, características e o sistema híbrido de execução (Compilador + PVM).</div></div>
+      <div class="hero-obj-item"><div class="dot"></div><div><strong>Fundamentos</strong> — variáveis, tipos de dados, operadores lógicos/matemáticos e entrada/saída.</div></div>
+      <div class="hero-obj-item"><div class="dot"></div><div><strong>Programação Estruturada</strong> — Sequência, Seleção e Iteração: os três pilares que acabaram com o código macarrônico.</div></div>
+      <div class="hero-obj-item"><div class="dot"></div><div><strong>Orientação a Objetos (POO)</strong> — Encapsulamento, Herança, Polimorfismo e Abstração com exemplos práticos.</div></div>
+      <div class="hero-obj-item"><div class="dot"></div><div><strong>Comparativo de Paradigmas</strong> — diferenças definitivas de foco e estrutura entre os dois paradigmas.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide slide-section">
+  <div class="section-number">01</div>
+  <div class="section-part">Parte 01</div>
+  <h2 class="section-heading">Introdução à <span>Linguagem Python</span></h2>
+  <p class="section-sub">A história, as características e o funcionamento do sistema de execução híbrido.</p>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Fundamentos Iniciais</div>
+    <h2 class="slide-title">A Arte da <em>Programação</em></h2>
+    <p class="prose">Um programa de computador é um conjunto de instruções que orienta o hardware sobre o que deve ser feito. Softwares resolvem problemas do mundo real e são escritos em linguagens de programação.</p>
+    <div class="card">
+      <div class="card-title blue">O que é Python?</div>
+      <p class="prose">Python é uma linguagem de alto nível criada no início dos anos 1990 pelo holandês <strong>Guido van Rossum</strong>. É uma das linguagens mais populares do mundo e tem crescimento contínuo em áreas como machine learning, inteligência artificial e ciência de dados.</p>
+      <p class="prose">Em 2020, a IEEE Computer Society a classificou como a <strong>linguagem mais indicada para aprender</strong> devido à sua eficiência e versatilidade.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Contexto Histórico</div>
+    <h2 class="slide-title">Curiosidade <em>Histórica</em></h2>
+    <div class="analogy-box">
+      <strong>Sabia que o nome "Python" não tem relação com a cobra?</strong><br>
+      Guido van Rossum batizou a linguagem em homenagem ao grupo de comédia britânico <strong>Monty Python</strong>, do qual era fã!
+    </div>
+    <p class="prose">Ele começou o projeto em <strong>1989</strong> (como hobby nas férias de fim de ano) e lançou oficialmente em <strong>1991</strong>. Hoje, gigantes da tecnologia usam Python como base de seus sistemas:</p>
+    <div class="badge-row">
+      <div class="badge">YouTube</div>
+      <div class="badge">Instagram</div>
+      <div class="badge">Spotify</div>
+      <div class="badge">Netflix</div>
+      <div class="badge">Dropbox</div>
+      <div class="badge">Google</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Visão Geral — 1/2</div>
+    <h2 class="slide-title">Características do <em>Python</em></h2>
+    <ul class="bullet-list">
+      <li><strong>Multiparadigma:</strong> Permite escrever em estilo estruturado, orientado a objetos, funcional e concorrente.</li>
+      <li><strong>Uso Geral:</strong> Aplicável em ciência, comércio, IA, sistemas, web e mobile.</li>
+      <li><strong>Fácil Leitura e Escrita:</strong> Sintaxe limpa e próxima da linguagem natural, aumentando produtividade e confiabilidade.</li>
+      <li><strong>Interativo:</strong> Possui um REPL (Read-Eval-Print Loop) para testar código diretamente no terminal.</li>
+    </ul>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div>
+        <div class="terminal-title">Python 3.12.0 — REPL Interativo</div>
+      </div>
+      <div class="terminal-body"><span class="ps2">&gt;&gt;&gt;</span> <span class="fn">print</span>(<span class="str">"Olá, Mundo!"</span>)
+<span class="out">Olá, Mundo!</span>
+
+<span class="ps2">&gt;&gt;&gt;</span> <span class="num">2</span> + <span class="num">2</span>
+<span class="out">4</span>
+
+<span class="ps2">&gt;&gt;&gt;</span> <span class="fn">type</span>(<span class="str">"Python"</span>)
+<span class="out">&lt;class 'str'&gt;</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Visão Geral — 2/2</div>
+    <h2 class="slide-title">Características do <em>Python</em></h2>
+    <ul class="bullet-list">
+      <li><strong>Portátil:</strong> Roda em Windows, Linux, macOS e Unix sem alterações no código.</li>
+      <li><strong>Extensível:</strong> Permite criar e importar módulos e pacotes, fomentando colaboração e reuso.</li>
+      <li><strong>Comunidade Ativa:</strong> Ecossistema imenso com bibliotecas para quase tudo: <span class="chip">numpy</span>, <span class="chip">pandas</span>, <span class="chip">django</span>, <span class="chip">tensorflow</span>.</li>
+    </ul>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div>
+        <div class="terminal-title">bash — instalando pacotes</div>
+      </div>
+      <div class="terminal-body"><span class="ps1">$</span> pip install numpy pandas
+<span class="out">Collecting numpy
+  Downloading numpy-1.26.4-cp312-cp312-linux_x86_64.whl (17.3 MB)
+Collecting pandas
+  Downloading pandas-2.2.1-cp312-cp312-linux_x86_64.whl (11.5 MB)
+Successfully installed numpy-1.26.4 pandas-2.2.1</span>
+
+<span class="ps1">$</span> python --version
+<span class="out">Python 3.12.0</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Arquitetura de Execução — 1/2</div>
+    <h2 class="slide-title">Como Python <em>Executa</em> seu Código</h2>
+    <p class="prose">Python usa um <strong>sistema híbrido</strong> que combina compilador e interpretador:</p>
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <div class="step-body">
+        <div class="step-title">Código-fonte (.py)</div>
+        <div class="step-desc">Você escreve o código Python legível por humanos em arquivos <span class="chip">.py</span>.</div>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <div class="step-body">
+        <div class="step-title">Compilador → Bytecode (.pyc)</div>
+        <div class="step-desc">O compilador converte o código-fonte em <strong>bytecode</strong> — um código intermediário portátil, não específico para nenhuma plataforma.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Arquitetura de Execução — 2/2</div>
+    <h2 class="slide-title">Como Python <em>Executa</em> seu Código</h2>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <div class="step-body">
+        <div class="step-title">Máquina Virtual Python (PVM)</div>
+        <div class="step-desc">A PVM lê o bytecode e o traduz para o código de máquina do sistema operacional em tempo de execução — tornando o código portátil.</div>
+      </div>
+    </div>
+    <p class="prose" style="text-align: center; margin-top: 20px;">Essa portabilidade permite que o mesmo bytecode rode em qualquer SO com a PVM instalada.</p>
+  </div>
+</div>
+
+<div class="slide slide-section">
+  <div class="section-number">02</div>
+  <div class="section-part">Parte 02</div>
+  <h2 class="section-heading">Fundamentos da <span>Programação em Python</span></h2>
+  <p class="section-sub">Variáveis, tipos de dados, operadores, indentação e entrada/saída.</p>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Dados na Memória</div>
+    <h2 class="slide-title">Variáveis e Tipos <em>Numéricos</em></h2>
+    <p class="prose">Variáveis são "apelidos" para endereços de memória. Python usa <strong>tipagem dinâmica</strong> — o tipo é inferido automaticamente no momento da atribuição.</p>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div>
+        <div class="terminal-title">tipos_numericos.py</div>
+      </div>
+      <div class="terminal-body"><span class="cmt"># int — inteiros (sem limite de tamanho)</span>
+<span class="var">idade</span>       = <span class="num">25</span>
+<span class="var">populacao</span>   = <span class="num">8_100_000_000</span>
+
+<span class="cmt"># float — ponto flutuante</span>
+<span class="var">pi</span>          = <span class="num">3.14159</span>
+<span class="var">temperatura</span> = <span class="num">-3.5</span>
+
+<span class="cmt"># bool — True ou False</span>
+<span class="var">ativo</span>       = <span class="kw">True</span>
+<span class="fn">print</span>(<span class="fn">type</span>(idade))        <span class="cmt"># &lt;class 'int'&gt;</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Coleções e Textos — 1/2</div>
+    <h2 class="slide-title">Tipos <em>Sequenciais</em> (Conceito)</h2>
+    <ul class="bullet-list">
+      <li><strong>str (strings):</strong> Sequências de caracteres, usadas para textos. Imutáveis. Podem ser delimitadas por aspas simples, duplas ou triplas.</li>
+      <li><strong>list (listas):</strong> Sequências mutáveis de itens. Permitem duplicatas e geralmente armazenam itens homogêneos.</li>
+      <li><strong>tuple (tuplas):</strong> Sequências imutáveis. Geralmente armazenam itens heterogêneos e são mais rápidas que listas.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Coleções e Textos — 2/2</div>
+    <h2 class="slide-title">Tipos <em>Sequenciais</em> (Conceito)</h2>
+    <ul class="bullet-list">
+      <li><strong>range:</strong> Representa uma sequência imutável de números. Frequentemente usada para controlar o número de repetições em loops <span class="chip">for</span>.</li>
+      <li><strong>dict (dicionários):</strong> Coleções de pares chave-valor, onde as chaves são definidas pelo usuário e são obrigatoriamente únicas.</li>
+    </ul>
+    <p class="prose" style="margin-top: 15px;">Diferente das sequências, os dicionários não são acessados por índices numéricos, mas sim pelas suas chaves.</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Coleções — Prática</div>
+    <h2 class="slide-title">Tipos <em>Sequenciais</em> — Exemplos</h2>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div>
+        <div class="terminal-title">colecoes.py</div>
+      </div>
+      <div class="terminal-body"><span class="cmt"># list — mutável</span>
+<span class="var">notas</span>  = [<span class="num">9.5</span>, <span class="num">8.0</span>]
+<span class="var">notas</span>.append(<span class="num">10.0</span>)
+
+<span class="cmt"># tuple — imutável</span>
+<span class="var">coords</span> = (<span class="num">-23.5</span>, <span class="num">-46.6</span>)
+
+<span class="cmt"># dict — pares chave: valor</span>
+<span class="var">aluno</span>  = {<span class="str">"nome"</span>: <span class="str">"Ana"</span>, <span class="str">"idade"</span>: <span class="num">20</span>}
+
+<span class="fn">print</span>(<span class="var">aluno</span>[<span class="str">"nome"</span>])      <span class="cmt"># Ana</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Lógica e Cálculo — 1/2</div>
+    <h2 class="slide-title">Operadores do <em>Python</em></h2>
+    <div class="card">
+      <ul class="bullet-list">
+        <li><strong>Aritméticos:</strong> Realizam cálculos matemáticos. Além dos básicos (<span class="chip">+</span>, <span class="chip">-</span>, <span class="chip">*</span>, <span class="chip">/</span>), inclui divisão inteira (<span class="chip">//</span>), resto (<span class="chip">%</span>) e exponenciação (<span class="chip">**</span>).</li>
+        <li><strong>Comparação:</strong> Comparam valores e retornam um booleano (<span class="chip">True</span> ou <span class="chip">False</span>). Exemplos: <span class="chip">==</span>, <span class="chip">!=</span>, <span class="chip">&gt;</span>, <span class="chip">&lt;</span>, <span class="chip">&gt;=</span>, <span class="chip">&lt;=</span>.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Lógica e Cálculo — 2/2</div>
+    <h2 class="slide-title">Operadores do <em>Python</em></h2>
+    <div class="card">
+      <ul class="bullet-list">
+        <li><strong>Lógicos:</strong> Usados para combinar expressões condicionais. <span class="chip">and</span> (E), <span class="chip">or</span> (OU) e <span class="chip">not</span> (NÃO).</li>
+        <li><strong>Atribuição:</strong> Atribuem valores a variáveis. Podem ser combinados com aritméticos (<span class="chip">+=</span>, <span class="chip">-=</span>, <span class="chip">*=</span>) para simplificar atualizações de valores.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Operadores — Prática</div>
+    <h2 class="slide-title">Operadores em <em>Ação</em></h2>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div>
+        <div class="terminal-title">operadores.py</div>
+      </div>
+      <div class="terminal-body"><span class="fn">print</span>(<span class="num">10</span> // <span class="num">3</span>) <span class="cmt"># 3 — parte inteira</span>
+<span class="fn">print</span>(<span class="num">10</span> % <span class="num">3</span>)  <span class="cmt"># 1 — resto</span>
+<span class="fn">print</span>(<span class="num">2</span> ** <span class="num">8</span>)  <span class="cmt"># 256 — potência</span>
+
+<span class="cmt"># Lógica</span>
+<span class="var">autorizado</span> = (<span class="num">18</span> >= <span class="num">18</span>) <span class="kw">and</span> <span class="kw">True</span>
+
+<span class="cmt"># Atribuição</span>
+<span class="var">total</span> = <span class="num">100</span>
+<span class="var">total</span> += <span class="num">50</span>    <span class="cmt"># total agora é 150</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Sintaxe — 1/2</div>
+    <h2 class="slide-title">Indentação e <em>Blocos</em></h2>
+    <div class="card">
+      <div class="card-title yellow">Blocos de Código e Indentação</div>
+      <p class="prose">Diferente de C ou Java que usam chaves <span class="chip">{}</span>, Python usa o <strong>espaçamento</strong> (indentação) para definir blocos de código. Isso obriga o programador a manter o código organizado e legível por padrão.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Interação — 2/2</div>
+    <h2 class="slide-title">Entrada e <em>Saída</em> de Dados</h2>
+    <div class="card">
+      <div class="card-title blue">Input e Output</div>
+      <ul class="bullet-list">
+        <li><span class="chip">input()</span>: Recebe dados do usuário. O retorno é <strong>sempre</strong> uma string.</li>
+        <li><span class="chip">print()</span>: Exibe informações. Pode-se usar f-strings <span class="chip">f"..."</span> para embutir variáveis no texto de forma simples.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Sintaxe e Interação — Prática</div>
+    <h2 class="slide-title">Indentação e <em>E/S</em> — Exemplos</h2>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div>
+        <div class="terminal-title">interacao.py</div>
+      </div>
+      <div class="terminal-body"><span class="var">nome</span>  = <span class="fn">input</span>(<span class="str">"Nome: "</span>)
+<span class="var">idade</span> = <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Idade: "</span>))
+
+<span class="fn">print</span>(<span class="str">f"Olá, {nome}!"</span>)
+
+<span class="kw">if</span> <span class="var">idade</span> >= <span class="num">18</span>:
+    <span class="fn">print</span>(<span class="str">"Acesso liberado."</span>) <span class="cmt"># Bloco indentado</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Organização — 1/2</div>
+    <h2 class="slide-title">Zen do Python e <em>PEP 8</em></h2>
+    <div class="step-card">
+      <div class="step-number hash">#</div>
+      <div class="step-body">
+        <div class="step-title">Cultura Zen de Python (PEP 20)</div>
+        <div class="step-desc">Um conjunto de 19 princípios que guiam o design da linguagem. O mais famoso: <em>"Bonito é melhor que feio. Explícito é melhor que implícito. Simples é melhor que complexo."</em></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Organização — 2/2</div>
+    <h2 class="slide-title">Zen do Python e <em>PEP 8</em></h2>
+    <div class="step-card">
+      <div class="step-number hash">#</div>
+      <div class="step-body">
+        <div class="step-title">Guia de Estilo PEP 8</div>
+        <div class="step-desc">Estabelece as boas práticas oficiais: indentação com 4 espaços, nomes em <span class="chip">snake_case</span>, e espaços ao redor de operadores para melhorar a legibilidade.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide slide-section">
+  <div class="section-number">03</div>
+  <div class="section-part">Parte 03</div>
+  <h2 class="section-heading">Paradigma da <span>Programação Estruturada</span></h2>
+  <p class="section-sub">O fim do código macarrônico através dos três pilares fundamentais.</p>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Histórico e Lógica</div>
+    <h2 class="slide-title">Programação <em>Estruturada</em></h2>
+    <p class="prose">Criado na década de 1950, este paradigma defende que qualquer programa pode ser escrito usando apenas três estruturas de controle:</p>
+    <div class="badge-row">
+      <div class="badge">Sequência</div>
+      <div class="badge">Seleção (Condicional)</div>
+      <div class="badge">Iteração (Repetição)</div>
+    </div>
+    <div class="analogy-box">
+      <strong>Receita de bolo:</strong> O fluxo segue uma ordem clara (ingredientes → mistura → forno). Tudo com um fluxo lógico e previsível.
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Os 3 Pilares — 1/3</div>
+    <h2 class="slide-title">Pilar 1: <em>Sequência</em></h2>
+    <div class="card">
+      <p class="prose">As instruções são executadas <strong>uma após a outra</strong>, na ordem em que aparecem no código. É o fluxo padrão de qualquer programa.</p>
+    </div>
+    <div class="two-col">
+      <div class="algo-block">INÍCIO
+Leia A
+Leia B
+C ← A + B
+Mostre C
+FIM</div>
+      <div class="terminal">
+        <div class="terminal-body"><span class="var">a</span> = <span class="num">5</span>
+<span class="var">b</span> = <span class="num">10</span>
+<span class="var">c</span> = <span class="var">a</span> + <span class="var">b</span>
+<span class="fn">print</span>(<span class="var">c</span>)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Os 3 Pilares — 2/3</div>
+    <h2 class="slide-title">Pilar 2: <em>Seleção</em></h2>
+    <div class="card">
+      <p class="prose">Permite que o programa tome decisões e siga caminhos diferentes com base em condições booleanas (<span class="kw">if</span>, <span class="kw">elif</span>, <span class="kw">else</span>).</p>
+    </div>
+    <div class="terminal">
+      <div class="terminal-body"><span class="kw">if</span> <span class="var">nota</span> >= <span class="num">7</span>:
+    <span class="fn">print</span>(<span class="str">"Aprovado"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"Reprovado"</span>)</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Os 3 Pilares — 3/3</div>
+    <h2 class="slide-title">Pilar 3: <em>Iteração</em></h2>
+    <div class="card">
+      <p class="prose">Permite repetir um bloco de código várias vezes enquanto uma condição for verdadeira (<span class="kw">while</span>) ou sobre uma sequência (<span class="kw">for</span>).</p>
+    </div>
+    <div class="terminal">
+      <div class="terminal-body"><span class="cmt"># Repetir 5 vezes</span>
+<span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>):
+    <span class="fn">print</span>(<span class="str">f"Contagem: {i}"</span>)</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Por que usar?</div>
+    <h2 class="slide-title">Vantagens da <em>P. Estruturada</em></h2>
+    <ul class="bullet-list">
+      <li><strong>Fácil Entendimento:</strong> O fluxo linear é mais simples de ler.</li>
+      <li><strong>Depuração:</strong> Erros são mais fáceis de localizar.</li>
+      <li><strong>Manutenibilidade:</strong> Código modular e organizado.</li>
+      <li><strong>Redução de Complexidade:</strong> Elimina o "código macarrônico".</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide slide-section">
+  <div class="section-number">04</div>
+  <div class="section-part">Parte 04</div>
+  <h2 class="section-heading">Orientação a Objetos <span>(POO)</span></h2>
+  <p class="section-sub">Encapsulamento, Herança, Polimorfismo e Abstração.</p>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Um Novo Paradigma</div>
+    <h2 class="slide-title">A Arte dos <em>Objetos</em></h2>
+    <p class="prose">Enquanto a estruturada foca em <strong>"o que fazer"</strong> (verbos/ações), a POO foca em <strong>"quem faz"</strong> (substantivos/objetos). Um objeto combina dados e comportamentos.</p>
+    <div class="analogy-box">
+      <strong>Controle Remoto:</strong> É um objeto com atributos (cor, marca) e métodos (ligar, mudar canal). Você interage com ele sem precisar saber como o circuito interno funciona.
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Os 4 Pilares da POO — 1/4</div>
+    <h2 class="slide-title">1. <em>Encapsulamento</em></h2>
+    <div class="card">
+      <p class="prose">Agrupa dados e métodos em uma unidade (classe) e <strong>restringe o acesso direto</strong> a eles, protegendo contra modificações acidentais.</p>
+    </div>
+    <div class="terminal">
+      <div class="terminal-body"><span class="kw">class</span> <span class="cls">Conta</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="var">self</span>, saldo):
+        <span class="var">self</span>.__saldo = saldo <span class="cmt"># Privado</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Os 4 Pilares da POO — 2/4</div>
+    <h2 class="slide-title">2. <em>Herança</em></h2>
+    <div class="card">
+      <p class="prose">Permite que uma classe filha herde atributos e métodos de uma classe pai, promovendo o <strong>reuso de código</strong>.</p>
+    </div>
+    <div class="terminal">
+      <div class="terminal-body"><span class="kw">class</span> <span class="cls">Carro</span>(<span class="cls">Veiculo</span>):
+    <span class="kw">pass</span> <span class="cmt"># Herda tudo de Veiculo</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Os 4 Pilares da POO — 3/4</div>
+    <h2 class="slide-title">3. <em>Polimorfismo</em></h2>
+    <div class="card">
+      <p class="prose">Permite que diferentes objetos respondam à <strong>mesma mensagem</strong> de formas distintas (ex: o método <span class="chip">falar()</span> pode latir ou miar).</p>
+    </div>
+    <div class="terminal">
+      <div class="terminal-body"><span class="var">animais</span> = [<span class="cls">Cão</span>(), <span class="cls">Gato</span>()]
+<span class="kw">for</span> <span class="var">a</span> <span class="kw">in</span> <span class="var">animais</span>:
+    <span class="var">a</span>.<span class="fn">falar</span>() <span class="cmt"># Au au / Miau</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Os 4 Pilares da POO — 4/4</div>
+    <h2 class="slide-title">4. <em>Abstração</em></h2>
+    <div class="card">
+      <p class="prose">Foca apenas nas <strong>características essenciais</strong> de um objeto para o problema, ocultando detalhes complexos ou irrelevantes.</p>
+    </div>
+    <p class="prose">Exemplo: Para um sistema de RH, o objeto Pessoa precisa de CPF. Para um jogo, apenas de nome e vida.</p>
+  </div>
+</div>
+
+<div class="slide slide-section">
+  <div class="section-number">05</div>
+  <div class="section-part">Parte 05</div>
+  <h2 class="section-heading">Comparativo <span>Final</span></h2>
+  <p class="section-sub">Qual paradigma escolher e quando utilizá-los.</p>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Resumo — 1/2</div>
+    <h2 class="slide-title">Estruturada vs <em>POO</em></h2>
+    <table class="styled-table">
+      <thead>
+        <tr><th>Critério</th><th>P. Estruturada</th><th>POO</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Foco</strong></td><td>Processos / Ações</td><td>Objetos / Dados</td></tr>
+        <tr><td><strong>Estrutura</strong></td><td>Modular (Funções)</td><td>Hierárquica (Classes)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Resumo — 2/2</div>
+    <h2 class="slide-title">Estruturada vs <em>POO</em></h2>
+    <table class="styled-table">
+      <thead>
+        <tr><th>Critério</th><th>P. Estruturada</th><th>POO</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Reuso</strong></td><td>Cópia ou Funções</td><td>Herança e Polimorfismo</td></tr>
+        <tr><td><strong>Dados</strong></td><td>Globais ou Locais</td><td>Encapsulados (Seguros)</td></tr>
+        <tr><td><strong>Complexidade</strong></td><td>Sistemas Pequenos</td><td>Sistemas Robustos</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Fim da Jornada — 1/2</div>
+    <h2 class="slide-title">Conclusão e <em>Próximos Passos</em></h2>
+    <div class="roadmap">
+      <div class="rm-item done">✓ Entendemos a história e o sistema de execução</div>
+      <div class="rm-item done">✓ Aprendemos a sintaxe básica e o Zen do Python</div>
+      <div class="rm-item active">→ Próximos passos: praticar escrevendo as primeiras classes!</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="content-box">
+    <div class="slide-label">Fim da Jornada — 2/2</div>
+    <h2 class="slide-title">Checklist <em>Final</em></h2>
+    <div class="checklist">
+      <div class="check-item"><div class="check-box"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div> Sei a diferença entre tipagem dinâmica e estática.</div>
+      <div class="check-item"><div class="check-box"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div> Entendo os 3 pilares da programação estruturada.</div>
+      <div class="check-item"><div class="check-box"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div> Identifico os 4 pilares da POO.</div>
+    </div>
+  </div>
+</div>
+
+</div> <div id="progress-bar"></div>
+
+<div id="nav">
+  <span id="slide-counter">01 / 37</span>
+  <button class="nav-btn" id="btn-prev">←</button>
+  <button class="nav-btn" id="btn-next">→</button>
+</div>
+
+<script>
+  const slides  = document.querySelectorAll('.slide');
+  const total   = slides.length;
+  let current   = 0;
+  const counter = document.getElementById('slide-counter');
+  const bar     = document.getElementById('progress-bar');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function goTo(next) {
+    if (next === current || next < 0 || next >= total) return;
+    slides[current].classList.remove('active');
+    current = next;
+    slides[current].classList.add('active');
+    counter.textContent = `${pad(current + 1)} / ${pad(total)}`;
+    bar.style.width = `${((current + 1) / total) * 100}%`;
+  }
+
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)) { e.preventDefault(); goTo(current + 1); }
+    else if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)) { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let touchStart = null;
+  document.addEventListener('touchstart', (e) => { touchStart = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    if (touchStart === null) return;
+    const dx = e.changedTouches[0].clientX - touchStart;
+    if (Math.abs(dx) > 50) {
+      if (dx > 0) goTo(current - 1);
+      else goTo(current + 1);
+    }
+    touchStart = null;
+  });
+</script>
+</body>
+</html>

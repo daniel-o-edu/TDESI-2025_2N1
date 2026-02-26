@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 01 - Onboarding e Ambiente</title>
+<style>
+/* ESTILO PADRÃO - NÃO ALTERAR */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background-color: #f5f5f5; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+.container { width: 95vw; height: 95vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); position: relative; }
+.slide { width: 100%; height: 100%; display: none; flex-direction: column; justify-content: center; padding: 40px 60px; background: white; border-radius: 12px; }
+.slide.active { display: flex; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+h1 { font-size: 3.5rem; font-weight: 700; color: #1a5490; margin-bottom: 20px; }
+h2 { font-size: 2.6rem; font-weight: 600; color: #1a5490; margin-bottom: 25px; border-bottom: 2px solid #e1e4e8; padding-bottom: 10px; }
+p, li { font-size: 1.4rem; line-height: 1.5; color: #333; margin-bottom: 12px; }
+ul, ol { padding-left: 35px; }
+/* CLASSES UTILITÁRIAS */
+.content-section { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 5px solid #1a5490; }
+.good { background: #d4edda; border-left: 5px solid #28a745; padding: 15px; border-radius: 8px; margin: 10px 0; }
+.warning { background: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; border-radius: 8px; margin: 10px 0; }
+.critical { background: #f8d7da; border-left: 5px solid #dc3545; padding: 15px; border-radius: 8px; margin: 10px 0; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 20px; }
+.col { padding: 15px; background: #fafafa; border-radius: 8px; }
+/* CONTROLES */
+.slide-counter { position: absolute; top: 20px; right: 30px; font-size: 1.2rem; color: #666; background: rgba(255,255,255,0.9); padding: 5px 15px; border-radius: 15px; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="slide active">
+        <h1>Aula 01: Onboarding e Ambiente</h1>
+        <h2>Início da Jornada</h2>
+        <div class="content-section">
+            <p><strong>Momento Inicial:</strong></p>
+            <ul>
+                <li>Apresentação do Professor.</li>
+                <li>Apresentação da Unidade Curricular.</li>
+                <li>Definição da estratégia de aprendizado.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Estratégia: "Back-End First"</h2>
+        <p>Explicar a estratégia de focar primeiro no funcionamento lógico e dados e só depois na aparência.</p>
+        
+        <div class="two-col">
+            <div class="col">
+                <p><strong>1º Foco (Lógica/Dados):</strong></p>
+                <ul>
+                    <li>Python</li>
+                    <li>SQL</li>
+                    <li>Blocos 1, 2 e 3</li>
+                </ul>
+            </div>
+            <div class="col">
+                <p><strong>2º Foco (Interface):</strong></p>
+                <ul>
+                    <li>HTML / CSS</li>
+                    <li>"Ligar os fios"</li>
+                    <li>Bloco 4</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Por que Back-End First?</h2>
+        <div class="good">
+            <p><strong>Objetivo: Reduzir a carga cognitiva.</strong></p>
+            <p>Primeiro garante-se que o sistema salva e processa dados corretamente.</p>
+        </div>
+        <div class="content-section">
+            <p>Ao final, o trabalho será apenas conectar a lógica já funcional a uma interface web, facilitando o entendimento do fluxo completo.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>1. Contextualização: A Situação</h2>
+        <p>O objetivo é dar sentido ao curso, transformando a sala de aula em um ambiente corporativo.</p>
+        <div class="content-section">
+            <p><strong>Cenário da Empresa:</strong></p>
+            <p>Vocês atuarão como técnicos contratados em uma empresa de tecnologia especializada em soluções industriais que está em fase de expansão.</p>
+        </div>
+        <div class="warning">
+            <p><strong>A Missão:</strong> O setor de engenharia de software (a turma) recebeu a encomenda de desenvolver novos sistemas para automatizar processos de diversos clientes.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>2. Definição de Times e Produtos</h2>
+        <p>Vocês devem se organizar em "squads" (equipes) e escolher um dos produtos do portfólio da empresa.</p>
+        <div class="content-section">
+            <p><strong>Catálogo de Produtos (Parte 1):</strong></p>
+            <ul>
+                <li>Delivery de comida</li>
+                <li>Aplicativo de transporte</li>
+                <li>Loja de departamentos</li>
+                <li>Streaming de vídeo</li>
+                <li>Gerenciamento de estoque</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Catálogo de Produtos (Parte 2)</h2>
+        <p>Continuação das opções disponíveis para os Squads:</p>
+        <div class="content-section">
+            <ul>
+                <li>Hospital</li>
+                <li>Escola</li>
+                <li>Empresa de Recursos Humanos (RH)</li>
+                <li>Oficina mecânica</li>
+                <li>Fábrica de chocolate</li>
+            </ul>
+        </div>
+        <div class="warning">
+            <p><strong>Nota:</strong> Cada projeto tem particularidades, mas todos exigirão banco de dados, lógica de programação e interface.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>3. Configuração do Ambiente</h2>
+        <p>Preparação das ferramentas de trabalho listadas no Plano de Ensino.</p>
+        <div class="good">
+            <p><strong>Instalação/Verificação:</strong></p>
+            <ul>
+                <li>Garantir acesso ao <strong>VS Code</strong>.</li>
+                <li>Garantir acesso ao <strong>Git</strong>.</li>
+            </ul>
+        </div>
+        <div class="content-section">
+            <p><strong>Configuração do Git:</strong></p>
+            <ul>
+                <li>Configurar <code>user.name</code> e <code>user.email</code> no terminal.</li>
+                <li>Criar conta no GitHub se necessário.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>4. Desafio: "Hello World da Empresa"</h2>
+        <p>Atividade prática valendo como avaliação formativa inicial.</p>
+        <div class="content-section">
+            <p><strong>Objetivo:</strong> Configurar seu ambiente profissional, criar o repositório oficial e realizar o primeiro "commit".</p>
+        </div>
+        <div class="good">
+            <p><strong>Cenário:</strong> Você acabou de ser contratado e precisa preparar sua estação de trabalho para iniciar o desenvolvimento do sistema escolhido (ex: Hospital, Delivery).</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Passo 1: Definição do Tema</h2>
+        <p>Antes de codificar, seu grupo deve ter escolhido um dos 10 temas do portfólio.</p>
+        <div class="two-col">
+            <div class="col">
+                <p><strong>O "Produto":</strong></p>
+                <p>É fundamental que todo o grupo esteja alinhado com o tema escolhido.</p>
+            </div>
+            <div class="col">
+                <p><strong>Exemplos:</strong></p>
+                <ul>
+                    <li>Delivery</li>
+                    <li>Hospital</li>
+                    <li>Escola</li>
+                    <li>Oficina Mecânica, etc.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Passo 2: Preparação do Git</h2>
+        <p>Abra o terminal (ou VS Code) e configure sua identidade. Isso garante que a empresa saiba "quem fez o quê".</p>
+        <div class="content-section">
+            <p><strong>Digite os comandos (substitua pelos seus dados):</strong></p>
+            <p><code>git config --global user.name "Seu Nome Completo"</code></p>
+            <p><code>git config --global user.email "seu.email@exemplo.com"</code></p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Passo 3: A "Nuvem" (GitHub)</h2>
+        <ol>
+            <li>Acesse o GitHub (ou plataforma da instituição).</li>
+            <li>Crie um <strong>Novo Repositório</strong>.</li>
+        </ol>
+        <div class="warning">
+            <p><strong>Padronização:</strong> Nomeie conforme o tema (ex: <code>sistema-hospital</code>, <code>app-delivery</code>).</p>
+        </div>
+        <div class="good">
+            <p>Mantenha como <strong>Público</strong> e copie a URL gerada (ex: https://github.com/usuario/sistema.git).</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Passo 4: Clonagem</h2>
+        <p>Trazendo o repositório para sua máquina local.</p>
+        <div class="content-section">
+            <p>No seu computador, crie uma pasta para organizar projetos e execute:</p>
+            <p><code>git clone https://github.com/seu-usuario/nome-do-projeto.git</code></p>
+        </div>
+        <div class="content-section">
+            <p>Entre na pasta criada:</p>
+            <p><code>cd nome-do-projeto</code></p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Passo 5: Main.py</h2>
+        <p>Abra a pasta no VS Code e crie o arquivo <code>main.py</code> com o seguinte código (adapte ao tema):</p>
+        <div class="content-section">
+            <p><code># Arquivo principal do sistema</code></p>
+            <p><code>print("Sistema de Gestão Hospitalar Iniciado")</code></p>
+            <p><em># ou</em></p>
+            <p><code>print("App de Delivery - Módulo Backend Iniciado")</code></p>
+        </div>
+        <div class="warning">
+            <p><strong>Nota:</strong> O foco agora é apenas garantir que o Python roda e o ambiente está configurado, sem telas por enquanto.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Passo 6: Versionamento e Envio</h2>
+        <p>Execute a sequência sagrada do Git no terminal do VS Code:</p>
+        <div class="content-section">
+            <p>1. Adicionar à caixa de envio:<br><code>git add .</code></p>
+            <p>2. Selar a caixa (Commit):<br><code>git commit -m "Primeiro commit: Estrutura inicial"</code></p>
+            <p>3. Enviar para a nuvem:<br><code>git push</code></p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Passo 7: Critério de Sucesso</h2>
+        <p>Para considerar a atividade concluída com êxito:</p>
+        <div class="good">
+            <ol>
+                <li>Atualize a página do GitHub no navegador.</li>
+                <li>Verifique se o arquivo <code>main.py</code> aparece na lista.</li>
+                <li>Clique no arquivo e confirme se o código <code>print("...")</code> está lá.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Checklist de Verificação</h2>
+        <div class="content-section">
+            <ul>
+                <li>[ ] O VS Code está instalado e aberto na pasta correta?</li>
+                <li>[ ] O repositório foi clonado (não apenas pasta manual)?</li>
+                <li>[ ] O arquivo chama-se <code>main.py</code>?</li>
+                <li>[ ] Rodar <code>python main.py</code> exibe a mensagem correta?</li>
+                <li>[ ] O GitHub foi atualizado com o último commit?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>5. Encerramento</h2>
+        <div class="good">
+            <p><strong>Verificação Final:</strong></p>
+            <p>Verificar nos repositórios se o arquivo .py existe e se o histórico de commits foi iniciado.</p>
+        </div>
+        <div class="content-section">
+            <p><strong>Gancho para a Aula 02:</strong></p>
+            <p>Na próxima aula (Quinta-feira), deixaremos de imprimir textos fixos e começaremos a usar <strong>variáveis</strong> para dar vida aos dados (ex: <code>nome_paciente = "João"</code>).</p>
+        </div>
+    </div>
+
+</div>
+
+<div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">0</span></div>
+
+<script>
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+
+document.getElementById('total-slides').textContent = totalSlides;
+
+function showSlide(n) {
+    slides[currentSlide].classList.remove('active');
+    currentSlide = (n + totalSlides) % totalSlides;
+    slides[currentSlide].classList.add('active');
+    document.getElementById('current-slide').textContent = currentSlide + 1;
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') showSlide(currentSlide + 1);
+    if (e.key === 'ArrowLeft') showSlide(currentSlide - 1);
+});
+
+// Iniciar
+if(slides.length > 0) slides[0].classList.add('active');
+</script>
+
+</body>
+</html>

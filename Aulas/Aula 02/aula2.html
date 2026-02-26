@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apresentação - Lógica Zero e Tipos de Dados</title>
+<style>
+/* ESTILO PADRÃO */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background-color: #f5f5f5; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+.container { width: 95vw; height: 95vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); position: relative; }
+.slide { width: 100%; height: 100%; display: none; flex-direction: column; justify-content: center; padding: 40px 60px; background: white; border-radius: 12px; }
+.slide.active { display: flex; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+h1 { font-size: 3.5rem; font-weight: 700; color: #1a5490; margin-bottom: 20px; }
+h2 { font-size: 2.6rem; font-weight: 600; color: #1a5490; margin-bottom: 25px; border-bottom: 2px solid #e1e4e8; padding-bottom: 10px; }
+p, li { font-size: 1.4rem; line-height: 1.5; color: #333; margin-bottom: 12px; }
+ul, ol { padding-left: 35px; }
+/* CLASSES UTILITÁRIAS */
+.content-section { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 5px solid #1a5490; }
+.good { background: #d4edda; border-left: 5px solid #28a745; padding: 15px; border-radius: 8px; margin: 10px 0; }
+.warning { background: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; border-radius: 8px; margin: 10px 0; }
+.critical { background: #f8d7da; border-left: 5px solid #dc3545; padding: 15px; border-radius: 8px; margin: 10px 0; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 20px; }
+.col { padding: 15px; background: #fafafa; border-radius: 8px; }
+/* CONTROLES */
+.slide-counter { position: absolute; top: 20px; right: 30px; font-size: 1.2rem; color: #666; background: rgba(255,255,255,0.9); padding: 5px 15px; border-radius: 15px; font-weight: bold; }
+/* TABELAS */
+table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+th, td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 1.2rem; }
+th { background-color: #1a5490; color: white; }
+tr:nth-child(even) { background-color: #f2f2f2; }
+/* CÓDIGO */
+code { background: #eee; padding: 2px 5px; border-radius: 3px; font-family: monospace; color: #d63384; }
+pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 8px; overflow-x: auto; font-family: monospace; font-size: 1.1rem; margin: 10px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+    <div class="slide active">
+        <h1>AULA 02: LÓGICA ZERO E TIPOS DE DADOS</h1>
+        <div class="content-section">
+            <p><strong>Objetivo da Aula:</strong></p>
+            <p>Hoje você vai aprender a representar dados do seu sistema usando variáveis e tipos corretos no Python.</p>
+            <p>Essas ferramentas são a base de qualquer regra de negócio que seu aplicativo final precisará implementar.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>O que você vai aprender?</h2>
+        <ul>
+            <li>O que é uma variável e como nomeá-la corretamente.</li>
+            <li>Os tipos de dados primitivos do Python (texto, número inteiro, número com decimais, verdadeiro/falso).</li>
+            <li>Como conectar dados do seu negócio com tipos Python.</li>
+            <li>Como imprimir e exibir informações formatadas no console.</li>
+            <li>Por que tipos de dados corretos importam para o sistema da empresa.</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>Desafio Inicial</h2>
+        <div class="warning">
+            <p><strong>Pergunta para você pensar:</strong></p>
+            <p>"Se o Python não souber diferenciar um número de um texto, como vamos:</p>
+            <ul>
+                <li>Calcular o total de um pedido de delivery?</li>
+                <li>Filtrar apenas os pacientes que têm convênio?</li>
+                <li>Ordenar clientes por idade?</li>
+            </ul>
+        </div>
+        <div class="critical">
+            <p><strong>A resposta:</strong> Não conseguiremos! É por isso que tipos de dados são fundamentais.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Conceitos Fundamentais: Variáveis</h2>
+        <div class="content-section">
+            <p><strong>1. O que é uma variável?</strong></p>
+            <p>Uma variável é um espaço na memória do computador onde você guarda informações que seu programa precisa usar.</p>
+        </div>
+        <div class="two-col">
+            <div class="col">
+                <p><strong>Analogia:</strong></p>
+                <p>Pense em uma caixa de armazenagem:</p>
+                <ul>
+                    <li>A caixa tem um rótulo (nome da variável)</li>
+                    <li>Dentro dela você coloca um tipo de coisa (o tipo de dado)</li>
+                    <li>E guarda um valor específico</li>
+                </ul>
+            </div>
+            <div class="col">
+                <p><strong>Exemplo Visual:</strong></p>
+                <ul>
+                    <li><strong>nome_paciente</strong>: Nome da variável (rótulo)</li>
+                    <li><strong>"João Silva"</strong>: Valor armazenado</li>
+                    <li><strong>Texto (str)</strong>: Tipo de dado</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Como Nomear Variáveis</h2>
+        <p><strong>Convenção: snake_case</strong></p>
+        <div class="good">
+            <p><strong>✔ NOMES CORRETOS (Use este padrão!)</strong></p>
+            <p>Bom: claro, descritivo, tudo minúsculo com underscore.</p>
+            <pre>
+nome_paciente = "João Silva"
+idade_paciente = 45
+tem_convenio = True
+valor_consulta = 150.50
+            </pre>
+            <p>Aceitável (uma palavra): <code>nome = "Maria"</code>, <code>idade = 30</code></p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Nomes Errados (Não Use!)</h2>
+        <div class="critical">
+            <p><strong>X Ruim: não descreve o que é</strong></p>
+            <pre>x = "João" | n = 45 | pac = "Maria"</pre>
+            
+            <p><strong>X Ruim: usa camelCase (Java usa, Python não)</strong></p>
+            <pre>nomePaciente = "João" | idadePaciente = 45</pre>
+            
+            <p><strong>X Ruim: tem espaços ou caracteres especiais</strong></p>
+            <pre>nome paciente = "João" (Erro: espaço)
+idade-paciente = 45 (Erro: hífen)</pre>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Regras de Ouro para Nomes</h2>
+        <div class="content-section">
+            <ol>
+                <li><strong>Sempre em minúscula</strong> (exceto constantes).</li>
+                <li><strong>Separe palavras com underscore</strong> (<code>_</code>).</li>
+                <li><strong>Seja descritivo:</strong> diga o que a variável armazena.</li>
+                <li><strong>Evite o óbvio ruim:</strong> <code>a</code>, <code>x</code>, <code>dados</code> não explicam nada.</li>
+                <li><strong>Evite caracteres especiais:</strong> apenas letras, números e underscore.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Tipos de Dados Primitivos: STRING</h2>
+        <div class="content-section">
+            <p><strong>A. STRING (str) - Texto</strong></p>
+            <p>Armazena texto (sequência de caracteres).</p>
+        </div>
+        <pre>
+nome_cliente = "Ana Silva"
+email = "ana@email.com"
+cpf = "123.456.789-00"
+endereco = "Rua das Flores, 42, Joinville - SC"
+# Exibir tipo: print(type(nome_cliente)) -> &lt;class 'str'&gt;
+        </pre>
+        <p><strong>Quando usar:</strong> Nomes, emails, endereços, identificadores que não serão calculados, qualquer informação em forma de texto.</p>
+    </div>
+
+    <div class="slide">
+        <h2>Tipos de Dados Primitivos: INTEGER</h2>
+        <div class="content-section">
+            <p><strong>B. INTEGER (int) - Número Inteiro (Sem Decimais)</strong></p>
+            <p>Armazena números sem casa decimal.</p>
+        </div>
+        <pre>
+idade = 30
+quantidade_itens = 5
+numero_pedido = 12345
+ano_nascimento = 1993
+# Exibir tipo: print(type(idade)) -> &lt;class 'int'&gt;
+        </pre>
+        <p><strong>Quando usar:</strong> Idades, quantidades, contagens, IDs, números de pedidos (que não usam decimais), qualquer contagem inteira.</p>
+    </div>
+
+    <div class="slide">
+        <h2>Tipos de Dados Primitivos: FLOAT</h2>
+        <div class="content-section">
+            <p><strong>C. FLOAT (float) - Número com Decimais</strong></p>
+            <p>Armazena números com casa decimal.</p>
+        </div>
+        <pre>
+valor_consulta = 150.50
+preco_produto = 29.99
+taxa_juros = 0.05
+altura_metro = 1.75
+# Exibir tipo: print(type(valor_consulta)) -> &lt;class 'float'&gt;
+        </pre>
+        <p><strong>Quando usar:</strong> Preços, valores monetários, proporções, percentuais, medidas (altura, peso, distância).</p>
+    </div>
+
+    <div class="slide">
+        <h2>Tipos de Dados Primitivos: BOOLEAN</h2>
+        <div class="content-section">
+            <p><strong>D. BOOLEAN (bool) - Verdadeiro ou Falso</strong></p>
+            <p>Armazena apenas True ou False.</p>
+        </div>
+        <pre>
+tem_convenio = True
+pedido_entregue = False
+cliente_ativo = True
+produto_disponivel = True
+# Exibir tipo: print(type(tem_convenio)) -> &lt;class 'bool'&gt;
+        </pre>
+        <p><strong>Quando usar:</strong> Status de ativação (ativo/inativo), confirmações (pago/não pago, entregue/não entregue), qualquer condição que seja sim/não.</p>
+    </div>
+
+    <div class="slide">
+        <h2>Tabela de Referência Rápida</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Nome</th>
+                    <th>Exemplo</th>
+                    <th>Quando Usar</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>str</td>
+                    <td>String (Texto)</td>
+                    <td>"João", "ana@email.com"</td>
+                    <td>Nomes, emails, descrições</td>
+                </tr>
+                <tr>
+                    <td>int</td>
+                    <td>Integer (Inteiro)</td>
+                    <td>30, 5, 12345</td>
+                    <td>Idades, quantidades, IDs</td>
+                </tr>
+                <tr>
+                    <td>float</td>
+                    <td>Float (Decimal)</td>
+                    <td>150.50, 0.05, 1.75</td>
+                    <td>Preços, proporções, medidas</td>
+                </tr>
+                <tr>
+                    <td>bool</td>
+                    <td>Boolean</td>
+                    <td>True, False</td>
+                    <td>Status, confirmações</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="slide">
+        <h2>Criando Variáveis na Prática</h2>
+        <p><strong>Passo 1: Escolha o tipo correto</strong></p>
+        <p>Exemplo: Cadastro de um paciente do sistema hospitalar</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Campo do Negócio</th>
+                    <th>Valor de Exemplo</th>
+                    <th>Tipo Python</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Nome</td>
+                    <td>"João Silva"</td>
+                    <td>str</td>
+                </tr>
+                <tr>
+                    <td>Idade</td>
+                    <td>45</td>
+                    <td>int</td>
+                </tr>
+                <tr>
+                    <td>Tem Convênio?</td>
+                    <td>True</td>
+                    <td>bool</td>
+                </tr>
+                <tr>
+                    <td>Valor da Consulta</td>
+                    <td>150.50</td>
+                    <td>float</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="slide">
+        <h2>Declarando e Exibindo</h2>
+        <div class="two-col">
+            <div class="col">
+                <p><strong>Passo 2: Crie as variáveis</strong></p>
+                <pre>
+# Sistema de Gestão Hospitalar
+nome_paciente = "João Silva"
+idade_paciente = 45
+tem_convenio = True
+valor_consulta = 150.50
+                </pre>
+            </div>
+            <div class="col">
+                <p><strong>Passo 3: Exiba as informações</strong></p>
+                <pre>
+print(nome_paciente)
+print(idade_paciente)
+print(tem_convenio)
+print(valor_consulta)
+                </pre>
+                <div class="content-section">
+                    <p><strong>Resultado no console:</strong><br>João Silva<br>45<br>True<br>150.5</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Formatando Strings com f-strings</h2>
+        <div class="content-section">
+            <p><strong>O que é uma f-string?</strong></p>
+            <p>Uma f-string (formatted string literal) permite misturar texto com variáveis de forma legível.</p>
+        </div>
+        <p><strong>Sintaxe Básica:</strong></p>
+        <p>Use 'f' antes das aspas e coloque a variável entre chaves <code>{}</code>.</p>
+        <pre>
+mensagem = f"Texto aqui {variavel} mais texto"
+        </pre>
+    </div>
+
+    <div class="slide">
+        <h2>Exemplo 1: Relatório Simples</h2>
+        <div class="two-col">
+            <div class="col">
+                <p><strong>Código:</strong></p>
+                <pre>
+nome_paciente = "João Silva"
+idade_paciente = 45
+tem_convenio = True
+valor_consulta = 150.50
+
+relatorio = f"Paciente: {nome_paciente}, Idade: {idade_paciente} anos, Convênio: {tem_convenio}, Valor: R$ {valor_consulta}"
+
+print(relatorio)
+                </pre>
+            </div>
+            <div class="col">
+                <p><strong>Resultado:</strong></p>
+                <div class="good">
+                    <p>Paciente: João Silva, Idade: 45 anos, Convênio: True, Valor: R$ 150.5</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Exemplo 2: Estrutura Mais Legível</h2>
+        <div class="two-col">
+            <div class="col">
+                <p><strong>Código (usando quebras de linha):</strong></p>
+                <pre>
+relatorio = f"""
+FICHA DO PACIENTE
+Nome: {nome_paciente}
+Idade: {idade_paciente} anos
+Convênio: {tem_convenio}
+Valor Consulta: R$ {valor_consulta}
+"""
+print(relatorio)
+                </pre>
+            </div>
+            <div class="col">
+                <p><strong>Resultado:</strong></p>
+                <div class="good">
+                    <p>FICHA DO PACIENTE<br>
+                    Nome: João Silva<br>
+                    Idade: 45 anos<br>
+                    Convênio: True<br>
+                    Valor Consulta: R$ 150.5</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Exemplo 3: Sistema de Delivery</h2>
+        <pre>
+nome_cliente = "Maria"
+quantidade_itens = 5
+valor_total = 89.90
+pedido_entregue = False
+
+mensagem = f"""
+Olá {nome_cliente}!
+Seu pedido com {quantidade_itens} itens
+Total: R$ {valor_total}
+Status: {'Entregue' if pedido_entregue else 'Em Preparação'}
+"""
+print(mensagem)
+        </pre>
+        <div class="good">
+            <p><strong>Resultado:</strong><br>Olá Maria!<br>Seu pedido com 5 itens<br>Total: R$ 89.9<br>Status: Em Preparação</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Erros Comuns: Tipo de Dado</h2>
+        <p><strong>Erro 1: Confundir string com número</strong></p>
+        <div class="two-col">
+            <div class="critical">
+                <p><strong>X ERRADO</strong></p>
+                <pre>
+idade = "30" # É texto, não número!
+print(idade + 5)
+# Erro! Não pode somar texto com número
+                </pre>
+            </div>
+            <div class="good">
+                <p><strong>✔ CORRETO</strong></p>
+                <pre>
+idade = 30 # É número inteiro
+print(idade + 5)
+# Resultado: 35
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Erros Comuns: Sintaxe no Nome</h2>
+        <p><strong>Erro 2: Usar espaços ou caracteres especiais</strong></p>
+        <div class="two-col">
+            <div class="critical">
+                <p><strong>X ERRADO</strong></p>
+                <pre>
+nome paciente = "João" # Erro de sintaxe (espaço)
+idade-paciente = 45    # Erro de sintaxe (hífen)
+@valor = 100           # Erro de sintaxe (@)
+                </pre>
+            </div>
+            <div class="good">
+                <p><strong>✔ CORRETO</strong></p>
+                <pre>
+nome_paciente = "João"
+idade_paciente = 45
+valor = 100
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Erros Comuns: Esquecer a f-string</h2>
+        <p><strong>Erro 3: Sintaxe da string formatada</strong></p>
+        <div class="two-col">
+            <div class="critical">
+                <p><strong>X ERRADO (sem 'f')</strong></p>
+                <pre>
+nome = "Maria"
+mensagem = "Olá {nome}"
+# Imprime a string literal, não o valor
+print(mensagem)
+# Resultado: Olá {nome}
+                </pre>
+            </div>
+            <div class="good">
+                <p><strong>✔ CORRETO (com 'f')</strong></p>
+                <pre>
+nome = "Maria"
+mensagem = f"Olá {nome}"
+# Interpreta a variável
+print(mensagem)
+# Resultado: Olá Maria
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Checklist: Conectando com seu Projeto</h2>
+        <div class="content-section">
+            <p>Antes de começar o desafio, responda para o seu tema (Delivery, Hospital, RH, Escola, etc):</p>
+            <ol>
+                <li><strong>Qual é o item principal do seu sistema?</strong><br>(Ex: Pedido, Paciente, Aluno, Funcionário)</li>
+                <li><strong>Que informações você precisa armazenar sobre esse item?</strong><br>Liste pelo menos 4 campos.</li>
+                <li><strong>Qual é o tipo correto para cada campo?</strong><br>Preencha numa tabela.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Desafio Prático - Parte 1</h2>
+        <p><strong>Objetivo:</strong> Criar um arquivo Python que represente um item real do seu sistema.</p>
+        <p><strong>1. Crie o arquivo <code>dados_basicos.py</code></strong> na pasta do seu repositório.</p>
+        <p><strong>2. Declare as variáveis:</strong> Escolha um item do seu negócio e declare no mínimo 4 variáveis com tipos coerentes.</p>
+        <pre>
+# SISTEMA: [Nome do seu tema]
+# Exemplo: SISTEMA: Gestão de Delivery
+
+# Variáveis do [Item] (ex: Pedido)
+nome_cliente = "valor"
+quantidade_itens = valor
+valor_total = valor
+pedido_entregue = valor
+        </pre>
+    </div>
+
+    <div class="slide">
+        <h2>Desafio Prático - Parte 2</h2>
+        <p><strong>3. Crie um pequeno relatório em f-string:</strong></p>
+        <pre>
+relatorio = f"""
+[NOME DO SEU SISTEMA]
+[Campo 1]: {variavel1}
+[Campo 2]: {variavel2}
+[Campo 3]: {variavel3}
+[Campo 4]: {variavel4}
+"""
+print(relatorio)
+        </pre>
+        <p><strong>4. Execute e teste:</strong> Verifique se a saída está clara.</p>
+        <p><strong>5. Faça commit no Git:</strong><br><code>git add dados_basicos.py</code><br><code>git commit -m "Aula 02: Tipos de dados e variáveis do sistema"</code><br><code>git push</code></p>
+    </div>
+
+    <div class="slide">
+        <h2>Critério de Sucesso</h2>
+        <p>Seu arquivo será avaliado assim:</p>
+        <ul class="good">
+            <li><strong>Arquivo compila sem erros:</strong> Sem problemas de sintaxe.</li>
+            <li><strong>Tipos coerentes:</strong> Cada variável usa o tipo apropriado para seu negócio.</li>
+            <li><strong>Nomes organizados:</strong> Usa snake_case, nomes descritivos.</li>
+            <li><strong>Relatório legível:</strong> f-string bem formatada, fácil de ler.</li>
+            <li><strong>Conectado ao projeto:</strong> Dados representam realmente seu sistema.</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>Conexão com o Desafio Final</h2>
+        <div class="content-section">
+            <p><strong>Lembre-se:</strong> O que você está fazendo hoje será reutilizado quando:</p>
+            <ol>
+                <li><strong>Aula 03:</strong> Transformar essas variáveis em Classes.</li>
+                <li><strong>Bloco 3:</strong> Criar tabelas no banco de dados com esses campos.</li>
+                <li><strong>Bloco 4:</strong> Exibir esses dados nos formulários web.</li>
+            </ol>
+            <p class="good"><strong>Portanto: Escolha bem seus campos agora e documente bem. Poupará trabalho depois!</strong></p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Resumo em 60 Segundos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Conceito</th>
+                    <th>O que é</th>
+                    <th>Exemplo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Variável</td>
+                    <td>Espaço na memória</td>
+                    <td><code>nome_paciente</code></td>
+                </tr>
+                <tr>
+                    <td>Nome correto</td>
+                    <td>snake_case, descritivo</td>
+                    <td><code>valor_consulta</code></td>
+                </tr>
+                <tr>
+                    <td>Tipo str</td>
+                    <td>Texto</td>
+                    <td><code>"João"</code></td>
+                </tr>
+                <tr>
+                    <td>Tipo int</td>
+                    <td>Número inteiro</td>
+                    <td><code>30</code></td>
+                </tr>
+                <tr>
+                    <td>Tipo float</td>
+                    <td>Número decimal</td>
+                    <td><code>150.50</code></td>
+                </tr>
+                <tr>
+                    <td>f-string</td>
+                    <td>Mistura texto/variáveis</td>
+                    <td><code>f"Olá {nome}"</code></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="slide">
+        <h2>Dúvidas Frequentes</h2>
+        <div class="content-section">
+            <p><strong>P: Por que não posso usar um espaço no nome da variável?</strong><br>R: Python interpreta espaço como separador de comandos. Use underscore (_) em seu lugar.</p>
+            <p><strong>P: Qual a diferença entre 30 (int) e "30" (str)?</strong><br>R: 30 é um número que você pode calcular; "30" é texto que parece um número.</p>
+            <p><strong>P: Posso mudar o tipo de uma variável depois?</strong><br>R: Sim! (ex: x=10, depois x="texto"), mas não se recomenda fazer isso no mesmo programa.</p>
+            <p><strong>P: f-string é obrigatória?</strong><br>R: Não, mas é a forma mais moderna, legível e melhor prática desde Python 3.6+.</p>
+        </div>
+    </div>
+
+</div>
+<div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">0</span></div>
+<script>
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+document.getElementById('total-slides').textContent = totalSlides;
+function showSlide(n) {
+    slides[currentSlide].classList.remove('active');
+    currentSlide = (n + totalSlides) % totalSlides;
+    slides[currentSlide].classList.add('active');
+    document.getElementById('current-slide').textContent = currentSlide + 1;
+}
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') showSlide(currentSlide + 1);
+    if (e.key === 'ArrowLeft') showSlide(currentSlide - 1);
+});
+if(slides.length > 0) slides[0].classList.add('active');
+</script>
+</body>
+</html>
