@@ -1,1 +1,0 @@
-print ("repositório da turma de desenvolvimento de sitemas unidade curricular de programação de aplicativos")
