@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 07 — Funções</title>
+<style>
+:root {
+--bg: #ffffff;
+--surface: #f5f7fa;
+--accent: #1a56db;
+--accent2: #0e7a5c;
+--accent3: #c0392b;
+--text: #111827;
+--muted: #4b5563;
+--border: #d1d5db;
+--code-bg: #f0f2f5;
+--highlight: #e8f0fe;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: var(--bg);
+color: var(--text);
+font-family: Arial, Helvetica, sans-serif;
+height: 100vh;
+overflow: hidden;
+}
+
+#deck { width: 100vw; height: 100vh; position: relative; }
+
+.slide {
+position: absolute;
+inset: 0;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: clamp(30px, 5vw, 80px);
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.4s ease;
+background: var(--bg);
+}
+.slide.active { opacity: 1; pointer-events: all; }
+
+.content-box {
+max-width: 900px;
+width: 100%;
+padding: clamp(20px, 3vw, 40px);
+}
+
+.slide-label {
+font-size: clamp(13px, 2vw, 17px);
+font-weight: 700;
+letter-spacing: 1px;
+text-transform: uppercase;
+color: var(--accent);
+margin-bottom: 12px;
+text-align: center;
+}
+
+.slide-title {
+font-size: clamp(24px, 5vw, 48px);
+font-weight: 700;
+line-height: 1.2;
+margin-bottom: 24px;
+color: var(--text);
+text-align: center;
+border-bottom: 3px solid var(--accent);
+padding-bottom: 16px;
+}
+.slide-title em { color: var(--accent); font-style: normal; }
+
+.slide-hero {
+background: #f0f4f8;
+border-left: 8px solid var(--accent);
+justify-content: center;
+}
+.hero-kicker {
+font-size: clamp(14px, 2.5vw, 19px);
+font-weight: 700;
+letter-spacing: 2px;
+color: var(--accent);
+margin-bottom: 16px;
+text-transform: uppercase;
+text-align: center;
+}
+.hero-title {
+font-size: clamp(32px, 7vw, 68px);
+font-weight: 700;
+line-height: 1.1;
+margin-bottom: 16px;
+text-align: center;
+}
+.hero-title span { color: var(--accent); }
+.hero-subtitle {
+font-size: clamp(16px, 2.5vw, 22px);
+color: var(--muted);
+line-height: 1.6;
+margin-bottom: 28px;
+text-align: center;
+}
+
+.slide-section {
+background: #e8eef5;
+justify-content: center;
+}
+.section-number {
+font-size: clamp(80px, 18vw, 180px);
+font-weight: 700;
+color: rgba(26,86,219,0.1);
+line-height: 1;
+margin-bottom: -10px;
+text-align: center;
+}
+.section-part {
+font-size: clamp(14px, 2.5vw, 18px);
+font-weight: 700;
+letter-spacing: 3px;
+color: var(--accent);
+text-transform: uppercase;
+margin-bottom: 12px;
+text-align: center;
+}
+.section-heading {
+font-size: clamp(28px, 6vw, 60px);
+font-weight: 700;
+line-height: 1.1;
+color: var(--text);
+text-align: center;
+}
+.section-heading span { color: var(--accent); }
+.section-sub {
+font-size: clamp(15px, 2.2vw, 20px);
+color: var(--muted);
+margin-top: 18px;
+max-width: 600px;
+line-height: 1.6;
+text-align: center;
+}
+
+.prose {
+font-size: clamp(16px, 2.2vw, 20px);
+line-height: 1.7;
+color: var(--muted);
+margin: 16px 0;
+}
+.prose strong { color: var(--text); font-weight: 700; }
+.prose em { color: var(--accent); font-weight: 700; font-style: normal; }
+
+.analogy-box {
+border-left: 4px solid var(--accent);
+background: var(--highlight);
+border-radius: 0 8px 8px 0;
+padding: clamp(16px, 2.5vw, 24px);
+margin: 20px 0;
+font-size: clamp(16px, 2.2vw, 19px);
+line-height: 1.7;
+}
+.analogy-box strong { color: var(--accent); }
+
+.bullet-list {
+list-style: none;
+display: flex;
+flex-direction: column;
+gap: 12px;
+margin: 16px 0;
+}
+.bullet-list li {
+display: flex;
+align-items: flex-start;
+gap: 12px;
+font-size: clamp(16px, 2.2vw, 19px);
+line-height: 1.6;
+color: var(--muted);
+}
+.bullet-list li::before {
+content: '▸';
+color: var(--accent);
+font-size: 16px;
+margin-top: 4px;
+flex-shrink: 0;
+}
+.bullet-list li strong { color: var(--text); }
+
+.card {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: clamp(18px, 2.5vw, 28px);
+margin: 16px 0;
+}
+.card-title {
+font-size: clamp(14px, 2vw, 18px);
+font-weight: 700;
+letter-spacing: 1px;
+text-transform: uppercase;
+margin-bottom: 14px;
+}
+.card-title.yellow { color: #b45309; }
+.card-title.green  { color: var(--accent2); }
+.card-title.red    { color: var(--accent3); }
+.card-title.blue   { color: var(--accent); }
+
+.styled-table {
+width: 100%;
+border-collapse: collapse;
+font-size: clamp(15px, 2vw, 19px);
+margin: 20px 0;
+}
+.styled-table thead tr { background: var(--accent); }
+.styled-table th {
+padding: 14px 18px;
+text-align: left;
+font-weight: 700;
+color: #ffffff;
+font-size: clamp(14px, 2vw, 18px);
+}
+.styled-table td {
+padding: 12px 18px;
+border-bottom: 1px solid var(--border);
+color: var(--muted);
+vertical-align: top;
+}
+.styled-table tr:nth-child(even) td { background: var(--surface); }
+
+.code-block {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: clamp(16px, 2.5vw, 24px);
+font-family: 'Courier New', monospace;
+font-size: clamp(15px, 2vw, 18px);
+line-height: 1.7;
+overflow-x: auto;
+margin: 20px 0;
+white-space: pre;
+}
+
+#progress-bar {
+position: fixed;
+top: 0;
+left: 0;
+height: 4px;
+background: var(--accent);
+transition: width 0.4s ease;
+z-index: 100;
+}
+
+#nav {
+position: fixed;
+bottom: 20px;
+right: 24px;
+display: flex;
+align-items: center;
+gap: 12px;
+z-index: 100;
+}
+#slide-counter {
+font-size: clamp(14px, 1.8vw, 17px);
+color: var(--muted);
+font-weight: 700;
+}
+.nav-btn {
+width: 46px;
+height: 46px;
+border-radius: 50%;
+border: 2px solid var(--border);
+background: #fff;
+color: var(--text);
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 20px;
+transition: all 0.2s;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.nav-btn:hover {
+background: var(--accent);
+border-color: var(--accent);
+color: #fff;
+}
+
+@media (max-width: 600px) {
+.slide { padding: 20px; }
+.content-box { padding: 16px; }
+}
+</style>
+
+</head>
+<body>
+<div id="progress-bar" style="width: 0%;"></div>
+<div id="deck">
+
+<div class="slide slide-hero active">
+<div class="content-box">
+<div class="hero-kicker">Programação Python</div>
+<h1 class="hero-title">Aula 07: <span>Funções</span></h1>
+<p class="hero-subtitle">Definição de blocos de código nomeados com a instrução def para realizar tarefas específicas e evitar repetições.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Visão Geral</div>
+<h2 class="slide-title">Descrição da <em>Aula</em></h2>
+<ul class="bullet-list">
+<li>Estudo de parâmetros para entrada de dados e da instrução return para enviar resultados de volta ao chamador.</li>
+<li>Diferenciação entre variáveis locais (internas à função) e globais.</li>
+<li>Breve introdução a funções anônimas ( lambda ).</li>
+</ul>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Visão Geral</div>
+<h2 class="slide-title">Contextualização <em>Estratégica</em></h2>
+<p class="prose">Esta aula é o divisor de águas entre o programador amador, que escreve códigos lineares e repetitivos, e o desenvolvedor profissional, que constrói sistemas escaláveis.</p>
+<p class="prose">No mundo do trabalho, a manutenção de software consome cerca de 80% do tempo de uma equipe; sem funções, alterar uma regra de negócio (como um cálculo de imposto ou um desconto) exigiria procurar e editar centenas de linhas espalhadas pelo projeto.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Visão Geral</div>
+<h2 class="slide-title">Contextualização <em>Estratégica</em></h2>
+<p class="prose">Esta aula prepara vocês para o desafio da Situação de Aprendizagem (SA), onde o código do inventário passará de um script simples para um sistema modular e profissional.</p>
+</div>
+</div>
+
+<div class="slide slide-section">
+<div class="content-box">
+<span class="section-number">1</span>
+<div class="section-part">Parte 1</div>
+<h2 class="section-heading"><span>Fundamentação</span> e Contextualização</h2>
+<p class="section-sub">Objetivo: Compreender a função como uma unidade lógica independente, capaz de processar entradas e gerar saídas, eliminando a redundância de código.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.1</div>
+<h2 class="slide-title">Abertura com <em>Situação Real</em></h2>
+<p class="prose"><strong>(Narrativa do Problema)</strong></p>
+<p class="prose">Imagine que você foi contratado como desenvolvedor júnior por uma startup de logística chamada "FlashEntrega". O sistema deles cresceu rápido e, toda vez que um cliente faz um pedido, o sistema precisa calcular o valor do frete baseado na distância.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.1</div>
+<h2 class="slide-title">Abertura com <em>Situação Real</em></h2>
+<p class="prose">Atualmente, esse cálculo (uma fórmula de 10 linhas) está copiado e colado em quatro lugares diferentes do código: na tela do cliente, no painel do administrador, no relatório financeiro e no sistema de rastreamento.</p>
+<p class="prose">Certo dia, a diretoria decide mudar a regra: o frete agora terá um desconto de 5% para pagamentos via PIX.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.1</div>
+<h2 class="slide-title">Abertura com <em>Situação Real</em></h2>
+<p class="prose">O desenvolvedor sênior pede para você atualizar o sistema. Você altera em três lugares, mas esquece do quarto (o relatório financeiro).</p>
+<p class="prose"><strong>Resultado :</strong> o cliente paga um valor, mas o financeiro registra outro, gerando um prejuízo de milhares de reais e uma dor de cabeça enorme para a contabilidade.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.1</div>
+<h2 class="slide-title">Abertura com <em>Situação Real</em></h2>
+<div class="analogy-box">
+O seu erro não foi de lógica, foi de <strong>arquitetura</strong>: você não usou funções.
+</div>
+<p class="prose"><strong>Pergunta:</strong> "Se tivéssemos uma única 'caixa' que calculasse esse frete e todos os outros lugares apenas chamassem essa caixa, o que aconteceria quando a regra mudasse?"</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Conceituação <em>Técnica</em> Fundamental</h2>
+<p class="prose"><strong>O que é uma Função?</strong></p>
+<p class="prose">Entender a estrutura de uma função em Python é como aprender a escrever uma receita: você define o nome do prato, os ingredientes necessários e o que deve ser entregue no final.</p>
+<p class="prose">No Python, a palavra-chave mágica para isso é o <strong>def</strong>.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">A Anatomia <em>Básica</em></h2>
+<p class="prose">Aqui está o esqueleto de uma função padrão:</p>
+<div class="code-block">def nome_da_funcao(parametro1, parametro2):
+"""
+Docstring: Uma breve explicação do que a função faz (opcional, mas recomendado).
+"""
+# Corpo da função (o que ela faz)
+resultado = parametro1 + parametro2
+return resultado # O que ela devolve</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Detalhando os <em>Componentes</em></h2>
+<ul class="bullet-list">
+<li><strong>def :</strong> É a palavra reservada que avisa ao Python: "Ei, estou começando a definir uma função agora!".</li>
+<li><strong>Nome da função :</strong> Deve ser descritivo e, por convenção (PEP 8), usa-se o padrão snake_case (letras minúsculas separadas por sublinhado).</li>
+</ul>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Detalhando os <em>Componentes</em></h2>
+<ul class="bullet-list">
+<li><strong>Parâmetros (Argumentos) :</strong> Ficam entre parênteses. São as variáveis que a função recebe para trabalhar.</li>
+<li>Se a função não precisar de nada, os parênteses ficam vazios: def saudar():.</li>
+<li><strong>Os dois pontos (:) :</strong> Obrigatórios. Eles indicam que o bloco de código da função vai começar na linha seguinte.</li>
+</ul>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Detalhando os <em>Componentes</em></h2>
+<ul class="bullet-list">
+<li><strong>Indentação :</strong> Fundamental. Todo o código que pertence à função deve estar recuado (geralmente 4 espaços). Se você esquecer isso, o Python vai reclamar.</li>
+<li><strong>return :</strong> É a saída. Ele encerra a execução da função e envia um valor de volta para quem a chamou. Se você não colocar um return, a função devolverá None por padrão.</li>
+</ul>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Exemplo <em>Prático</em></h2>
+<p class="prose">Vamos criar uma função que calcula um desconto:</p>
+<div class="code-block">def calcular_preco_final(valor, desconto_percentual):
+valor_do_desconto = valor * (desconto_percentual / 100)
+preco_com_desconto = valor - valor_do_desconto
+return preco_com_desconto
+
+# Chamando a função
+
+total = calcular_preco_final(100, 15)
+print(f"O preço com desconto é: R$ {total}")
+
+# Saída: O preço com desconto é: R$ 85.0</div>
+
+```
+</div>
+
+```
+
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Por que usar <em>funções</em>?</h2>
+<ul class="bullet-list">
+<li><strong>Reutilização :</strong> Escreva uma vez, use mil vezes.</li>
+<li><strong>Organização :</strong> Deixa o código limpo e fácil de ler.</li>
+<li><strong>Manutenção :</strong> Se precisar mudar a lógica, você muda em um só lugar.</li>
+</ul>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Explicação expandida e <em>contextualizada</em></h2>
+<p class="prose">Pense na função como uma "receita de bolo" guardada em um livro.</p>
+<p class="prose">A receita em si não é o bolo; ela é apenas a instrução de como fazê-lo. Você só tem o bolo quando decide "chamar" a receita, seguindo seus passos.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Explicação expandida e <em>contextualizada</em></h2>
+<p class="prose">Na programação, as funções permitem o que chamamos de <strong>encapsulamento</strong>: esconder a complexidade de uma tarefa atrás de um nome simples.</p>
+<p class="prose">Isso torna o código principal muito mais legível, parecendo quase uma leitura em inglês ou português.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Explicação expandida e <em>contextualizada</em></h2>
+<p class="prose">Além da organização, as funções promovem a <strong>reutilização</strong>.</p>
+<p class="prose">Em vez de escrever a mesma lógica dez vezes, você escreve uma vez dentro da função e a invoca sempre que necessário.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Explicação expandida e <em>contextualizada</em></h2>
+<p class="prose">Isso reduz drasticamente o tamanho dos arquivos e a probabilidade de erros humanos, pois, se houver um bug na lógica, você só precisa consertar em um único lugar: <strong>dentro da própria função</strong>.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Grandes Equipes e <em>Sistemas</em></h2>
+<p class="prose">No contexto de grandes equipes (como as que vocês encontrarão no mercado), as funções permitem que diferentes desenvolvedores trabalhem em partes distintas do sistema simultaneamente.</p>
+<p class="prose">Enquanto um colega cria a função de validar_cpf(), você foca na calcular_parcelas().</p>
+<p class="prose">Desde que vocês combinem o que entra e o que sai da função, o sistema funcionará perfeitamente ao ser montado.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.2</div>
+<h2 class="slide-title">Exemplo Real e <em>Erro Comum</em></h2>
+<div class="card">
+<div class="card-title blue">Exemplo real do mercado:</div>
+<p class="prose">Em sistemas de e-commerce como o Mercado Livre, a função calcular_prazo_entrega(cep_destino) é chamada milhares de vezes por segundo. Ela recebe o CEP e devolve uma data, ocultando toda a complexidade de consultar bancos de dados de transportadoras e tabelas de feriados.</p>
+</div>
+<div class="card">
+<div class="card-title red">Erro comum:</div>
+<p class="prose">Tentar usar uma variável que foi criada dentro de uma função fora dela. O aluno cria resultado = x + y dentro da def, e depois tenta dar um print(resultado) no final do arquivo, recebendo um NameError.</p>
+</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.3</div>
+<h2 class="slide-title"><em>Demonstração</em> no VS Code</h2>
+<ul class="bullet-list">
+<li><strong>Sintaxe básica:</strong> Escrever def saudar_usuario(): e mostrar que nada acontece ao rodar o script (a receita está no livro, mas não foi feita).</li>
+<li><strong>Chamada da função:</strong> Adicionar saudar_usuario() abaixo da definição para executar o código.</li>
+</ul>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.3</div>
+<h2 class="slide-title"><em>Demonstração</em> no VS Code</h2>
+<ul class="bullet-list">
+<li><strong>Evolução para Parâmetros:</strong> Alterar para def saudar_usuario(nome): e mostrar como o valor passa de fora para dentro.</li>
+<li><strong>O "Contrato":</strong> Explicar que se a função pede um parâmetro, a chamada DEVE enviar um argumento.</li>
+<li><strong>Pontos de atenção:</strong> A identação (os 4 espaços) e o uso do : após os parênteses.</li>
+</ul>
+<p class="prose"><strong>Pergunta:</strong> "Se eu mudar o nome da variável dentro do parêntese da def, eu preciso mudar o nome da variável que eu passo na hora de chamar?"</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">1.4</div>
+<h2 class="slide-title">Atividade de <em>Fixação</em></h2>
+<p class="prose">Escreva uma função chamada exibir_banner que receba o nome de uma empresa e imprima esse nome cercado por uma moldura de asteriscos (ex: **********).</p>
+<p class="prose">Em seguida, chame a função para três empresas diferentes do seu projeto da SA.</p>
+</div>
+</div>
+
+<div class="slide slide-section">
+<div class="content-box">
+<span class="section-number">2</span>
+<div class="section-part">Parte 2</div>
+<h2 class="section-heading"><span>Aprofundamento</span> Técnico</h2>
+<p class="section-sub">Objetivo: Dominar a comunicação entre o programa principal e as funções através de parâmetros nomeados, valores padrão e a instrução return.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">2.1</div>
+<h2 class="slide-title">Expansão Conceitual: <em>Parâmetros e Retorno</em></h2>
+<p class="prose"><strong>O Poder do return:</strong></p>
+<p class="prose">Diferente do print, que apenas "joga" informação na tela para o humano ver, o return devolve o valor para o sistema processar.</p>
+<p class="prose">No mercado, 90% das funções usam return porque o resultado de uma função geralmente é a entrada de outra. Por exemplo, uma função obter_preco() retorna um valor que será usado pela função aplicar_desconto().</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">2.1</div>
+<h2 class="slide-title">Expansão Conceitual: <em>Parâmetros e Retorno</em></h2>
+<p class="prose"><strong>Valores Default (Padrão):</strong></p>
+<p class="prose">Python permite definir valores prévios para os parâmetros. Se o programador não enviar o dado, a função usa o padrão. Isso é vital para criar ferramentas flexíveis.</p>
+<p class="prose">Imagine uma função enviar_email(mensagem, urgente=False). Na maioria das vezes, o e-mail não é urgente, então você não precisa ficar avisando isso toda hora.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">2.1</div>
+<h2 class="slide-title">Expansão Conceitual: <em>Parâmetros e Retorno</em></h2>
+<p class="prose"><strong>Argumentos Nomeados (Keyword Arguments):</strong></p>
+<p class="prose">Ao chamar uma função com muitos parâmetros, a ordem pode ser confusa.</p>
+<p class="prose">O Python resolve isso permitindo que você diga explicitamente qual valor pertence a qual parâmetro: salvar_cliente(nome="João", idade=25, cidade="Joinville"). Isso aumenta a legibilidade e evita que você cadastre a "Idade" no campo "Nome" por acidente.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">2.2</div>
+<h2 class="slide-title">Análise de Cenários <em>Reais</em></h2>
+<p class="prose"><strong>Cenário A (Uso de Return):</strong></p>
+<p class="prose">Uma função calcular_imc(peso, altura) que retorna o valor calculado. O programa principal recebe esse número e decide se vai salvá-lo no banco de dados, exibir em um gráfico ou enviar um alerta para o médico.</p>
+<p class="prose">A função é puramente matemática e altamente reutilizável. Essa é a abordagem ideal para criar funções que fazem parte de sistemas maiores.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">2.2</div>
+<h2 class="slide-title">Análise de Cenários <em>Reais</em></h2>
+<p class="prose">Ao usar o return, a função foca apenas no cálculo e "devolve" a responsabilidade de decidir o que fazer com o dado para quem a chamou.</p>
+<p class="prose">Aqui está o código seguindo as melhores práticas:</p>
+<div class="code-block">def calcular_imc(peso, altura):
+"""
+Calcula o Índice de Massa Corporal (IMC).
+Fórmula: peso / altura²
+"""
+imc = peso / (altura ** 2)
+return imc</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">2.2</div>
+<h2 class="slide-title">Análise de Cenários <em>Reais</em></h2>
+<div class="code-block"># --- Programa Principal ---
+
+# 1. Recebendo os dados
+
+meu_peso = 80.5
+minha_altura = 1.80
+
+# 2. Chamando a função e guardando o resultado em uma variável
+
+resultado_imc = calcular_imc(meu_peso, minha_altura)</div>
+</div>
+
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">2.2</div>
+<h2 class="slide-title">Análise de Cenários <em>Reais</em></h2>
+<div class="code-block"># 3. O programa principal agora decide o que fazer:
+print(f"O IMC calculado foi: {resultado_imc:.2f}")
+
+if resultado_imc > 25:
+# Simulação: Enviar alerta para o médico
+print("Ação: Enviando alerta para o sistema médico...")
+else:
+# Simulação: Salvar no banco de dados
+print("Ação: Salvando resultado no histórico do banco de dados.")
+
+# Exemplo de reuso para um gráfico
+
+grafico_valor = resultado_imc # O valor está pronto para ser plotado</div>
+</div>
+
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">2.2</div>
+<h2 class="slide-title">Uso de Return <em>VS</em> Uso de Print</h2>
+<table class="styled-table">
+<thead><tr><th>Característica</th><th>Cenário A (Uso de Return)</th><th>Cenário B (Uso de Print dentro da função)</th></tr></thead>
+<tbody>
+<tr>
+<td>Independência</td>
+<td>A função calcular_imc não sabe (e não precisa saber) se o resultado vai para a tela, para um arquivo ou para um SMS.</td>
+<td>A mesma função calcular_imc, mas em vez de retornar, ela dá um print("Seu IMC é...", imc).</td>
+</tr>
+<tr>
+<td>Precisão / Controle</td>
+<td>Note o uso de :.2f no print. Como a função retorna o número puro (float), você tem total controle sobre como formatá-lo depois.</td>
+<td>Agora, se você precisar salvar esse IMC no banco de dados, você não consegue, pois o valor "morreu" dentro da função.</td>
+</tr>
+<tr>
+<td>Testabilidade / Reuso</td>
+<td>É muito mais fácil criar testes automáticos para funções que retornam valores do que para funções que apenas imprimem algo no console.</td>
+<td>Você teria que reescrever a lógica. Isso limita a função a apenas uma interface específica (o terminal).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Conceito Adicional</div>
+<h2 class="slide-title">Introdução a <em>Funções Anônimas (lambda)</em></h2>
+<p class="prose"><strong>O jeito tradicional e com lambda:</strong></p>
+<div class="code-block">O jeito tradicional (def):
+def dobrar(x):
+return x * 2
+
+print(dobrar(5)) # Saída: 10</div>
+</div>
+
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Conceito Adicional</div>
+<h2 class="slide-title">Introdução a <em>Funções Anônimas (lambda)</em></h2>
+<p class="prose"><strong>O jeito lambda:</strong></p>
+<p class="prose">Embora possamos dar um nome a ela, o uso ideal é aplicá-la diretamente:</p>
+<div class="code-block"># A mesma lógica em uma linha só
+print((lambda x: x * 2)(5)) # Saída: 10</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Conceito Adicional</div>
+<h2 class="slide-title">Onde elas realmente <em>brilham?</em></h2>
+<p class="prose">Na vida real do desenvolvimento, você raramente vai atribuir uma lambda a uma variável. O "superpoder" delas é atuar como argumentos de outras funções , como map(), filter() ou para ditar regras de ordenação (sort()).</p>
+<p class="prose"><strong>Exemplo prático: Filtrando números pares de uma lista</strong></p>
+<div class="code-block">numeros = [1, 2, 3, 4, 5, 6]
+
+# Usamos a lambda dentro do filter para criar a regra: "x é divisível por 2?"
+
+pares = list(filter(lambda x: x % 2 == 0, numeros))
+
+print(pares)
+
+# Saída: [2, 4, 6]</div>
+
+```
+</div>
+
+```
+
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Conceito Adicional</div>
+<h2 class="slide-title">Regra de <em>Ouro</em></h2>
+<table class="styled-table">
+<thead><tr><th>Quando usar</th><th>Lambda</th><th>Def</th></tr></thead>
+<tbody>
+<tr>
+<td>Indicação principal</td>
+<td>Use lambda para lógicas matemáticas ou de filtro simples, de uma linha, que você vai usar apenas uma vez no código.</td>
+<td>Use def se a lógica for complexa, tiver múltiplas linhas, exigir verificações (if/else longos) ou for ser reutilizada em vários lugares do sistema.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">4.3</div>
+<h2 class="slide-title">Fechamento e <em>Reflexão</em></h2>
+<p class="prose"><strong>Reflexão:</strong> "Se o seu sistema de inventário tivesse 50 funcionalidades, como seria a aparência do seu código sem o uso de funções?"</p>
+<p class="prose"><strong>Síntese:</strong> Esta aula preparou a base para a transformação de scripts simples em sistemas organizados, reutilizáveis e fáceis de manter.</p>
+</div>
+</div>
+
+</div>
+
+<div id="nav">
+<button class="nav-btn" id="btn-prev">‹</button>
+<span id="slide-counter">01 / 39</span>
+<button class="nav-btn" id="btn-next">›</button>
+</div>
+
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const total = slides.length;
+let current = 0;
+
+const counter = document.getElementById('slide-counter');
+const bar = document.getElementById('progress-bar');
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function goTo(next) {
+if (next === current || next < 0 || next >= total) return;
+slides[current].classList.remove('active');
+current = next;
+slides[current].classList.add('active');
+counter.textContent = `${pad(current+1)} / ${pad(total)}`;
+bar.style.width = `${((current+1)/total)*100}%`;
+}
+
+document.getElementById('btn-next').addEventListener('click', () => goTo(current+1));
+document.getElementById('btn-prev').addEventListener('click', () => goTo(current-1));
+
+document.addEventListener('keydown', (e) => {
+if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+e.preventDefault(); goTo(current+1);
+} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+e.preventDefault(); goTo(current-1);
+}
+});
+
+let touchStart = null;
+document.addEventListener('touchstart', (e) => { touchStart = e.touches[0].clientX; });
+document.addEventListener('touchend', (e) => {
+if (touchStart === null) return;
+const diff = touchStart - e.changedTouches[0].clientX;
+if (diff > 50) goTo(current+1);
+else if (diff < -50) goTo(current-1);
+touchStart = null;
+});
+
+// Initialize
+counter.textContent = `${pad(1)} / ${pad(total)}`;
+</script>
+
+</body>
+</html>
