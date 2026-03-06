@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apresentação: Aula 1 - Introdução a Banco de Dados</title>
+<style>
+/* ESTILO PADRÃO - NÃO ALTERAR */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background-color: #f5f5f5; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+.container { width: 95vw; height: 95vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); position: relative; }
+.slide { width: 100%; height: 100%; display: none; flex-direction: column; justify-content: center; padding: 40px 60px; background: white; border-radius: 12px; }
+.slide.active { display: flex; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+h1 { font-size: 3.5rem; font-weight: 700; color: #1a5490; margin-bottom: 20px; }
+h2 { font-size: 2.6rem; font-weight: 600; color: #1a5490; margin-bottom: 25px; border-bottom: 2px solid #e1e4e8; padding-bottom: 10px; }
+p, li { font-size: 1.4rem; line-height: 1.5; color: #333; margin-bottom: 12px; }
+ul, ol { padding-left: 35px; }
+/* CLASSES UTILITÁRIAS */
+.content-section { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 5px solid #1a5490; }
+.good { background: #d4edda; border-left: 5px solid #28a745; padding: 15px; border-radius: 8px; margin: 10px 0; }
+.warning { background: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; border-radius: 8px; margin: 10px 0; }
+.critical { background: #f8d7da; border-left: 5px solid #dc3545; padding: 15px; border-radius: 8px; margin: 10px 0; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 20px; }
+.col { padding: 15px; background: #fafafa; border-radius: 8px; }
+/* CONTROLES */
+.slide-counter { position: absolute; top: 20px; right: 30px; font-size: 1.2rem; color: #666; background: rgba(255,255,255,0.9); padding: 5px 15px; border-radius: 15px; font-weight: bold; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 1.2rem; }
+th { background-color: #1a5490; color: white; padding: 12px; text-align: left; }
+td { padding: 12px; border-bottom: 1px solid #ddd; color: #333; }
+tr:nth-child(even) { background-color: #f2f2f2; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="slide">
+        <h1>Aula 1: Introdução a Banco de Dados</h1>
+        <div class="content-section">
+            <p><strong>Objetivo da Aula:</strong></p>
+            <ul>
+                <li>Apresentar a Unidade Curricular.</li>
+                <li>Alinhar expectativas.</li>
+                <li>Introduzir conceitos fundamentais (Dado vs. Informação).</li>
+                <li>Realizar atividade dinâmica.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>1.1 Apresentação da UC</h2>
+        <div class="good">
+            <p><strong>Objetivo Geral:</strong></p>
+            <p>Desenvolver capacidades para modelar e manipular dados usando SGBDs, garantindo qualidade, integridade e segurança.</p>
+        </div>
+        <div class="content-section">
+            <p><strong>Objetivo Prático:</strong></p>
+            <p>O curso visa desenvolver a capacidade de não apenas armazenar, mas modelar e manipular dados garantindo qualidade e integridade.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>1.3 Critérios Avaliativos</h2>
+        <p>A avaliação é contínua e baseada no desenvolvimento do projeto:</p>
+        <ul>
+            <li><strong>Avaliação Objetiva 1:</strong> Foco em fundamentos e modelagem (Aula 10).</li>
+            <li><strong>Avaliação Objetiva 2:</strong> Foco em SQL e implementação (Aula 20).</li>
+            <li><strong>Situação de Aprendizagem:</strong> Projeto Prático, entrega final e defesa técnica (Aula 22).</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>2.1 O que é um Banco de Dados?</h2>
+        <div class="content-section">
+            <p><strong>Definição Simples:</strong> Uma coleção organizada de dados que se relacionam, criada para preservar, gerenciar e entregar informações de forma eficiente.</p>
+        </div>
+        <div class="two-col">
+            <div class="col">
+                <p><strong>Analogia Ineficiente:</strong></p>
+                <p class="critical">Arquivo de gavetas desorganizado (difícil de achar).</p>
+            </div>
+            <div class="col">
+                <p><strong>Analogia Eficiente:</strong></p>
+                <p class="good">Sistema digital indexado (busca instantânea).</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>2.2 Dado vs. Informação - Parte 1</h2>
+        <div class="warning">
+            <p>Este é o conceito mais importante da noite!</p>
+        </div>
+        <h3>Dado (Matéria-prima)</h3>
+        <p>É definido como um registro bruto, destituído de contexto.</p>
+        <ul>
+            <li>O dado por si só não permite tomada de decisão.</li>
+            <li>Exemplos: "38", "Azul" ou "12/05".</li>
+            <li>Sozinhos, eles são apenas caracteres.</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>2.2 Dado vs. Informação - Parte 2</h2>
+        <h3>Informação (Produto final)</h3>
+        <p>É o resultado do processamento e organização do dado, atribuindo-lhe significado útil.</p>
+        <div class="good">
+            <p><strong>Exemplo:</strong> Quando o dado "38" é contextualizado como "A temperatura do paciente é 38 graus", ele se torna uma informação (indica febre).</p>
+        </div>
+        <p>O objetivo de um banco de dados é justamente preservar o dado para entregar essa informação de forma eficiente.</p>
+    </div>
+
+    <div class="slide">
+        <h2>3.1 Definição e Propósito</h2>
+        <p>Muitas vezes confundido com um simples "lugar para guardar arquivos", o conceito é mais refinado:</p>
+        <ul>
+            <li><strong>Organização e Relacionamento:</strong> É uma coleção organizada onde os dados se relacionam entre si. Não é um depósito aleatório.</li>
+            <li><strong>Eficiência:</strong> Criado para gerenciar e entregar informações de maneira eficiente.</li>
+            <li><strong>Busca:</strong> Funciona como um sistema digital indexado para busca instantânea.</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>3.2 Evolução: Planilhas vs. SGBDs</h2>
+        <p>A transição do Excel para Sistemas Gerenciadores de Banco de Dados (SGBDs) é motivada por limitações críticas em ambientes corporativos:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Característica</th>
+                    <th>Planilhas (Excel)</th>
+                    <th>Banco de Dados (SGBD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Acesso</td>
+                    <td>Geralmente monousuário</td>
+                    <td>Multiusuário simultâneo</td>
+                </tr>
+                <tr>
+                    <td>Segurança</td>
+                    <td>Baixa (fácil copiar)</td>
+                    <td>Alta (permissões granulares)</td>
+                </tr>
+                <tr>
+                    <td>Volume</td>
+                    <td>Lento com muitos dados</td>
+                    <td>Milhões/Bilhões de registros</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="slide">
+        <h2>3.2 Evolução (Continuação)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Característica</th>
+                    <th>Planilhas (Excel)</th>
+                    <th>Banco de Dados (SGBD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Integridade</td>
+                    <td>Aceita erros (texto em data)</td>
+                    <td>Regras estritas de validação</td>
+                </tr>
+                <tr>
+                    <td>Centralização</td>
+                    <td>Arquivos espalhados (v1, v2)</td>
+                    <td>Centralizado e único</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="content-section">
+            <p>O SGBD resolve a redundância e a falta de controle típicas de sistemas baseados em arquivos/planilhas.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>4. Dinâmica e Encerramento</h2>
+        <div class="content-section">
+            <p><strong>Dinâmica: "Banco de Dados no Cotidiano"</strong></p>
+            <ul>
+                <li>Brainstorming e Debate Guiado.</li>
+                <li>Conectar o tema à realidade do aluno.</li>
+            </ul>
+        </div>
+        <div class="good">
+            <p><strong>Recapitulando:</strong></p>
+            <ul>
+                <li>Diferença entre Dado (bruto) e Informação (contextualizada).</li>
+                <li>Por que usar Banco de Dados e não apenas planilhas.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">0</span></div>
+
+<script>
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+document.getElementById('total-slides').textContent = totalSlides;
+
+function showSlide(n) {
+    slides[currentSlide].classList.remove('active');
+    currentSlide = (n + totalSlides) % totalSlides;
+    slides[currentSlide].classList.add('active');
+    document.getElementById('current-slide').textContent = currentSlide + 1;
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'PageUp' || e.key === ' ') showSlide(currentSlide + 1);
+    if (e.key === 'PageDown') showSlide(currentSlide - 1);
+});
+
+if(slides.length > 0) slides[0].classList.add('active');
+</script>
+</body>
+</html>

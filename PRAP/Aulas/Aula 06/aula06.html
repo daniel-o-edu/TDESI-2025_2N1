@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 06 - Estruturas de Decisão e Repetição</title>
+<style>
+:root {
+--bg: #ffffff;
+--surface: #f5f7fa;
+--accent: #1a56db;
+--accent2: #0e7a5c;
+--accent3: #c0392b;
+--text: #111827;
+--muted: #4b5563;
+--border: #d1d5db;
+--code-bg: #f0f2f5;
+--highlight: #e8f0fe;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: var(--bg);
+color: var(--text);
+font-family: Arial, Helvetica, sans-serif;
+height: 100vh;
+overflow: hidden;
+}
+
+#deck { width: 100vw; height: 100vh; position: relative; }
+
+.slide {
+position: absolute;
+inset: 0;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: clamp(30px, 5vw, 80px);
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.4s ease;
+background: var(--bg);
+}
+.slide.active { opacity: 1; pointer-events: all; }
+
+.content-box {
+max-width: 900px;
+width: 100%;
+padding: clamp(20px, 3vw, 40px);
+}
+
+.slide-label {
+font-size: clamp(13px, 2vw, 17px);
+font-weight: 700;
+letter-spacing: 1px;
+text-transform: uppercase;
+color: var(--accent);
+margin-bottom: 12px;
+text-align: center;
+}
+
+.slide-title {
+font-size: clamp(24px, 5vw, 48px);
+font-weight: 700;
+line-height: 1.2;
+margin-bottom: 24px;
+color: var(--text);
+text-align: center;
+border-bottom: 3px solid var(--accent);
+padding-bottom: 16px;
+}
+.slide-title em { color: var(--accent); font-style: normal; }
+
+.slide-hero {
+background: #f0f4f8;
+border-left: 8px solid var(--accent);
+justify-content: center;
+}
+.hero-kicker {
+font-size: clamp(14px, 2.5vw, 19px);
+font-weight: 700;
+letter-spacing: 2px;
+color: var(--accent);
+margin-bottom: 16px;
+text-transform: uppercase;
+text-align: center;
+}
+.hero-title {
+font-size: clamp(32px, 7vw, 68px);
+font-weight: 700;
+line-height: 1.1;
+margin-bottom: 16px;
+text-align: center;
+}
+.hero-title span { color: var(--accent); }
+.hero-subtitle {
+font-size: clamp(16px, 2.5vw, 22px);
+color: var(--muted);
+line-height: 1.6;
+margin-bottom: 28px;
+text-align: center;
+}
+.hero-objectives {
+display: flex;
+flex-direction: column;
+gap: 12px;
+max-width: 700px;
+}
+.hero-obj-item {
+display: flex;
+align-items: flex-start;
+gap: 14px;
+font-size: clamp(15px, 2.2vw, 19px);
+line-height: 1.5;
+}
+.hero-obj-item .dot {
+width: 10px;
+height: 10px;
+border-radius: 50%;
+background: var(--accent);
+margin-top: 7px;
+flex-shrink: 0;
+}
+
+.slide-section {
+background: #e8eef5;
+justify-content: center;
+}
+.section-number {
+font-size: clamp(80px, 18vw, 180px);
+font-weight: 700;
+color: rgba(26,86,219,0.1);
+line-height: 1;
+margin-bottom: -10px;
+text-align: center;
+}
+.section-part {
+font-size: clamp(14px, 2.5vw, 18px);
+font-weight: 700;
+letter-spacing: 3px;
+color: var(--accent);
+text-transform: uppercase;
+margin-bottom: 12px;
+text-align: center;
+}
+.section-heading {
+font-size: clamp(28px, 6vw, 60px);
+font-weight: 700;
+line-height: 1.1;
+color: var(--text);
+text-align: center;
+}
+.section-heading span { color: var(--accent); }
+.section-sub {
+font-size: clamp(15px, 2.2vw, 20px);
+color: var(--muted);
+margin-top: 18px;
+max-width: 600px;
+line-height: 1.6;
+text-align: center;
+}
+
+.prose {
+font-size: clamp(16px, 2.2vw, 20px);
+line-height: 1.7;
+color: var(--muted);
+margin: 16px 0;
+}
+.prose strong { color: var(--text); font-weight: 700; }
+.prose em { color: var(--accent); font-weight: 700; font-style: normal; }
+
+.analogy-box {
+border-left: 4px solid var(--accent);
+background: var(--highlight);
+border-radius: 0 8px 8px 0;
+padding: clamp(16px, 2.5vw, 24px);
+margin: 20px 0;
+font-size: clamp(16px, 2.2vw, 19px);
+line-height: 1.7;
+}
+.analogy-box strong { color: var(--accent); }
+
+.bullet-list {
+list-style: none;
+display: flex;
+flex-direction: column;
+gap: 12px;
+margin: 16px 0;
+}
+.bullet-list li {
+display: flex;
+align-items: flex-start;
+gap: 12px;
+font-size: clamp(16px, 2.2vw, 19px);
+line-height: 1.6;
+color: var(--muted);
+}
+.bullet-list li::before {
+content: '▸';
+color: var(--accent);
+font-size: 16px;
+margin-top: 4px;
+flex-shrink: 0;
+}
+.bullet-list li strong { color: var(--text); }
+
+.card {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: clamp(18px, 2.5vw, 28px);
+margin: 16px 0;
+}
+.card-title {
+font-size: clamp(14px, 2vw, 18px);
+font-weight: 700;
+letter-spacing: 1px;
+text-transform: uppercase;
+margin-bottom: 14px;
+}
+.card-title.yellow { color: #b45309; }
+.card-title.green  { color: var(--accent2); }
+.card-title.red    { color: var(--accent3); }
+.card-title.blue   { color: var(--accent); }
+
+.styled-table {
+width: 100%;
+border-collapse: collapse;
+font-size: clamp(15px, 2vw, 19px);
+margin: 20px 0;
+}
+.styled-table thead tr { background: var(--accent); }
+.styled-table th {
+padding: 14px 18px;
+text-align: left;
+font-weight: 700;
+color: #ffffff;
+font-size: clamp(14px, 2vw, 18px);
+}
+.styled-table td {
+padding: 12px 18px;
+border-bottom: 1px solid var(--border);
+color: var(--muted);
+vertical-align: top;
+}
+.styled-table tr:nth-child(even) td { background: var(--surface); }
+.styled-table td:first-child {
+font-family: 'Courier New', monospace;
+color: var(--accent2);
+font-weight: 700;
+}
+
+.code-block {
+background: var(--code-bg);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: clamp(16px, 2.5vw, 24px);
+font-family: 'Courier New', monospace;
+font-size: clamp(15px, 2vw, 18px);
+line-height: 1.7;
+overflow-x: auto;
+margin: 20px 0;
+}
+.code-block .kw  { color: #9b2335; font-weight: 700; }
+.code-block .cls { color: var(--accent); font-weight: 700; }
+.code-block .str { color: var(--accent2); }
+.code-block .cmt { color: #9ca3af; font-style: italic; }
+
+.badge-row {
+display: flex;
+flex-wrap: wrap;
+gap: 12px;
+margin: 16px 0;
+justify-content: center;
+}
+.badge {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 6px;
+padding: 10px 18px;
+font-family: 'Courier New', monospace;
+font-size: clamp(14px, 2vw, 18px);
+}
+.badge.good { border-color: var(--accent2); color: var(--accent2); background: #f0fdf4; }
+.badge.bad  { border-color: var(--accent3); color: var(--accent3); background: #fef2f2; text-decoration: line-through; }
+
+.step-card {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: clamp(16px, 2.5vw, 24px);
+display: flex;
+gap: 18px;
+align-items: flex-start;
+margin: 12px 0;
+}
+.step-number {
+width: 40px;
+height: 40px;
+border-radius: 50%;
+background: var(--accent);
+color: #ffffff;
+font-weight: 700;
+font-size: 18px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+}
+.step-body { flex: 1; }
+.step-title {
+font-weight: 700;
+font-size: clamp(16px, 2.2vw, 20px);
+color: var(--text);
+margin-bottom: 6px;
+}
+.step-desc {
+font-size: clamp(15px, 2vw, 19px);
+color: var(--muted);
+line-height: 1.6;
+}
+
+.faq-item {
+background: var(--surface);
+border: 1px solid var(--border);
+border-left: 4px solid var(--accent);
+border-radius: 0 8px 8px 0;
+padding: clamp(14px, 2vw, 20px);
+margin: 12px 0;
+}
+.faq-q {
+font-weight: 700;
+color: var(--accent);
+font-size: clamp(16px, 2.2vw, 20px);
+margin-bottom: 8px;
+}
+.faq-a {
+font-size: clamp(15px, 2vw, 19px);
+color: var(--muted);
+line-height: 1.65;
+}
+
+#progress-bar {
+position: fixed;
+top: 0;
+left: 0;
+height: 4px;
+background: var(--accent);
+transition: width 0.4s ease;
+z-index: 100;
+}
+
+#nav {
+position: fixed;
+bottom: 20px;
+right: 24px;
+display: flex;
+align-items: center;
+gap: 12px;
+z-index: 100;
+}
+#slide-counter {
+font-size: clamp(14px, 1.8vw, 17px);
+color: var(--muted);
+font-weight: 700;
+}
+.nav-btn {
+width: 46px;
+height: 46px;
+border-radius: 50%;
+border: 2px solid var(--border);
+background: #fff;
+color: var(--text);
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 20px;
+transition: all 0.2s;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.nav-btn:hover {
+background: var(--accent);
+border-color: var(--accent);
+color: #fff;
+}
+
+@media (max-width: 600px) {
+.slide { padding: 20px; }
+.content-box { padding: 16px; }
+}
+</style>
+
+</head>
+<body>
+<div id="deck">
+
+<div class="slide slide-hero active">
+<div class="content-box">
+<div class="hero-kicker">Domínio de Fluxo: Engenharia de Decisões e Automação com Laços de Repetição em Python</div>
+<h1 class="hero-title">Aula 06: <span>Estruturas de Decisão e Repetição</span></h1>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Contextualização Estratégica</div>
+<p class="prose">No ecossistema de desenvolvimento de software, a <strong>linearidade é uma exceção</strong>. Programas reais precisam <strong>reagir a dados dinâmicos</strong>, validar entradas de usuários e processar grandes volumes de informações de forma automatizada. Esta aula situa-se no <strong>cerne da lógica de programação</strong>, transicionando de scripts estáticos para sistemas inteligentes e reativos. Dominar estruturas de decisão e repetição é o divisor de águas entre um <strong>codificador iniciante e um desenvolvedor</strong> capaz de construir a lógica de negócio de aplicações complexas, como sistemas bancários, motores de busca e controladores industriais.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Resumo do que será desenvolvido</div>
+<p class="prose">Exploraremos a fundo a sintaxe e a semântica das instruções condicionais <strong>if</strong>, <strong>elif</strong> e <strong>else</strong>, compreendendo como o interpretador Python avalia <strong>expressões booleanas</strong> e gerencia blocos de código via indentação. Avançaremos para as <strong>estruturas de iteração</strong>, desmistificando o laço <strong>while</strong> para repetições baseadas em estados lógicos e o laço <strong>for</strong> para a varredura eficiente de coleções e sequências de dados. Além disso, <strong>refinaremos</strong> o controle de execução com as palavras-reservadas <strong>break (interrupção abrupta) e continue (salto de iteração)</strong>, ferramentas essenciais para a <strong>otimização de algoritmos e tratamento de exceções</strong> em tempo de execução. Todo o conteúdo será aplicado na construção de um subsistema de Caixa Eletrônico, <strong>simulando requisitos reais</strong> de persistência de sessão e validação de transações financeiras.</p>
+</div>
+</div>
+
+<div class="slide slide-section">
+<div class="content-box">
+<span class="section-number">01</span>
+<div class="section-part">Parte 1</div>
+<h2 class="section-heading">Fundamentação e Contextualização: <span>A Anatomia da Decisão</span></h2>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="card">
+<div class="card-title blue">Problema Real de TI (Narrativa)</div>
+<p class="prose">Você foi contratado por uma <em>Fintech</em> em ascensão para desenvolver o módulo de segurança de um novo terminal de autoatendimento. O requisito é claro: o sistema não pode simplesmente "<strong>rodar</strong>"; ele deve decidir. Se o <strong>saldo for insuficiente, a transação deve ser negada</strong>; se a senha estiver errada três vezes, o cartão deve ser bloqueado; se o valor do saque exceder o limite diário, um alerta deve ser gerado. Sem estruturas de decisão, o software seria uma linha reta cega, incapaz de proteger o patrimônio do cliente ou oferecer opções personalizadas. No mercado, chamamos isso de "Lógica de Negócio" (Business Logic), e ela é o que torna o software valioso para as empresas.</p>
+</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Conceituação Técnica Profunda</div>
+<p class="prose">A estrutura de decisão fundamental em Python é o <strong>if</strong>. Tecnicamente, ela realiza uma avaliação de curto-circuito em uma <strong>expressão booleana</strong>. Quando o interpretador encontra um <strong>if</strong>, ele avalia se a condição resulta em True ou False. Diferente de linguagens como C++ ou Java, o Python não utiliza chaves {} para delimitar blocos; ele utiliza a <strong>indentação (espaços em branco)</strong>. Isso não é apenas estética, é sintaxe obrigatória que força o desenvolvedor a manter o código organizado, seguindo a PEP 8.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Conceituação Técnica Profunda (Cont.)</div>
+<p class="prose">A expansão dessa estrutura ocorre com o <strong>elif</strong> (abreviação de <em><strong>else if</strong></em>) e o else. O <strong>elif</strong> permite testar múltiplas condições exclusivas em sequência, evitando o aninhamento excessivo de <strong>if s</strong>, o que no mercado chamamos de "Código Macarrônico". O else atua como uma cláusula de salvaguarda, um "senão" que captura qualquer caso que não tenha atendido às condições anteriores. É a rede de segurança de qualquer algoritmo de decisão robusto.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Analogias com Mercado</div>
+<div class="analogy-box">
+No dia a dia de um desenvolvedor, escrever um <strong>if</strong> é como realizar um <em><strong>Deploy</strong></em> condicional. Imagine um ambiente de Integração Contínua (CI/CD): "Se os testes passarem (<strong>if</strong> tests_pass == True), faça o deploy; senão (else), notifique a equipe no Slack". Outro conceito é o <em>Flagging</em> ou <em>Feature Toggle</em>, onde partes do código só são executadas se uma chave de configuração estiver ativa. Dominar o <strong>if</strong> é dominar a inteligência estratégica do seu código.
+</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Demonstração Guiada</div>
+<p class="prose">Vamos visualizar um código simples de validação:</p>
+<div class="code-block">
+saldo = 1000.00<br>
+valor_saque = float(input(<span class="str">"Digite o valor do saque: "</span>))<br>
+<span class="kw">if</span> valor_saque <= 0:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="str">"[ERRO] Valor inválido para saque."</span>)<br>
+<span class="kw">elif</span> valor_saque > saldo:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="str">"[ERRO] Saldo insuficiente."</span>)<br>
+<span class="kw">else</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;saldo -= valor_saque<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(f<span class="str">"Saque realizado com sucesso! Novo saldo: R$ {saldo:.2f}"</span>)
+</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Conexão com SA e Erro Comum</div>
+<p class="prose"><strong>Conexão com SA:</strong> Como exemplo, desenvolveremos um sistema de gestão industrial, as estruturas de decisão serão usadas para monitorar sensores. Se a temperatura de uma máquina exceder 80°C, o sistema deve disparar um log de erro e desligar o motor. Sem o <strong>if</strong>, a fábrica poderia sofrer um acidente por falta de controle lógico.</p>
+<p class="prose"><strong>Erro Comum:</strong> Esquecer o sinal de dois pontos (:) ao final da instrução <strong>if</strong> ou misturar espaços e tabs na indentação. No Python 3, isso gera um IndentationError imediato, impedindo a execução do script.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="card">
+<div class="card-title red">Mini Estudo de Caso</div>
+<p class="prose">Um sistema de e-commerce que não utilizava else corretamente permitiu que cupons de desconto fossem aplicados cumulativamente sem validação, gerando prejuízo de milhares de reais em uma "Black Friday" por erro de fluxo lógico.</p>
+</div>
+</div>
+</div>
+
+<div class="slide slide-section">
+<div class="content-box">
+<span class="section-number">02</span>
+<div class="section-part">Parte 2</div>
+<h2 class="section-heading">Aprofundamento Técnico: <span>A Maestria da Repetição</span></h2>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Expansão Conceitual</div>
+<p class="prose">Entramos agora no domínio da automação. Se o <strong>if</strong> decide, os laços de repetição (Loops) executam. O laço while é uma estrutura de repetição condicional. Ele executa um bloco de código "<strong>enquanto</strong>" uma condição for <strong>verdadeira</strong>. É ideal para situações onde não sabemos previamente <strong>quantas vezes</strong> a repetição ocorrerá, como manter um sistema ligado até que o usuário clique em "Sair" ou aguardar uma resposta de um servidor que pode demorar.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Expansão Conceitual (Cont.)</div>
+<p class="prose">Por outro lado, o laço for em Python é, na verdade, um iterador de sequências. Diferente do for tradicional do C (com contador), <strong>o for do Python percorre itens de qualquer objeto iterável</strong> (listas, strings, tuplas, dicionários). Ele é projetado para ser legível e seguro, evitando o erro clássico de "acessar um índice fora dos limites" (Out of Bounds), muito comum em linguagens de baixo nível.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Comparações Técnicas</div>
+<table class="styled-table">
+<thead><tr><th>Conceito</th><th>While</th><th>For</th></tr></thead>
+<tbody>
+<tr><td>Foco</td><td>No estado lógico</td><td>No dado iterável</td></tr>
+<tr><td>Exemplo</td><td>while sistema_ativo:</td><td>for produto in lista_de_compras:</td></tr>
+<tr><td>Risco/Uso</td><td>Loop Infinito se esquecer controle</td><td>Performance e segurança (padrão 90%)</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Análise de Cenários Reais e Aplicação</div>
+<p class="prose">Em uma <em>Sprint</em> de desenvolvimento, usamos <strong>for</strong> para gerar relatórios mensais (percorrendo todos os dias do mês) e usamos while para processos de monitoramento de sistema (background tasks) que precisam rodar indefinidamente até um comando de interrupção manual ou erro crítico.</p>
+<div class="code-block">
+transacoes = [100.50, -20.00, 50.00, -150.00, 300.00]<br>
+total_positivo = 0<br>
+<span class="kw">for</span> valor <span class="kw">in</span> transacoes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> valor > 0:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;total_positivo += valor<br>
+print(f<span class="str">"Total de depósitos: R$ {total_positivo}"</span>)
+</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Erro Comum na Repetição</div>
+<p class="prose"><strong>Erro Comum:</strong> Tentar modificar uma lista enquanto a percorre com um for. Isso causa comportamentos imprevisíveis porque o iterador perde a referência do próximo índice. A recomendação de mercado é sempre criar uma cópia da lista ou usar uma lista auxiliar.</p>
+</div>
+</div>
+
+<div class="slide slide-section">
+<div class="content-box">
+<span class="section-number">03</span>
+<div class="section-part">Parte 3</div>
+<h2 class="section-heading">Aplicação Estruturada: <span>Domando o Fluxo com Break e Continue</span></h2>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Resolução Guiada (Break e Continue)</div>
+<table class="styled-table">
+<thead><tr><th>Conceito</th><th>Break</th><th>Continue</th></tr></thead>
+<tbody>
+<tr><td>Ação</td><td>"Quebra" o laço imediatamente</td><td>"Pula" para a próxima iteração</td></tr>
+<tr><td>Exemplo Uso</td><td>Encontrar um dado específico em milhões</td><td>Ignorar registros específicos no processamento</td></tr>
+<tr><td>Benefício</td><td>Economiza processamento e tempo</td><td>Interrompe o código abaixo e volta ao topo</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Ambiente de Trabalho e Tomada de Decisão</div>
+<p class="prose"><strong>Simulação de Ambiente de Trabalho:</strong> O uso excessivo de break e continue pode tornar o código difícil de seguir (o chamado "Spaghetti Code"). No entanto, em menus de sistemas legados via terminal, o while True: combinado com um break para sair do programa é um padrão de projeto clássico e aceitável.</p>
+<p class="prose"><strong>Tomada de Decisão Técnica:</strong> Suponha que seu sistema de Caixa Eletrônico tenha um limite de 3 tentativas de senha. Você usará um for de 1 a 3? Ou um while com um contador? A decisão impacta na legibilidade. Se o número de tentativas é fixo e conhecido, o for com range(3) é tecnicamente mais elegante e menos propenso a erros de incremento de variável.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Discussão Orientada e Conexão</div>
+<p class="prose"><strong>Discussão Orientada:</strong> Por que o Python não tem uma estrutura do-while como outras linguagens? A filosofia do Python (The Zen of Python) preza por "<strong>Haver apenas uma maneira óbvia de fazer algo</strong>". O <strong>while True</strong> com um <strong>if/break</strong> no final supre perfeitamente a necessidade de um <strong>do-while,</strong> mantendo a linguagem enxuta.</p>
+<p class="prose"><strong>Conexão com o Projeto:</strong> Num sistema industrial, se um sensor detectar fumaça, não podemos esperar o loop de monitoramento de temperatura terminar. Precisamos de um break no fluxo normal e um redirecionamento imediato para a rotina de emergência.</p>
+</div>
+</div>
+
+<div class="slide slide-section">
+<div class="content-box">
+<span class="section-number">04</span>
+<div class="section-part">Parte 4</div>
+<h2 class="section-heading">Consolidação e Desafio: <span>Engenharia da Solução "ATM System"</span></h2>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Refinamento Técnico e Boas Práticas</div>
+<p class="prose"><strong>Refinamento Técnico:</strong> Nesta última hora, vamos consolidar o conhecimento unindo tudo. Um sistema real de Caixa Eletrônico (ATM) exige um loop principal de interface, decisões de saque e validação de estado (saldo). Vamos aplicar o conceito de "acumuladores" e "sentinelas". Uma variável sentinela é aquela que, ao mudar de valor, sinaliza o fim de um processo (como a palavra "sair").</p>
+<ul class="bullet-list">
+<li><strong>Nomes de Variáveis Semânticos:</strong> Use <strong>valor_saque</strong> em vez de vs.</li>
+<li><strong>Constantes:</strong> Use <strong>LIMITE_DIARIO = 500</strong> em letras maiúsculas para valores que não mudam.</li>
+<li><strong>F-strings:</strong> Utilize a formatação moderna f"Texto {variavel}" para logs claros.</li>
+<li><strong>Refatoração:</strong> Se o seu if está ficando muito grande, talvez seja hora de quebrá-lo em funções (assunto das próximas aulas).</li>
+</ul>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Preparação e Execução Orientada</div>
+<p class="prose"><strong>Preparação para o Desafio:</strong> Vocês devem estruturar o programa para que ele seja resiliente. O que acontece se o usuário digitar uma letra em vez de um número no valor do saque? Embora ainda não tenhamos visto tratamento de exceções <strong>(try/except)</strong> a fundo, o uso de if valor.isdigit() pode ser uma solução elegante para validar strings antes da conversão.</p>
+<p class="prose"><strong>Execução Orientada:</strong> O fluxo lógico sugerido para o desafio é:<br>
+1. Inicializar variáveis de estado (saldo inicial).<br>
+2. Abrir um laço while True.<br> 
+3. Exibir o menu de opções.<br>
+4. Capturar a entrada do usuário.<br> 
+5. Avaliar com if/elif a opção escolhida.<br> 
+6. Realizar os cálculos e atualizações de saldo.<br> 
+7. Usar break para encerrar o programa quando solicitado.</p>
+</div>
+</div>
+
+<div class="slide slide-section">
+<div class="content-box">
+<span class="section-number">05</span>
+<div class="section-part">FAQ</div>
+<h2 class="section-heading"><span>Dúvidas Reais de Alunos</span></h2>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="faq-item">
+<div class="faq-q">1. "Professor, por que usar while True? Isso não vai travar o computador?"</div>
+<div class="faq-a"><strong>Resposta:</strong> O while True cria um loop potencialmente infinito, mas ele só "trava" se você não oferecer uma saída. Quando usamos o comando break dentro de um if, o Python encerra o laço na hora. É a forma padrão de criar menus interativos que só fecham quando o usuário decide.</div>
+</div>
+<div class="faq-item">
+<div class="faq-q">2. "Qual a diferença real entre elif e vários if seguidos?"</div>
+<div class="faq-a"><strong>Resposta:</strong> Excelente pergunta! O elif faz parte de um mesmo bloco lógico. Se a primeira condição for verdadeira, o Python nem olha as outras, o que economiza tempo. Vários if seguidos são independentes; o Python testará todos eles, mesmo que o primeiro já tenha resolvido o problema, o que pode causar erros lógicos se as condições se sobrepuserem.</div>
+</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="faq-item">
+<div class="faq-q">3. "Eu posso colocar um for dentro de um if que está dentro de um while?"</div>
+<div class="faq-a"><strong>Resposta:</strong> Sim, isso se chama "Aninhamento" (Nesting). É muito comum, mas cuidado: se você aninhar demais, seu código vira um "Código de Orgulho do Avô" (impossível de entender). A dica de mercado é tentar manter no máximo 2 ou 3 níveis de aninhamento.</div>
+</div>
+<div class="faq-item">
+<div class="faq-q">4. "O continue apaga o que eu fiz na repetição?"</div>
+<div class="faq-a"><strong>Resposta:</strong> Não! Ele apenas ignora o que vem <strong>depois</strong> dele dentro daquele ciclo específico da repetição e volta para o teste da condição no topo do laço. Tudo o que foi somado ou alterado antes da linha do continue permanece salvo na memória.</div>
+</div>
+</div>
+</div>
+
+<div class="slide slide-section">
+<div class="content-box">
+<span class="section-number">06</span>
+<div class="section-part">Prática</div>
+<h2 class="section-heading"><span>Desafio Prático</span></h2>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Desafio Prático: SENAIBank</div>
+<p class="prose"><strong>Contexto da Situação:</strong> A cooperativa de crédito "SENAIBank" precisa de um protótipo funcional para seu novo terminal de autoatendimento em modo texto. O sistema deve ser amigável e impedir que o cliente retire mais dinheiro do que possui.</p>
+<p class="prose"><strong>Objetivo Técnico:</strong> Implementar um algoritmo robusto de controle de fluxo que gerencie o estado financeiro de um usuário durante uma sessão de uso.</p>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="card">
+<div class="card-title blue">Requisitos Obrigatórios</div>
+<ul class="bullet-list">
+<li>Saldo inicial de R$ 1.000,00.</li>
+<li>Menu com as opções: (1) Ver Saldo, (2) Depositar, (3) Sacar, (4) Sair.</li>
+<li>O programa deve rodar continuamente até que a opção "Sair" seja escolhida.</li>
+<li>No saque, validar se o valor é positivo e se há saldo disponível.</li>
+<li>No depósito, validar se o valor é positivo.</li>
+<li>Exibir mensagens de erro claras para operações inválidas.</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="card">
+<div class="card-title green">Critérios de Avaliação</div>
+<ul class="bullet-list">
+<li>1. Uso correto da indentação.</li>
+<li>2. Implementação funcional do laço while.</li>
+<li>3. Lógica condicional correta para validação de saldo (não permitir saldo negativo).</li>
+<li>4. Uso de break para encerramento limpo.</li>
+<li>5. Legibilidade do código (nomes de variáveis e comentários).</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Passo a Passo Sugerido</div>
+<div class="step-card">
+<div class="step-number">1</div>
+<div class="step-body">
+<div class="step-desc">Defina a variável saldo = 1000.0. Inicie o while True:. Imprima o menu e use input() para ler a opção. Use um bloco if/elif/else para tratar cada uma das 4 opções.</div>
+</div>
+</div>
+<div class="step-card">
+<div class="step-number">2</div>
+<div class="step-body">
+<div class="step-desc">Dentro da opção de saque, use um if aninhado para verificar if valor_saque <= saldo:. Para a opção 4, use o comando break. Teste o programa tentando sacar R$ 1.500,00 e veja se ele nega corretamente.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<div class="slide-label">Entregáveis Esperados</div>
+<p class="prose">Arquivo .py contendo o código fonte completo e devidamente comentado.</p>
+</div>
+</div>
+
+<div class="slide slide-section">
+<div class="content-box">
+<span class="section-number">07</span>
+<div class="section-part">Conexão</div>
+<h2 class="section-heading">Próxima <span>Aula</span></h2>
+</div>
+</div>
+
+<div class="slide">
+<div class="content-box">
+<p class="prose">Parabéns por dominar o fluxo de controle! Agora que seu código já sabe decidir e repetir, ele está ficando grande e complexo.</p>
+<p class="prose">Na <strong>Aula 07</strong>, daremos o próximo passo na organização profissional: <strong>Modularização com Funções</strong>. Vamos aprender a empacotar essa lógica do Caixa Eletrônico em blocos reutilizáveis, permitindo que o mesmo código de "saque" seja usado em mil caixas eletrônicos diferentes sem precisar reescrever uma única linha. Preparem-se para elevar o nível da sua arquitetura de software!</p>
+</div>
+</div>
+
+</div>
+
+<div id="progress-bar"></div>
+
+<div id="nav">
+<span id="slide-counter">01 / 35</span>
+<button class="nav-btn" id="btn-prev" title="Anterior (←)">&#8592;</button>
+<button class="nav-btn" id="btn-next" title="Próximo (→)">&#8594;</button>
+</div>
+
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const total = slides.length;
+let current = 0;
+
+const counter = document.getElementById('slide-counter');
+const bar = document.getElementById('progress-bar');
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function goTo(next) {
+if (next === current || next < 0 || next >= total) return;
+slides[current].classList.remove('active');
+current = next;
+slides[current].classList.add('active');
+counter.textContent = `${pad(current+1)} / ${pad(total)}`;
+bar.style.width = `${((current+1)/total)*100}%`;
+}
+
+document.getElementById('btn-next').addEventListener('click', () => goTo(current+1));
+document.getElementById('btn-prev').addEventListener('click', () => goTo(current-1));
+
+document.addEventListener('keydown', (e) => {
+if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') {
+e.preventDefault(); goTo(current+1);
+} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+e.preventDefault(); goTo(current-1);
+}
+});
+
+let touchStart = null;
+document.addEventListener('touchstart', (e) => { touchStart = e.touches[0].clientX; });
+document.addEventListener('touchend', (e) => {
+if (touchStart === null) return;
+const dx = e.changedTouches[0].clientX - touchStart;
+if (Math.abs(dx) > 50) goTo(dx < 0 ? current+1 : current-1);
+touchStart = null;
+});
+
+bar.style.width = `${(1/total)*100}%`;
+</script>
+
+</body>
+</html>

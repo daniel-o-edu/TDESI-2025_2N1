@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 3 - SGBD e Diretrizes Empresariais</title>
+<style>
+  :root { --bg: #ffffff; --surface: #f5f7fa; --accent: #1a56db; --accent2: #0e7a5c; --accent3: #c0392b; --text: #111827; --muted: #4b5563; --border: #d1d5db; --code-bg: #f0f2f5; --highlight: #e8f0fe; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: Arial, Helvetica, sans-serif; height: 100vh; overflow: hidden; }
+  #deck { width: 100vw; height: 100vh; position: relative; }
+  .slide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: clamp(30px, 5vw, 80px); opacity: 0; pointer-events: none; transition: opacity 0.4s ease; background: var(--bg); }
+  .slide.active { opacity: 1; pointer-events: all; }
+  .content-box { max-width: 900px; width: 100%; padding: clamp(20px, 3vw, 40px); }
+  .slide-label { font-size: clamp(13px, 2vw, 17px); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; text-align: center; }
+  .slide-title { font-size: clamp(24px, 5vw, 48px); font-weight: 700; line-height: 1.2; margin-bottom: 24px; color: var(--text); text-align: center; border-bottom: 3px solid var(--accent); padding-bottom: 16px; }
+  .slide-title em { color: var(--accent); font-style: normal; }
+  .slide-hero { background: #f0f4f8; border-left: 8px solid var(--accent); justify-content: center; }
+  .hero-kicker { font-size: clamp(14px, 2.5vw, 19px); font-weight: 700; letter-spacing: 2px; color: var(--accent); margin-bottom: 16px; text-transform: uppercase; text-align: center; }
+  .hero-title { font-size: clamp(32px, 7vw, 68px); font-weight: 700; line-height: 1.1; margin-bottom: 16px; text-align: center; }
+  .hero-title span { color: var(--accent); }
+  .hero-subtitle { font-size: clamp(16px, 2.5vw, 22px); color: var(--muted); line-height: 1.6; margin-bottom: 28px; text-align: center; }
+  .hero-objectives { display: flex; flex-direction: column; gap: 12px; max-width: 700px; margin: 0 auto; }
+  .hero-obj-item { display: flex; align-items: flex-start; gap: 14px; font-size: clamp(15px, 2.2vw, 19px); line-height: 1.5; }
+  .hero-obj-item .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-top: 7px; flex-shrink: 0; }
+  .slide-section { background: #e8eef5; justify-content: center; }
+  .section-number { font-size: clamp(80px, 18vw, 180px); font-weight: 700; color: rgba(26,86,219,0.1); line-height: 1; margin-bottom: -10px; text-align: center; }
+  .section-part { font-size: clamp(14px, 2.5vw, 18px); font-weight: 700; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; text-align: center; }
+  .section-heading { font-size: clamp(28px, 6vw, 60px); font-weight: 700; line-height: 1.1; color: var(--text); text-align: center; }
+  .section-heading span { color: var(--accent); }
+  .section-sub { font-size: clamp(15px, 2.2vw, 20px); color: var(--muted); margin-top: 18px; max-width: 600px; line-height: 1.6; text-align: center; margin-left: auto; margin-right: auto; }
+  .prose { font-size: clamp(16px, 2.2vw, 20px); line-height: 1.7; color: var(--muted); margin: 16px 0; }
+  .prose strong { color: var(--text); font-weight: 700; }
+  .prose em { color: var(--accent); font-weight: 700; font-style: normal; }
+  .analogy-box { border-left: 4px solid var(--accent); background: var(--highlight); border-radius: 0 8px 8px 0; padding: clamp(16px, 2.5vw, 24px); margin: 20px 0; font-size: clamp(16px, 2.2vw, 19px); line-height: 1.7; }
+  .analogy-box strong { color: var(--accent); }
+  .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+  .bullet-list li { display: flex; align-items: flex-start; gap: 12px; font-size: clamp(16px, 2.2vw, 19px); line-height: 1.6; color: var(--muted); }
+  .bullet-list li::before { content: '▸'; color: var(--accent); font-size: 16px; margin-top: 4px; flex-shrink: 0; }
+  .bullet-list li strong { color: var(--text); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: clamp(18px, 2.5vw, 28px); margin: 16px 0; }
+  .card-title { font-size: clamp(14px, 2vw, 18px); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+  .card-title.yellow { color: #b45309; } .card-title.green { color: var(--accent2); } .card-title.red { color: var(--accent3); } .card-title.blue { color: var(--accent); }
+  .styled-table { width: 100%; border-collapse: collapse; font-size: clamp(15px, 2vw, 19px); margin: 20px 0; }
+  .styled-table thead tr { background: var(--accent); }
+  .styled-table th { padding: 14px 18px; text-align: left; font-weight: 700; color: #ffffff; font-size: clamp(14px, 2vw, 18px); }
+  .styled-table td { padding: 12px 18px; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  .styled-table tr:nth-child(even) td { background: var(--surface); }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: clamp(16px, 2.5vw, 24px); display: flex; gap: 18px; align-items: flex-start; margin: 12px 0; }
+  .step-number { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #ffffff; font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 700; font-size: clamp(16px, 2.2vw, 20px); color: var(--text); margin-bottom: 6px; }
+  .step-desc { font-size: clamp(15px, 2vw, 19px); color: var(--muted); line-height: 1.6; }
+  .checklist { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+  .check-item { display: flex; align-items: flex-start; gap: 14px; font-size: clamp(16px, 2.2vw, 20px); line-height: 1.5; }
+  .check-box { width: 22px; height: 22px; border: 2px solid var(--border); border-radius: 4px; flex-shrink: 0; margin-top: 2px; background: #fff; }
+  .faq-item { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: clamp(14px, 2vw, 20px); margin: 12px 0; }
+  .faq-q { font-weight: 700; color: var(--accent); font-size: clamp(16px, 2.2vw, 20px); margin-bottom: 8px; }
+  .faq-a { font-size: clamp(15px, 2vw, 19px); color: var(--muted); line-height: 1.65; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; justify-content: center; }
+  .badge { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 18px; font-size: clamp(14px, 2vw, 18px); }
+  .badge.good { border-color: var(--accent2); color: var(--accent2); background: #f0fdf4; }
+  .dica-box { background: #fefce8; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: clamp(16px, 2.5vw, 24px); margin: 20px 0; font-size: clamp(16px, 2.2vw, 19px); line-height: 1.7; color: #78350f; }
+  #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: var(--accent); transition: width 0.4s ease; z-index: 100; }
+  #nav { position: fixed; bottom: 20px; right: 24px; display: flex; align-items: center; gap: 12px; z-index: 100; }
+  #slide-counter { font-size: clamp(14px, 1.8vw, 17px); color: var(--muted); font-weight: 700; }
+  .nav-btn { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--border); background: #fff; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  .nav-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  @media (max-width: 600px) { .slide { padding: 20px; } .content-box { padding: 16px; } }
+</style>
+</head>
+<body>
+<div id="deck">
+
+  <!-- SLIDE 1: Hero / Capa -->
+  <div class="slide slide-hero">
+    <div class="hero-kicker">SGBD e Diretrizes Empresariais</div>
+    <h1 class="hero-title">Aula 3: <span>O Motor dos Dados – Escolhendo o seu SGBD</span></h1>
+    <p class="hero-subtitle">Todo app de sucesso precisa de um "cérebro" para guardar memórias de forma organizada, segura e rápida. Hoje você entra nos bastidores para entender como os SGBDs funcionam e aprender a escolher a ferramenta certa para o seu projeto.</p>
+    <div class="hero-objectives">
+      <div class="hero-obj-item"><div class="dot"></div>Definição de SGBD e seus tipos e aplicações.</div>
+      <div class="hero-obj-item"><div class="dot"></div>Relação entre requisitos e escolha do SGBD.</div>
+      <div class="hero-obj-item"><div class="dot"></div>Diretrizes empresariais: missão, visão e qualidade.</div>
+      <div class="hero-obj-item"><div class="dot"></div>Início do documento técnico.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: Produto da Aula -->
+  <div class="slide">
+    <div class="slide-label">Produto da Aula</div>
+    <h2 class="slide-title">Justificativa Técnica para Escolha do SGBD</h2>
+    <div class="content-box">
+      <p class="prose">O produto desta aula é a redação de uma <strong>Justificativa Técnica (E-mail Profissional)</strong> para a escolha do SGBD da sua Software House (SA).</p>
+      <div class="card">
+        <div class="card-title blue">Objetivos de Aprendizagem</div>
+        <ul class="bullet-list">
+          <li>Identificar o papel fundamental do SGBD no ecossistema de software e a importância da independência de dados.</li>
+          <li>Classificar as diferenças entre bancos de dados Relacionais (SQL) e Não-Relacionais (NoSQL).</li>
+          <li>Analisar requisitos de negócio (missão da empresa e qualidade) para selecionar a tecnologia mais adequada.</li>
+          <li>Redigir uma justificativa técnica estruturada utilizando termos do mercado de TI.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: Section 01 -->
+  <div class="slide slide-section">
+    <div class="section-number">01</div>
+    <div class="section-part">Parte Um</div>
+    <h2 class="section-heading">O Que é esse tal de <span>SGBD?</span></h2>
+    <p class="section-sub">Entendendo o "gerente" do armazém de dados e sua importância no ecossistema de software.</p>
+  </div>
+
+  <!-- SLIDE 4: O que é SGBD -->
+  <div class="slide">
+    <div class="slide-label">Definição de SGBD</div>
+    <h2 class="slide-title">O Gerente do Armazém de Dados</h2>
+    <div class="content-box">
+      <p class="prose">Imagine que você tem milhares de fotos no celular. Se elas estivessem jogadas em uma pasta única, sem data ou álbum, seria um caos achar aquela selfie de 2022. O <strong>SGBD (Sistema de Gerenciamento de Banco de Dados)</strong> é o "gerente" desse armazém. Ele é o software que fica entre o seu código (Java, Python, JS) e os dados reais salvos no disco.</p>
+      <ul class="bullet-list">
+        <li><strong>Independência de Dados:</strong> É o conceito de que você pode mudar o "HD" ou a forma como o arquivo é salvo sem precisar reescrever todo o seu app. É como o Spotify: não importa se a música está num servidor nos EUA ou no Brasil, o botão "Play" no seu app funciona do mesmo jeito.</li>
+        <li><strong>Evolução:</strong> Saímos de sistemas de arquivos simples (como um bloco de notas) para sistemas robustos que aguentam milhões de acessos simultâneos sem "crashar".</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Analogia SGBD -->
+  <div class="slide">
+    <div class="slide-label">Analogia de Impacto</div>
+    <h2 class="slide-title">O SGBD como Motor de um Jogo</h2>
+    <div class="content-box">
+      <div class="analogy-box">
+        <strong>Analogia de Impacto:</strong> O SGBD é como o Motor de um Jogo (Unreal Engine ou Unity). O jogo é a interface que o usuário vê, mas quem calcula a física, a luz e as regras por trás de tudo é o motor. Sem um bom motor, o jogo trava; sem um bom SGBD, os dados somem ou ficam lentos.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Section 02 -->
+  <div class="slide slide-section">
+    <div class="section-number">02</div>
+    <div class="section-part">Parte Dois</div>
+    <h2 class="section-heading">A Batalha dos Gigantes – <span>Relacional vs. NoSQL</span></h2>
+    <p class="section-sub">No mercado, você vai encontrar dois tipos principais de "motores". Aqui o bicho pega!</p>
+  </div>
+
+  <!-- SLIDE 7: Relacional -->
+  <div class="slide">
+    <div class="slide-label">Tipo 1</div>
+    <h2 class="slide-title">Relacional (RDBMS)</h2>
+    <div class="content-box">
+      <p class="prose">Exemplos: <strong>MySQL, PostgreSQL, SQL Server</strong></p>
+      <div class="card">
+        <div class="card-title blue">Como funciona</div>
+        <p class="prose">Dados organizados em tabelas rígidas (linhas e colunas), como uma planilha de Excel ultra turbinada.</p>
+      </div>
+      <div class="card">
+        <div class="card-title green">Destaque: Integridade</div>
+        <p class="prose">Foco total em <strong>Integridade</strong>. Se você transfere dinheiro no PicPay, o banco de dados garante que o valor saiu de uma conta e entrou na outra exatamente ao mesmo tempo — isso chamamos de <strong>transações ACID</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: NoSQL -->
+  <div class="slide">
+    <div class="slide-label">Tipo 2</div>
+    <h2 class="slide-title">Não-Relacional (NoSQL)</h2>
+    <div class="content-box">
+      <p class="prose">Exemplos: <strong>MongoDB, Firebase, Cassandra</strong></p>
+      <div class="card">
+        <div class="card-title blue">Como funciona</div>
+        <p class="prose">Documentos flexíveis (geralmente em formato JSON). Não precisa de tabelas fixas.</p>
+      </div>
+      <div class="card">
+        <div class="card-title yellow">Destaque: Escalabilidade e Agilidade</div>
+        <p class="prose">Ideal para redes sociais onde cada post pode ter coisas diferentes — um tem foto, outro só texto, outro tem enquete.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: Tabela comparativa -->
+  <div class="slide">
+    <div class="slide-label">Comparação</div>
+    <h2 class="slide-title">SQL vs. NoSQL: Quadro Comparativo</h2>
+    <div class="content-box">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Característica</th>
+            <th>Relacional (SQL)</th>
+            <th>Não-Relacional (NoSQL)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Esquema</strong></td>
+            <td>Fixo (Rígido)</td>
+            <td>Flexível (Dinâmico)</td>
+          </tr>
+          <tr>
+            <td><strong>Escalabilidade</strong></td>
+            <td>Vertical (Mais hardware no servidor)</td>
+            <td>Horizontal (Mais servidores baratos)</td>
+          </tr>
+          <tr>
+            <td><strong>Exemplo Real</strong></td>
+            <td>Sistema Bancário / ERP</td>
+            <td>Feed do Instagram / Chat em tempo real</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: Section 03 -->
+  <div class="slide slide-section">
+    <div class="section-number">03</div>
+    <div class="section-part">Parte Três</div>
+    <h2 class="section-heading">Análise Técnica dos <span>Principais SGBDs</span> de Mercado</h2>
+    <p class="section-sub">Cada ferramenta tem sua "personalidade". A escolha deve considerar como ela se adapta ao cenário de negócio.</p>
+  </div>
+
+  <!-- SLIDE 11: MySQL -->
+  <div class="slide">
+    <div class="slide-label">SGBD 1</div>
+    <h2 class="slide-title">MySQL</h2>
+    <div class="content-box">
+      <p class="prose">O MySQL é reconhecido como o <strong>SGBD relacional mais popular do mundo</strong>, amplamente utilizado em aplicações web e sistemas de gestão de conteúdo (CMS). Sua principal vantagem reside na <strong>velocidade de leitura</strong> e na facilidade de implementação.</p>
+      <div class="analogy-box">
+        No contexto acadêmico e profissional, o uso do engine <strong>InnoDB</strong> garante a conformidade ACID necessária para transações seguras, enquanto sua vasta comunidade facilita a resolução de problemas técnicos.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: PostgreSQL -->
+  <div class="slide">
+    <div class="slide-label">SGBD 2</div>
+    <h2 class="slide-title">PostgreSQL</h2>
+    <div class="content-box">
+      <p class="prose">Frequentemente chamado de <em>"o banco de dados open source mais avançado do mundo"</em>, o PostgreSQL destaca-se pela sua <strong>robustez, extensibilidade</strong> e conformidade rigorosa com os padrões SQL.</p>
+      <ul class="bullet-list">
+        <li>Suporta tipos de dados complexos, como <strong>JSON nativo</strong> e dados geoespaciais (via PostGIS).</li>
+        <li>Ideal para sistemas que exigem <strong>alta integridade de dados</strong> e consultas complexas.</li>
+        <li>Em testes de desempenho para análise de dados e cargas de trabalho pesadas, o PostgreSQL frequentemente <strong>supera seus concorrentes open source</strong>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: SQL Server -->
+  <div class="slide">
+    <div class="slide-label">SGBD 3</div>
+    <h2 class="slide-title">Microsoft SQL Server</h2>
+    <div class="content-box">
+      <p class="prose">Este é um <strong>SGBD comercial</strong> focado em ambientes corporativos de larga escala.</p>
+      <div class="card">
+        <div class="card-title blue">Principais Características</div>
+        <ul class="bullet-list">
+          <li>Integração profunda com o <strong>ecossistema Microsoft</strong>.</li>
+          <li>Ferramentas avançadas de <strong>Business Intelligence (BI)</strong>.</li>
+          <li>Suporte robusto para <strong>segurança e auditoria</strong>.</li>
+          <li>Escolha preferencial para indústrias que já operam com infraestrutura Windows e requerem garantias contratuais de suporte.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: MongoDB -->
+  <div class="slide">
+    <div class="slide-label">SGBD 4</div>
+    <h2 class="slide-title">MongoDB</h2>
+    <div class="content-box">
+      <p class="prose">Como principal expoente do modelo <strong>NoSQL orientado a documentos</strong>, o MongoDB armazena dados em pares de chave-valor usando o formato <strong>BSON (JSON binário)</strong>.</p>
+      <div class="card">
+        <div class="card-title green">Principais Vantagens</div>
+        <ul class="bullet-list">
+          <li>Flexibilidade de esquema permite que desenvolvedores <strong>iterem rapidamente</strong> sem a necessidade de migrações complexas de tabelas.</li>
+          <li>Ideal para sistemas com <strong>dados dinâmicos</strong>, catálogos de produtos variados e análise de grandes volumes de dados não-estruturados.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: Ponto de Conexão SA -->
+  <div class="slide">
+    <div class="slide-label">Ponto de Conexão com a SA</div>
+    <h2 class="slide-title">Como o SGBD se Conecta ao Seu Projeto?</h2>
+    <div class="content-box">
+      <p class="prose">Lembra da sua Software House? A escolha do SGBD deve considerar o <strong>contexto do cliente</strong>:</p>
+      <div class="card">
+        <div class="card-title red">Exemplo: Hospital</div>
+        <p class="prose">A <strong>segurança e a rastreabilidade</strong> (saber quem alterou o quê) são vitais. Prefira SGBDs com foco em integridade e conformidade ACID.</p>
+      </div>
+      <div class="card">
+        <div class="card-title yellow">Exemplo: Loja de Departamentos</div>
+        <p class="prose">Talvez a <strong>velocidade de busca de produtos</strong> seja o mais importante, podendo justificar soluções NoSQL para catálogos variados.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: Section 04 -->
+  <div class="slide slide-section">
+    <div class="section-number">04</div>
+    <div class="section-part">Parte Quatro</div>
+    <h2 class="section-heading">Diretrizes Empresariais: <span>Missão, Visão e Qualidade</span></h2>
+    <p class="section-sub">A escolha de um banco de dados não é apenas uma decisão de software, mas uma decisão estratégica alinhada às diretrizes empresariais.</p>
+  </div>
+
+  <!-- SLIDE 17: Missão -->
+  <div class="slide">
+    <div class="slide-label">Diretriz 1</div>
+    <h2 class="slide-title">A Missão como Guia Tecnológico</h2>
+    <div class="content-box">
+      <p class="prose">A missão de uma empresa define sua <strong>razão de ser</strong> e seu compromisso com os clientes no presente.</p>
+      <div class="analogy-box">
+        Se a missão de um Hospital é <strong>"garantir a segurança do paciente por meio de diagnósticos precisos e integrados"</strong>, o banco de dados deve priorizar a consistência absoluta dos dados (ACID) e a alta disponibilidade, evitando que informações vitais fiquem inacessíveis.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: Visão e Escalabilidade -->
+  <div class="slide">
+    <div class="slide-label">Diretriz 2</div>
+    <h2 class="slide-title">A Visão e a Escalabilidade</h2>
+    <div class="content-box">
+      <p class="prose">A visão descreve <strong>onde a organização pretende estar no futuro</strong>.</p>
+      <div class="analogy-box">
+        Para uma startup de Delivery de Comida que almeja <strong>"ser a maior plataforma de logística urbana do país"</strong>, o SGBD escolhido deve suportar uma escalabilidade massiva, permitindo que o sistema cresça de mil para um milhão de usuários sem a necessidade de reconstruir toda a arquitetura de dados.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: Política de Qualidade intro -->
+  <div class="slide">
+    <div class="slide-label">Diretriz 3</div>
+    <h2 class="slide-title">Política de Qualidade e Integridade de Dados</h2>
+    <div class="content-box">
+      <p class="prose">A qualidade em software está intrinsecamente ligada à qualidade dos dados. Uma política de qualidade organizacional que preza pela rastreabilidade e transparência exige mecanismos técnicos no banco de dados: <strong>trilhas de auditoria, restrições de integridade rigorosas</strong> e processos de backup validados.</p>
+      <div class="analogy-box">
+        A Política de Qualidade e Integridade de Dados não é apenas um "documento chato"; é o que separa um app amador de um sistema de nível bancário. No mercado de TI, usamos o termo <strong>GIGO (Garbage In, Garbage Out)</strong>: se entra lixo, sai lixo.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: Section 05 -->
+  <div class="slide slide-section">
+    <div class="section-number">05</div>
+    <div class="section-part">Parte Cinco</div>
+    <h2 class="section-heading">Os 4 Pilares da <span>Qualidade e Integridade</span> de Dados</h2>
+    <p class="section-sub">Os fundamentos técnicos que separam um sistema amador de um sistema de nível bancário.</p>
+  </div>
+
+  <!-- SLIDE 21: Pilar A - Confiabilidade -->
+  <div class="slide">
+    <div class="slide-label">Pilar A</div>
+    <h2 class="slide-title">Confiabilidade: A Verdade dos Dados</h2>
+    <div class="content-box">
+      <p class="prose">A confiabilidade garante que o dado que está no banco é exatamente o que deveria ser. Sem ela, você pode ter um cliente com idade "-5" ou um pedido sem dono.</p>
+      <div class="card">
+        <div class="card-title blue">Implementação Técnica</div>
+        <ul class="bullet-list">
+          <li><strong>Primary Key (PK):</strong> O "RG" da linha. Garante que não existam duplicatas.</li>
+          <li><strong>Foreign Key (FK):</strong> O "Elo de Ligação". Impede que você apague um cliente que ainda tem pedidos pendentes.</li>
+          <li><strong>NOT NULL:</strong> Obriga o preenchimento (ex: ninguém cria conta sem e-mail).</li>
+          <li><strong>CHECK:</strong> Valida regras de negócio (ex: CHECK (preco &gt; 0)).</li>
+        </ul>
+      </div>
+      <div class="analogy-box">
+        <strong>Analogia de Impacto:</strong> Imagine um jogo de RPG onde você pudesse ter "-50" de vida e ainda continuar andando. O jogo "quebraria". As Constraints são as <strong>regras da física do seu banco de dados</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 22: Pilar B - Disponibilidade -->
+  <div class="slide">
+    <div class="slide-label">Pilar B</div>
+    <h2 class="slide-title">Disponibilidade: O App que Nunca Dorme</h2>
+    <div class="content-box">
+      <p class="prose">De que adianta o dado ser perfeito se o servidor está fora do ar? Disponibilidade é sobre garantir o acesso <strong>24/7</strong>.</p>
+      <div class="card">
+        <div class="card-title blue">Implementação Técnica</div>
+        <ul class="bullet-list">
+          <li><strong>Replicação:</strong> Criar "clones" do banco em servidores diferentes. Se um cair, o outro assume.</li>
+          <li><strong>Failover:</strong> O processo automático de troca para o servidor reserva em caso de pane.</li>
+        </ul>
+      </div>
+      <div class="analogy-box">
+        <strong>Analogia de Impacto:</strong> É como o sistema do Instagram. Se o servidor principal em que sua foto está guardada travar, um servidor "reserva" entrega a foto para você em milissegundos, e <strong>você nem percebe que houve um problema</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 23: Pilar C - Segurança -->
+  <div class="slide">
+    <div class="slide-label">Pilar C</div>
+    <h2 class="slide-title">Segurança: A Fortaleza Digital</h2>
+    <div class="content-box">
+      <p class="prose">Aqui entramos na proteção contra invasores e erros humanos, além de estarmos em dia com a <strong>LGPD</strong>.</p>
+      <div class="card">
+        <div class="card-title blue">Implementação Técnica</div>
+        <ul class="bullet-list">
+          <li><strong>DCL (Data Control Language):</strong> Comandos GRANT (dar permissão) e REVOKE (tirar permissão). Um estagiário não deve ter poder para deletar o banco de produção!</li>
+          <li><strong>Criptografia:</strong> Embaralhar dados sensíveis (senhas, cartões) para que, mesmo se houver um vazamento, ninguém consiga ler.</li>
+        </ul>
+      </div>
+      <div class="analogy-box">
+        <strong>Impacto no Negócio:</strong> Evita multas milionárias e a destruição da reputação da empresa. No mercado de TI, um <strong>vazamento de dados pode ser o fim de uma startup</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 24: Pilar D - Rastreabilidade -->
+  <div class="slide">
+    <div class="slide-label">Pilar D</div>
+    <h2 class="slide-title">Rastreabilidade: O "Visto por Último"</h2>
+    <div class="content-box">
+      <p class="prose">É a capacidade de olhar para o passado e entender a <strong>história de cada dado</strong>.</p>
+      <div class="card">
+        <div class="card-title blue">Implementação Técnica</div>
+        <ul class="bullet-list">
+          <li><strong>Logs de Transação:</strong> O diário de bordo do SGBD. Registra cada vírgula alterada.</li>
+          <li><strong>Triggers de Auditoria:</strong> "Gatilhos" que salvam automaticamente em uma tabela escondida: Quem mudou? O que mudou? Quando mudou?</li>
+        </ul>
+      </div>
+      <div class="analogy-box">
+        <strong>Analogia de Impacto:</strong> É como o <strong>Histórico de Edição do Google Docs</strong>. Se alguém apagar um parágrafo importante, você consegue ver exatamente quem foi e restaurar a versão anterior.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 25: Tabela dos 4 Pilares -->
+  <div class="slide">
+    <div class="slide-label">Resumo dos Pilares</div>
+    <h2 class="slide-title">Qualidade e Integridade: Visão Geral</h2>
+    <div class="content-box">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Princípio de Qualidade</th>
+            <th>Implementação Técnica no SGBD</th>
+            <th>Impacto no Negócio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Confiabilidade</strong></td>
+            <td>Constraints (PK, FK, NOT NULL, CHECK).</td>
+            <td>Redução de erros em relatórios financeiros e operacionais.</td>
+          </tr>
+          <tr>
+            <td><strong>Disponibilidade</strong></td>
+            <td>Replicação de dados e Failover.</td>
+            <td>Continuidade do serviço mesmo em falhas de hardware.</td>
+          </tr>
+          <tr>
+            <td><strong>Segurança</strong></td>
+            <td>Controle de Acesso (DCL) e Criptografia.</td>
+            <td>Proteção contra vazamento de dados e conformidade com a LGPD.</td>
+          </tr>
+          <tr>
+            <td><strong>Rastreabilidade</strong></td>
+            <td>Logs de transações e Triggers de auditoria.</td>
+            <td>Capacidade de identificar quem alterou um dado crítico e quando.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SLIDE 26: Section FAQ -->
+  <div class="slide slide-section">
+    <div class="section-number">06</div>
+    <div class="section-part">Parte Seis</div>
+    <h2 class="section-heading">Seção de <span>Dúvidas</span> (FAQ)</h2>
+    <p class="section-sub">Respostas para as perguntas mais frequentes sobre SGBDs e banco de dados.</p>
+  </div>
+
+  <!-- SLIDE 27: FAQ 1 e 2 -->
+  <div class="slide">
+    <div class="slide-label">FAQ</div>
+    <h2 class="slide-title">Perguntas Frequentes</h2>
+    <div class="content-box">
+      <div class="faq-item">
+        <div class="faq-q">"Professor, não posso usar uma planilha do Google Sheets como banco de dados?"</div>
+        <div class="faq-a">Até pode, mas para algo minúsculo. O Sheets não aguenta múltiplos acessos simultâneos com segurança. Se 1000 pessoas tentarem comprar o último ingresso de um show ao mesmo tempo, a planilha vai travar ou vender 1000 vezes o que não tem. O SGBD resolve esse "Bug".</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">"Qual o melhor SGBD para começar a aprender?"</div>
+        <div class="faq-a">O MySQL ou PostgreSQL são os reis do mercado para iniciantes e profissionais. Aprender SQL (a linguagem desses bancos) é como aprender a dirigir: depois que você aprende um, dirige quase todos.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 28: FAQ 3 -->
+  <div class="slide">
+    <div class="slide-label">FAQ</div>
+    <h2 class="slide-title">NoSQL é "melhor" que SQL?</h2>
+    <div class="content-box">
+      <div class="faq-item">
+        <div class="faq-q">"NoSQL é 'melhor' que SQL porque é mais moderno?"</div>
+        <div class="faq-a">De jeito nenhum! São ferramentas diferentes para problemas diferentes. O SQL continua sendo a base de 90% dos sistemas financeiros do mundo. O NoSQL brilha em Big Data e apps de alta performance de dados não estruturados.</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge good">SQL → Sistemas financeiros, ERP</div>
+        <div class="badge good">NoSQL → Big Data, dados dinâmicos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 29: Desafio Prático -->
+  <div class="slide">
+    <div class="slide-label">Desafio Prático</div>
+    <h2 class="slide-title">Mão na Massa: Você é o Líder Técnico</h2>
+    <div class="content-box">
+      <p class="prose"><strong>Cenário:</strong> Você é o Líder Técnico da sua Software House. Seu gestor pediu uma definição final: qual SGBD usaremos para o projeto do semestre?</p>
+      <div class="card">
+        <div class="card-title blue">Sua Missão: E-mail Técnico para o Gestor</div>
+        <p class="prose">No texto, você DEVE:</p>
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-body">
+            <div class="step-title">Citar um valor da Missão da sua empresa</div>
+            <div class="step-desc">Ex: "Nossa missão é oferecer segurança total aos dados dos pacientes."</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-body">
+            <div class="step-title">Explicar como um recurso técnico do SGBD escolhido ajuda nisso</div>
+            <div class="step-desc">Ex: "Escolhi o PostgreSQL porque ele possui suporte nativo a transações ACID, garantindo que nenhum prontuário seja corrompido."</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-body">
+            <div class="step-title">Mencionar um requisito de Qualidade e Integridade de Dados</div>
+            <div class="step-desc">Ex: Segurança, Rastreabilidade ou Usabilidade.</div>
+          </div>
+        </div>
+      </div>
+      <p class="prose"><strong>Evidência de Desempenho:</strong> O texto do e-mail postado no repositório do Github.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 30: Conexão com o Documento Técnico -->
+  <div class="slide">
+    <div class="slide-label">Conexão com o Projeto</div>
+    <h2 class="slide-title">O Documento Técnico</h2>
+    <div class="content-box">
+      <p class="prose">O aprendizado desta aula é diretamente aplicado na primeira grande entrega da documentação técnica. Você deve utilizar os conceitos de arquitetura e SGBD para preencher os seguintes itens da rubrica de avaliação:</p>
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <div class="step-body">
+          <div class="step-title">Critério – Levantamento Conceitual</div>
+          <div class="step-desc">O aluno deve descrever o cenário do negócio utilizando a terminologia correta de banco de dados, identificando as necessidades de armazenamento que justificam o sistema.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <div class="step-body">
+          <div class="step-title">Critério – Justificativa do SGBD</div>
+          <div class="step-desc">A documentação deve apresentar uma defesa técnica que conecte as características do projeto (volume de dados, escalabilidade) ao SGBD escolhido. O aluno deve citar explicitamente se a arquitetura é relacional ou não-relacional e o porquê dessa decisão.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 31: Dica de Ouro / Encerramento -->
+  <div class="slide">
+    <div class="slide-label">Encerramento</div>
+    <h2 class="slide-title">Resumo e #DicaDeOuro</h2>
+    <div class="content-box">
+      <div class="checklist">
+        <div class="check-item"><div class="check-box"></div> SGBD: o software entre o código e os dados reais no disco.</div>
+        <div class="check-item"><div class="check-box"></div> SQL (Relacional) → integridade e transações ACID.</div>
+        <div class="check-item"><div class="check-box"></div> NoSQL → escalabilidade e flexibilidade de esquema.</div>
+        <div class="check-item"><div class="check-box"></div> Missão e Visão guiam a escolha tecnológica.</div>
+        <div class="check-item"><div class="check-box"></div> 4 Pilares: Confiabilidade, Disponibilidade, Segurança e Rastreabilidade.</div>
+      </div>
+      <div class="dica-box">
+        <strong>#DicaDeOuro:</strong> "Dados são o novo petróleo, mas o SGBD é a refinaria que transforma esse petróleo em riqueza." – Clean Code mental!
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="progress-bar"></div>
+<div id="nav">
+  <span id="slide-counter">00 / 00</span>
+  <button class="nav-btn" id="btn-prev">&#8592;</button>
+  <button class="nav-btn" id="btn-next">&#8594;</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  const counter = document.getElementById('slide-counter');
+  const bar = document.getElementById('progress-bar');
+  function pad(n) { return String(n).padStart(2,'0'); }
+  function goTo(next) {
+    if (next === current || next < 0 || next >= total) return;
+    slides[current].classList.remove('active');
+    current = next;
+    slides[current].classList.add('active');
+    counter.textContent = `${pad(current+1)} / ${pad(total)}`;
+    bar.style.width = `${((current+1)/total)*100}%`;
+  }
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current+1));
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current-1));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(current+1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(current-1); }
+  });
+  let touchStart = null;
+  document.addEventListener('touchstart', (e) => { touchStart = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    if (touchStart === null) return;
+    const dx = e.changedTouches[0].clientX - touchStart;
+    if (Math.abs(dx) > 50) goTo(dx < 0 ? current+1 : current-1);
+    touchStart = null;
+  });
+  if(total > 0) { slides[0].classList.add('active'); counter.textContent = `01 / ${pad(total)}`; bar.style.width = `${(1/total)*100}%`; }
+</script>
+</body>
+</html>
