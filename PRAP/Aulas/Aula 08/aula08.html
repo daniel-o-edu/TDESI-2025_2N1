@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 08 – Modularização e Organização</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a2e;
+    --ink-light: #3d3d5c;
+    --accent: #c0392b;
+    --accent2: #2980b9;
+    --accent3: #27ae60;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --border: #e0ddd5;
+    --code-bg: #f4f1eb;
+    --tag-bg: #eaf4fb;
+    --tag-border: #2980b9;
+    --slide-max: 100%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #ededea;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(0,0,0,.18);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.1); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* ── PROGRESS ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width .3s ease;
+  }
+
+  /* ── SLIDE WRAPPER ── */
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .slide {
+    display: none;
+    width: 100%;
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 8vh 10vw;
+    animation: fadeIn .3s ease;
+  }
+  .slide.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(.95rem, 2vw, 1.05rem);
+    line-height: 1.75;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul, .slide ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  .slide li {
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .slide li strong { color: var(--ink); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── COVER ── */
+  .cover-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(.78rem, 1.6vw, .88rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+  }
+  .callout.blue {
+    background: #eaf4fb;
+    border-left: 4px solid var(--accent2);
+    color: #1a3a50;
+  }
+  .callout.green {
+    background: #eafaf1;
+    border-left: 4px solid var(--accent3);
+    color: #1a3a28;
+  }
+  .callout.red {
+    background: #fdf0ee;
+    border-left: 4px solid var(--accent);
+    color: #3a1a18;
+  }
+  .callout.yellow {
+    background: #fefbe6;
+    border-left: 4px solid #f39c12;
+    color: #3a2e10;
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+
+  /* ── TWO COLUMN ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  .col-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .col-card h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── SECTION HEADER SLIDES ── */
+  .section-header {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .section-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--border);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .section-header h2 {
+    border: none;
+    padding: 0;
+    text-align: center;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: var(--ink);
+  }
+  .section-header p {
+    max-width: 560px;
+    margin: 16px auto 0;
+    text-align: center;
+  }
+
+  /* ── FAQ ── */
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .faq-q {
+    background: var(--code-bg);
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: clamp(.93rem, 2vw, 1rem);
+    color: var(--ink);
+    border-left: 4px solid var(--accent2);
+  }
+  .faq-a {
+    padding: 12px 18px;
+    font-size: clamp(.9rem, 1.9vw, .98rem);
+    color: var(--ink-light);
+    line-height: 1.7;
+    background: var(--surface);
+  }
+
+  /* ── NUMBERED STEPS ── */
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: .9rem;
+    font-family: 'Source Code Pro', monospace;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body p { margin: 0; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .slide { padding: 28px 22px 36px; }
+    #nav button { padding: 0 14px; font-size: .9rem; }
+  }
+  @media (max-width: 400px) {
+    .slide { padding: 20px 14px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<div id="stage">
+
+  <div class="slide active">
+    <div class="slide-label">Fundamentos</div>
+    <h1>Aula 08 – Modularização e Organização</h1>
+    <p class="cover-desc">Divisão do programa em múltiplos arquivos (módulos) para melhorar a legibilidade e organização.</p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Uso da instrução import</div>
+      <div class="topic-chip">Variável especial __name__</div>
+      <div class="topic-chip">Persistência básica de dados</div>
+    </div>
+    <div class="cover-meta">
+      <span>Aula 08</span>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 1</div>
+    <h2>1. Abertura da Aula</h2>
+    <p>Até este momento, viemos construindo nossos programas dentro de um único arquivo de código.</p>
+    <p>Isso funciona muito bem quando estamos aprendendo fundamentos ou desenvolvendo scripts muito simples.</p>
+    <p>Porém, conforme o sistema cresce e ganha novas funcionalidades, manter tudo em um único arquivo torna o código confuso, difícil de ler e complexo para dar manutenção.</p>
+    <div class="callout red">
+      <div class="callout-title">Atenção</div>
+      É aqui que entra o problema que vamos resolver hoje: como organizar projetos profissionais.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 1</div>
+    <h2>Importância da Modularização</h2>
+    <p>A modularização é uma técnica essencial para estruturar sistemas no mercado de trabalho, separando responsabilidades e facilitando o trabalho em equipe.</p>
+    <div class="callout blue">
+      <div class="callout-title">Contexto</div>
+      Para a nossa Situação de Aprendizagem deste semestre, organizar nosso código será um passo crucial para garantir que o sistema de retaguarda (back-end) possa crescer com robustez.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>Conceitos Fundamentais</h2>
+      <p>Módulos, instrução import, __name__ e Persistência Básica.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1</div>
+    <h2>O que são Módulos e Modularização</h2>
+    <p>A modularização consiste em dividir um programa grande e complexo em partes menores, autônomas e focadas em responsabilidades específicas, que chamamos de módulos.</p>
+    <p>Em Python, qualquer arquivo com a extensão .py é considerado um módulo.</p>
+    <div class="callout blue">
+      <div class="callout-title">Explicação</div>
+      Ao dividirmos o código dessa forma, aplicamos o conceito de separação de responsabilidades ( Separation of Concerns ).
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1</div>
+    <h2>Vantagens da Modularização</h2>
+    <p>Assim, em vez de termos um arquivo gigante misturando lógicas financeiras, funções de apoio e inicialização do sistema, passamos a ter arquivos separados para cada objetivo.</p>
+    <p>Isso torna o código extremamente mais limpo, fácil de debugar e possibilita que vários programadores trabalhem no mesmo projeto simultaneamente, uma vez que não estarão todos modificando o mesmo arquivo.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Demonstração Prática</div>
+    <h2>Demonstração prática</h2>
+    <p>Imagine que antes tínhamos um arquivo tudo_junto.py. Agora, criamos um arquivo chamado matematica.py apenas com as lógicas de cálculo:</p>
+    <div class="code-block">Python
+# Arquivo: matematica.py
+
+def somar(a, b):
+# Retorna a soma de dois números
+return a + b
+
+def subtrair(a, b):
+# Retorna a subtração de dois números
+return a - b</div>
+    <p>Este arquivo, por si só, é um módulo que agora pode ser reutilizado.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Exercício</div>
+    <h2>Exercício</h2>
+    <div class="callout green">
+      <div class="callout-title">Tarefa</div>
+      Crie um arquivo chamado matematica.py na sua máquina. Dentro dele, implemente todas as funções matemáticas básicas: <strong>soma, subtração, divisão e multiplicação.</strong>
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Desafio</div>
+      Adicione um menu de opções. Após salve e teste o resultado de todas operações.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2</div>
+    <h2>A instrução import</h2>
+    <p>Depois que dividimos nosso código em módulos, precisamos de uma forma para conectá-los.</p>
+    <p>A instrução import serve exatamente para carregar o código de um arquivo (módulo) para dentro de outro.</p>
+    <p>O Python nos permite importar o módulo inteiro ou apenas funções específicas daquele módulo utilizando a sintaxe from ... import .... Ao fazer essa importação, o interpretador lê o arquivo de origem e torna as suas funções, variáveis e classes disponíveis no arquivo de destino, promovendo a tão almejada reutilização de código sem precisar copiar e colar blocos de instruções.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Demonstração Prática</div>
+    <h2>Demonstração prática</h2>
+    <p>Criando um arquivo principal chamado calculadora.py que utilizará o módulo matematica.py que criamos anteriormente.</p>
+    <div class="code-block">Python
+# Arquivo: calculadora.py
+import matematica
+
+# Acessamos a função somar utilizando o nome do módulo seguido de um ponto
+resultado = matematica.somar(10, 5)
+print(f"A soma é: {resultado}")
+
+# Alternativa importando apenas a função específica
+from matematica import subtrair
+
+resultado_subtracao = subtrair(10, 5)
+print(f"A subtração é: {resultado_subtracao}")</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Exercício Guiado</div>
+    <h2>Exercício guiado</h2>
+    <div class="callout green">
+      <div class="callout-title">Passo a Passo</div>
+      Crie um arquivo chamado utils.py com operações matemáticas avaçadas( potenciação, dobro, nº primo, fatorial, par ou ímpar) na mesma pasta onde salvou o matematica.py.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Aplicação</div>
+      Importe este módulo utils, dentro do calculadora e adicione as operações na tela.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3</div>
+    <h2>A Variável Especial __name__</h2>
+    <p>Quando um módulo é importado por outro, o Python executa todo o código daquele arquivo de origem.</p>
+    <div class="callout red">
+      <div class="callout-title">Atenção</div>
+      Se houver comandos print ou invocações de funções espalhadas pelo módulo, eles serão executados indevidamente durante a importação.
+    </div>
+    <p>Para controlar isso, o Python possui uma variável especial oculta chamada __name__.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3</div>
+    <h2>A Variável Especial __name__</h2>
+    <p>Quando rodamos um script diretamente (ex: python app.py), a variável __name__ desse arquivo assume o valor de __main__ ( principal ).</p>
+    <p>No entanto, se o arquivo for importado por outro, a variável __name__ receberá o próprio nome do arquivo.</p>
+    <div class="callout blue">
+      <div class="callout-title">Solução</div>
+      Assim, podemos usar um bloco condicional if __name__ == '__main__': para garantir que certos trechos de código só rodem se o arquivo for o principal.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3 · Demonstração Prática</div>
+    <h2>Demonstração prática</h2>
+    <div class="code-block">Python
+# Arquivo: utils.py
+
+def calcular_dobro(numero):
+return numero * 2
+
+# Esse bloco impede que o print seja rodado quando houver um 'import utils' em outro arquivo
+if __name__ == '__main__':
+# Este teste rápido só roda se executarmos 'python utils.py' no terminal
+print("Testando a função:", calcular_dobro(5))</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3 · Exercício</div>
+    <h2>Exercício</h2>
+    <div class="callout green">
+      <div class="callout-title">Tarefa</div>
+      Crie um novo módulo chamado imc.py. Defina a função para calcular o IMC e, utilizando o bloco if __name__ == '__main__':, crie um teste em que as variáveis peso e altura sejam informadas para validar se a conta está certa.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.4</div>
+    <h2>Persistência Básica (Gerenciamento de Arquivos)</h2>
+    <p>Neste ponto, nossos programas operam exclusivamente na memória RAM. Isso significa que, se desligarmos o computador ou fecharmos a aplicação, todos os dados de variáveis, listas ou dicionários são perdidos.</p>
+    <div class="callout blue">
+      <div class="callout-title">Solução</div>
+      Para resolver esse problema, introduzimos a persistência básica de dados salvando e lendo informações em arquivos de texto no disco rígido.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.4</div>
+    <h2>Manipulando Arquivos em Python</h2>
+    <p>Em Python, utilizamos a função embutida open() para criar, ler e gravar arquivos.</p>
+    <p>Combinamos essa função com a palavra-chave with, que funciona como um " gerenciador de contexto ", garantindo que o arquivo seja fechado automaticamente de forma segura assim que terminarmos a nossa operação, evitando vazamentos de memória ou arquivos corrompidos.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.4 · Demonstração Prática</div>
+    <h2>Demonstração prática</h2>
+    <div class="code-block">Python
+# Arquivo: salvar_dados.py
+
+saldo = "1500.50"
+
+# Escrevendo no arquivo (Modo 'w' - write / gravar)
+with open("saldo.txt", "w") as arquivo:
+arquivo.write(saldo)
+print("Saldo gravado com sucesso!")
+
+# Lendo o arquivo (Modo 'r' - read / ler)
+with open("saldo.txt", "r") as arquivo:
+conteudo = arquivo.read()
+print(f"Saldo recuperado: R$ {conteudo}")</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.4 · Exercícios</div>
+    <h2>Exercício guiado</h2>
+    <div class="callout green">
+      <div class="callout-title">Passo 1</div>
+      Crie um script que receba um texto vindo de um input() do usuário e salve esse texto dentro de um arquivo chamado anotacao.txt utilizando o open em modo "w".
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Passo 2</div>
+      Em seguida, leia esse mesmo arquivo e printe no terminal para garantir que funcionou.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.4 · Exercício de Fixação</div>
+    <h2>Exercício de fixação</h2>
+    <div class="callout yellow">
+      <div class="callout-title">Modificação</div>
+      Modifique o exercício anterior alterando o modo de abertura de "w" (write) para "a" (append).
+    </div>
+    <div class="callout blue">
+      <div class="callout-title">Ação</div>
+      Digite três novos inputs executando o programa seguidamente e depois abra o arquivo de texto no seu editor de código para perceber que as novas informações estão sendo anexadas sem apagar as anteriores.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>Demonstração Aplicada</h2>
+      <p>Vamos imaginar um cenário completo combinando todos os conceitos. Desenvolveremos um pequeno gerenciador de senhas separado em módulos.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3</div>
+    <h2>Lógica em utilitarios.py</h2>
+    <p>Temos o arquivo das funções lógicas (utilitarios.py):</p>
+    <div class="code-block">Python
+# Arquivo: utilitarios.py
+
+def salvar_senha(servico, senha):
+linha = f"{servico}:{senha}\n"
+# Adiciona a senha no arquivo de persistência
+with open("cofre.txt", "a") as arquivo:
+arquivo.write(linha)
+
+def listar_senhas():
+# Tenta ler as senhas, se o arquivo existir
+try:
+with open("cofre.txt", "r") as arquivo:
+return arquivo.read()
+except FileNotFoundError:
+return "Nenhuma senha cadastrada ainda."
+
+# O bloco a seguir permite testar localmente as funções do módulo
+if __name__ == "__main__":
+print("Testando salvamento...")
+salvar_senha("TesteApp", "1234")
+print(listar_senhas())</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3</div>
+    <h2>Interface principal em main.py</h2>
+    <p>E temos o arquivo da interface principal (main.py):</p>
+    <div class="code-block">Python
+# Arquivo: main.py
+import utilitarios
+
+def iniciar_sistema():
+print("--- GERENCIADOR DE SENHAS ---")
+opcao = input("Digite 1 para salvar ou 2 para listar: ")
+
+if opcao == "1":
+servico = input("Nome do serviço: ")
+senha = input("Digite a senha: ")
+utilitarios.salvar_senha(servico, senha)
+print("Salvo com sucesso!")
+elif opcao == "2":
+print("--- SUAS SENHAS ---")
+print(utilitarios.listar_senhas())
+else:
+print("Opção inválida.")
+
+if __name__ == "__main__":
+iniciar_sistema()</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3</div>
+    <h2>Análise do Cenário</h2>
+    <div class="callout blue">
+      <div class="callout-title">Isolamento</div>
+      Neste cenário, a lógica complexa está isolada. A tela do sistema no main.py apenas coleta dados e os passa para o módulo focado na persistência e manipulação.
+    </div>
+    <div class="callout yellow">
+      <div class="callout-title">Resultado</div>
+      Se o main.py encerra, os dados continuam intactos no cofre.txt.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Casos Reais do Mercado</h2>
+      <p>Aplicações Web Modernas e Data Science.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 4 · Caso 1</div>
+    <h2>Organização de Aplicações Web Modernas</h2>
+    <p>Empresas como Spotify e Netflix constroem back-ends complexos utilizando frameworks web em Python, como Django ou Flask.</p>
+    <p>Nessas arquiteturas, os arquivos são rigorosamente modularizados. Existe um arquivo isolado chamado models.py apenas para interagir com os dados, um arquivo views.py ou routes.py para criar os endereços da internet (URLs) e arquivos utils.py com ferramentas genéricas (como formatadores de data).</p>
+    <div class="callout blue">
+      <div class="callout-title">Motivação</div>
+      Isso é necessário para que grandes equipes não causem conflito.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 4 · Caso 2</div>
+    <h2>Data Science e Exportação de Logs</h2>
+    <p>Na engenharia de dados (empresas como Nubank ou iFood), é extremamente comum ler logs diários a partir de arquivos gigantes de texto (arquivos .csv, .txt ou .json).</p>
+    <div class="callout yellow">
+      <div class="callout-title">Processo</div>
+      Python abre o arquivo físico através da persistência básica open(), converte em módulos especializados no processamento e exporta um novo arquivo consolidado de volta para as equipes de negócios.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>FAQ – Dúvidas</h2>
+      <p>Respostas rápidas para as perguntas mais comuns.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 5 · FAQ</div>
+    <h2>Dúvidas (1/3)</h2>
+    <div class="faq-item">
+      <div class="faq-q">Quando eu devo dividir meu código em outro arquivo?</div>
+      <div class="faq-a">Sempre que o seu arquivo principal estiver ficando extenso ou quando você perceber que tem um grupo de funções que possuem um tema em comum (como funções matemáticas, ou acesso a banco de dados).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Eu posso fazer um import de um arquivo que está em outra pasta?</div>
+      <div class="faq-a">Sim. No Python, podemos estruturar pastas como "pacotes" utilizando arquivos especiais, permitindo o import através do formato from pasta.arquivo import funcao.</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 5 · FAQ</div>
+    <h2>Dúvidas (2/3)</h2>
+    <div class="faq-item">
+      <div class="faq-q">Por que usamos with open e não apenas arquivo = open()?</div>
+      <div class="faq-a">Se você usar apenas o open(), precisará lembrar de escrever a instrução arquivo.close() no final. Se ocorrer um erro no meio do programa e o arquivo não fechar, ele pode ficar travado pelo sistema operacional ou corromper dados. O with é uma garantia de fechamento automático.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">O que significa o modo w, r e a na manipulação de arquivos?</div>
+      <div class="faq-a">Eles indicam o propósito da abertura. r (read) é exclusivo para leitura. w (write) grava informações substituindo tudo que existia no arquivo. a (append) escreve a informação no final do arquivo sem apagar os dados antigos.</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 5 · FAQ</div>
+    <h2>Dúvidas (3/3)</h2>
+    <div class="faq-item">
+      <div class="faq-q">Se o arquivo de texto não existir, o Python cria pra mim?</div>
+      <div class="faq-a">Nos modos de gravação (w e a), o Python cria automaticamente o arquivo se ele não existir. Porém, no modo de leitura (r), se o arquivo não for encontrado o programa vai estourar um erro (FileNotFoundError).</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>Desafio Prático</h2>
+      <p>Estruturando um sistema bancário modular.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 6</div>
+    <h2>Desafio Prático — Contexto</h2>
+    <div class="callout blue">
+      <div class="callout-title">Contexto</div>
+      Vocês possuem as funcionalidades lógicas de um sistema bancário. Porém, o código está muito centralizado e os dados de saldo se perdem a cada execução.
+    </div>
+    <div class="callout red">
+      <div class="callout-title">O que faremos</div>
+      Chegou a hora de estruturarmos o projeto para padrões aceitos no mercado e garantir que o dinheiro permaneça "na conta".
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 6</div>
+    <h2>Desafio Prático — Requisitos</h2>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body"><p>Crie 3 arquivos separados: modelos.py (para colocar a lógica e entidades futuras), utils.py (para funções de formatação e verificação) e main.py (onde o menu infinito do caixa rodará).</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body"><p>Utilize as importações de forma correta e proteja seu main.py com o if __name__ == '__main__':.</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body"><p>Implemente no main.py uma lógica em que, assim que o laço principal encerrar, a função de persistência extraia o "saldo atual" da sua conta e grave (write) a variável em um arquivo chamado banco_saldo.txt.</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body"><p>Ao ligar o aplicativo no main.py, o programa deve tentar ler o banco_saldo.txt com a função de read e carregar esse número na variável de saldo do seu sistema. (Dica: lembre-se de converter a string que vem do texto para um formato numérico como float).</p></div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 6</div>
+    <h2>Desafio Prático — Resultado Esperado</h2>
+    <div class="callout green">
+      <div class="callout-title">Resultado Esperado</div>
+      O sistema deve iniciar e ler um saldo que sobrevive entre execuções. A estrutura do projeto ficará visivelmente limpa e profissional com módulos divididos.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 7</div>
+    <h2>Conexão com a Situação de Aprendizagem</h2>
+    <p>Para desenvolver a Situação de Aprendizagem (Da Ideia ao Código: Construção de Aplicações Funcionais), sua equipe vai modelar um negócio completo.</p>
+    <p>Quando atingirmos a etapa em que o programa irá crescer dezenas de linhas de código, a modularização que vimos hoje será mandatória.</p>
+    <div class="callout yellow">
+      <div class="callout-title">Ação no Projeto</div>
+      Vocês colocarão as regras de negócio em arquivos como clientes_logica.py e os menus e telas no terminal em um arquivo principal.
+    </div>
+    <p>Da mesma forma, antes de conectarmos um banco de dados robusto nas próximas fases, o salvamento em arquivos .txt (como vimos em persistência básica) será o alicerce temporário para mantermos as informações entre os testes do seu projeto de semestre.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 8</div>
+    <h2>Preparação para a Próxima Aula</h2>
+    <p>Hoje nós dominamos a organização do código e salvamos dados rudimentares no disco, o que é um baita avanço no nosso projeto!</p>
+    <p>No nosso próximo encontro (Aula 09), mergulharemos no coração da Orientação a Objetos.</p>
+    <p>Aprenderemos de vez o que é uma Classe , o que é um Objeto e como instanciar entidades profissionais usando a função construtora __init__.</p>
+    <div class="callout red">
+      <div class="callout-title">Lembrete Importante</div>
+      O conceito de modularização aprendido hoje será primordial, pois a boa prática que o mercado exige é declarar uma Classe por módulo!
+    </div>
+  </div>
+
+</div><nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 37</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) changeSlide(dx < 0 ? 1 : -1);
+  });
+
+  // Init progress bar
+  document.getElementById('progress-bar').style.width = (1 / total * 100) + '%';
+</script>
+</body>
+</html>
