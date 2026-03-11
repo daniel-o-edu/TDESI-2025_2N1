@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 09 – Classes</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a2e;
+    --ink-light: #3d3d5c;
+    --accent: #c0392b;
+    --accent2: #2980b9;
+    --accent3: #27ae60;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --border: #e0ddd5;
+    --code-bg: #f4f1eb;
+    --tag-bg: #eaf4fb;
+    --tag-border: #2980b9;
+    --slide-max: 100%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #ededea;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(0,0,0,.18);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.1); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* ── PROGRESS ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width .3s ease;
+  }
+
+  /* ── SLIDE WRAPPER ── */
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .slide {
+    display: none;
+    width: 100%;
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 8vh 10vw;
+    animation: fadeIn .3s ease;
+  }
+  .slide.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(.95rem, 2vw, 1.05rem);
+    line-height: 1.75;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul, .slide ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  .slide li {
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .slide li strong { color: var(--ink); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── COVER ── */
+  .cover-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(.78rem, 1.6vw, .88rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+  }
+  .callout.blue {
+    background: #eaf4fb;
+    border-left: 4px solid var(--accent2);
+    color: #1a3a50;
+  }
+  .callout.green {
+    background: #eafaf1;
+    border-left: 4px solid var(--accent3);
+    color: #1a3a28;
+  }
+  .callout.red {
+    background: #fdf0ee;
+    border-left: 4px solid var(--accent);
+    color: #3a1a18;
+  }
+  .callout.yellow {
+    background: #fefbe6;
+    border-left: 4px solid #f39c12;
+    color: #3a2e10;
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+
+  /* ── TWO COLUMN ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  .col-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .col-card h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(.85rem, 1.8vw, .95rem);
+  }
+  thead th {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: .85rem;
+    letter-spacing: .04em;
+  }
+  tbody tr:nth-child(even) { background: var(--code-bg); }
+  tbody tr:hover { background: #e8f4fd; }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-light);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  tbody td strong { color: var(--ink); }
+
+  /* ── ENTITY CARDS ── */
+  .entity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .entity-card {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .entity-card .entity-name {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    padding: 10px 14px;
+    font-size: 1rem;
+  }
+  .entity-card ul {
+    padding: 12px 18px;
+    margin: 0;
+  }
+  .entity-card li {
+    font-size: .9rem;
+    color: var(--ink-light);
+    margin-bottom: 4px;
+  }
+
+  /* ── FAQ ── */
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .faq-q {
+    background: var(--code-bg);
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: clamp(.93rem, 2vw, 1rem);
+    color: var(--ink);
+    border-left: 4px solid var(--accent2);
+  }
+  .faq-a {
+    padding: 12px 18px;
+    font-size: clamp(.9rem, 1.9vw, .98rem);
+    color: var(--ink-light);
+    line-height: 1.7;
+    background: var(--surface);
+  }
+
+  /* ── NUMBERED STEPS ── */
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: .9rem;
+    font-family: 'Source Code Pro', monospace;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body p { margin: 0; }
+
+  /* ── SECTION HEADER SLIDES ── */
+  .section-header {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .section-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--border);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .section-header h2 {
+    border: none;
+    padding: 0;
+    text-align: center;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: var(--ink);
+  }
+  .section-header p {
+    max-width: 560px;
+    margin: 16px auto 0;
+    text-align: center;
+  }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    font-size: .72rem;
+    font-family: 'Source Code Pro', monospace;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 2px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+  .badge.blue  { background: #eaf4fb; color: #1a6090; border: 1px solid #aad4f0; }
+  .badge.green { background: #eafaf1; color: #196f3d; border: 1px solid #a9dfbf; }
+  .badge.red   { background: #fdf0ee; color: #922b21; border: 1px solid #f0b3ac; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .slide { padding: 28px 22px 36px; }
+    #nav button { padding: 0 14px; font-size: .9rem; }
+  }
+  @media (max-width: 400px) {
+    .slide { padding: 20px 14px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<div id="stage">
+
+  <div class="slide active">
+    <div class="slide-label">Aula 09</div>
+    <h1>Classes, Objetos e Herança</h1>
+    <p class="cover-desc">Nesta aula vamos trabalhar o conceito de Classes, Objetos e Herança. Faremos uma introdução à criação de novos tipos de objetos através de classes, uso do método especial __init__ (construtor) e a compreensão da Herança para especializar comportamentos.</p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Classes e Objetos</div>
+      <div class="topic-chip">Construtor (__init__)</div>
+      <div class="topic-chip">Métodos do Objeto</div>
+      <div class="topic-chip">Herança</div>
+      <div class="topic-chip">Atividade: Hierarquia Bancária</div>
+    </div>
+    <div class="cover-meta">
+      <span>Aula 09</span>
+      <span>Programação Orientada a Objetos</span>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>Abertura da Aula</h2>
+      <p>Organizando nosso código e representando o mundo real.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 1</div>
+    <h2>Abertura da Aula</h2>
+    <p>Nas aulas passadas, nós aprendemos a organizar nosso código dividindo-o em vários arquivos ( <strong>módulos</strong> ) e salvando informações em arquivos de texto.</p>
+    <p>Porém, até agora, vínhamos tratando nossos dados de forma solta: uma variável para o nome do cliente, outra para o saldo, uma lista para os produtos.</p>
+    <div class="callout red">
+      <div class="callout-title">O Desafio de Hoje</div>
+      O problema que enfrentaremos hoje é: como representar entidades complexas do mundo real dentro do nosso código de forma unificada e inteligente?
+    </div>
+    <p>A <strong>Programação Orientada a Objetos (POO)</strong> resolve exatamente isso, permitindo empacotar dados e as ações que manipulam esses dados em uma única estrutura.</p>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>Conceitos Fundamentais</h2>
+      <p>A base estrutural da Programação Orientada a Objetos.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1</div>
+    <h2>O que são Classes e Objetos (O Molde e a Peça)</h2>
+    <p>Uma <strong>Classe</strong> funciona como um molde, uma planta baixa ou um projeto abstrato que define as características e os comportamentos de algo que queremos representar no sistema.</p>
+    <p>Por exemplo, a planta de uma casa define onde ficam os quartos e portas, mas não é a casa física onde você pode morar.</p>
+    <p>Já o <strong>Objeto</strong> (também chamado de <strong>instância</strong>) é a casa construída a partir dessa planta; é a materialização da classe na memória do computador, possuindo dados reais e específicos.</p>
+      </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1</div>
+    <h2>A Abordagem Orientada a Objetos</h2>
+    <p>Na Programação Orientada a Objetos, nós <strong>primeiro desenhamos as classes</strong> para estipular o que as nossas entidades (como Cliente, Produto ou Veículo) terão, e <strong>depois criamos quantos objetos</strong> precisarmos a partir desse molde único.</p>
+    <div class="callout blue">
+      <div class="callout-title">Benefício Lógico</div>
+      Essa abordagem organiza incrivelmente o pensamento lógico, pois passamos a programar pensando em "coisas" que interagem entre si, aproximando a linguagem do computador da forma como nós, humanos, compreendemos o mundo real.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Demonstração Prática</div>
+    <h2>Definindo e Instanciando</h2>
+    <p>Abaixo, definimos a classe mais simples possível utilizando a palavra reservada <strong>class</strong> e instanciamos (criamos) dois objetos a partir dela:</p>
+    <div class="code-block"># Definindo a classe (o molde)
+class Cliente:
+    pass # 'pass' indica que a classe está vazia por enquanto, mas é válida
+
+# Criando objetos (as peças reais) a partir da classe
+cliente1 = Cliente()
+cliente2 = Cliente()</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Demonstração Prática</div>
+    <h2>Atribuindo Dados Dinamicamente</h2>
+    <div class="code-block"># Atribuindo dados dinamicamente aos objetos
+cliente1.nome = "João da Silva"
+cliente2.nome = "Maria Oliveira"
+
+print(f"O objeto cliente1 representa o cliente: {cliente1.nome}")
+print(f"O objeto cliente2 representa a cliente: {cliente2.nome}")</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Exercício Guiado</div>
+    <h2>Prática de Classes Básicas</h2>
+    <div class="callout green">
+      <div class="callout-title">Tarefa 1</div>
+      Crie um arquivo chamado <strong>modelos.py</strong>. Nele, crie uma classe vazia chamada <strong>Carro</strong>. Fora da classe, crie um objeto chamado <strong>meu_carro</strong> instanciando a classe <strong>Carro()</strong>. Atribua uma cor a ele fazendo <strong>meu_carro.cor = "Vermelho"</strong> e exiba a cor no terminal usando a função <strong>print()</strong>.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Tarefa 2</div>
+      No mesmo arquivo, crie uma classe chamada <strong>Produto</strong>. Crie dois objetos diferentes (<strong>produto1</strong> e <strong>produto2</strong>). Atribua um "nome" e um "preco" para cada um deles. Ao final, imprima uma frase mostrando o nome e o preço de ambos os produtos.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2</div>
+    <h2>O Método Construtor (__init__) e Atributos</h2>
+    <p>Adicionar variáveis soltas nos objetos, como fizemos acima, não é uma boa prática profissional porque cada objeto pode acabar com variáveis diferentes, quebrando a padronização.</p>
+    <p>Para resolver isso, utilizamos o <strong>método construtor</strong>, que em Python é escrito como <strong>__init__</strong> ( com dois underlines de cada lado).</p>
+    <p>Este é um método especial que é executado automaticamente no exato momento em que um objeto é instanciado.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2</div>
+    <h2>Inicializando o "Estado" do Objeto</h2>
+    <p>O seu papel principal é inicializar os <strong>atributos</strong> da classe, ou seja, as variáveis internas que guardarão o "estado" do objeto.</p>
+    <p>Dentro do construtor, utilizamos a palavra obrigatória <strong>self</strong>, que é uma referência ao próprio objeto que está sendo criado naquele momento.</p>
+    <div class="callout blue">
+      <div class="callout-title">Entendendo a Lógica</div>
+      Ao declararmos <strong>self.nome = nome</strong>, estamos dizendo: "pegue a variável 'nome' que o programador passou e guarde-a permanentemente dentro da memória DENTRO deste objeto específico".
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Demonstração Prática</div>
+    <h2>Criando um Construtor Padronizado</h2>
+    <p>Vamos criar uma classe com um construtor padronizado:</p>
+    <div class="code-block">class Funcionario:
+    # O método __init__ é chamado na hora da criação
+    # O 'self' vai automaticamente, nós só precisamos passar 'nome' e 'cargo'
+    def __init__(self, nome, cargo):
+        self.nome = nome     # self.nome é o atributo permanente do objeto
+        self.cargo = cargo   # self.cargo é o atributo permanente do objeto
+
+# Criando o objeto e já passando os dados obrigatórios do construtor
+func1 = Funcionario("Carlos", "Desenvolvedor Backend")
+func2 = Funcionario("Ana", "Gerente de Projetos")
+
+print(f"{func1.nome} atua como {func1.cargo}")</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Exercício</div>
+    <h2>Prática de Construtores</h2>
+    <div class="callout green">
+      <div class="callout-title">Modificando Carro</div>
+      Modifique a sua classe <strong>Carro</strong>. Adicione o método <strong>def __init__(self, marca, modelo):</strong> dentro dela. No corpo do método, defina <strong>self.marca = marca</strong> e <strong>self.modelo = modelo</strong>. Atualize a criação do seu objeto meu_carro para passar esses dois dados entre os parênteses: <strong>meu_carro = Carro("Fiat", "Palio")</strong>. Rode o código e imprima a marca.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Modificando Produto</div>
+      Depois modifique a sua classe <strong>Produto</strong>. Crie o construtor <strong>__init__</strong> recebendo nome, preco e estoque. Atualize a instância dos seus dois produtos para passarem essas três informações na criação. Imprima o nome e o estoque de cada um para comprovar que os dados foram armazenados de forma estruturada.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3</div>
+    <h2>Métodos (Comportamentos do Objeto)</h2>
+    <p>Se os atributos são as características (adjetivos/dados) de um objeto, os <strong>métodos</strong> são as <strong>ações (verbos/comportamentos)</strong> que este objeto consegue realizar.</p>
+    <p>Tecnicamente, um método é simplesmente uma função definida dentro de uma classe.</p>
+    <div class="callout yellow">
+      <div class="callout-title">O Parâmetro 'self'</div>
+      A grande diferença para uma função comum é que todo método de instância em Python precisa receber a palavra <strong>self</strong> como o seu primeiro parâmetro.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3</div>
+    <h2>Encapsulando as Regras de Negócio</h2>
+    <p>Graças a esse <strong>self</strong>, o método consegue enxergar e modificar os atributos internos daquele objeto específico sem precisar que os dados sejam passados repetidamente como parâmetros externos.</p>
+    <div class="callout blue">
+      <div class="callout-title">O Poder do Encapsulamento</div>
+      É através dos métodos que <strong>encapsulamos</strong> as regras de negócio: em vez de alterar o saldo de um cliente manualmente fora da classe, nós pedimos para o objeto cliente executar a ação de "depositar", garantindo que todas as validações de segurança daquele método sejam executadas pela própria classe.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3 · Demonstração Prática</div>
+    <h2>Adicionando um Comportamento</h2>
+    <div class="code-block">class ContaSimples:
+    def __init__(self, titular, saldo_inicial):
+        self.titular = titular
+        self.saldo = saldo_inicial
+
+    # Este é um método da classe
+    def depositar(self, valor):
+        if valor > 0:
+            self.saldo += valor
+            print(f"Depósito de R${valor} realizado com sucesso!")
+        else:
+            print("Valor inválido para depósito.")</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3 · Demonstração Prática</div>
+    <h2>Invocando o Comportamento</h2>
+    <div class="code-block">    def exibir_extrato(self):
+        print(f"Titular: {self.titular} | Saldo atual: R${self.saldo}")
+
+conta = ContaSimples("Roberto", 100)
+conta.depositar(50) # Chamando o método do objeto
+conta.exibir_extrato()</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3 · Exercício</div>
+    <h2>Prática de Métodos</h2>
+    <div class="callout green">
+      <div class="callout-title">Método Ligar Motor</div>
+      Na sua classe <strong>Carro</strong>, crie um método chamado <strong>ligar_motor(self)</strong>. Dentro dele, faça um print(f"O motor do {self.modelo} está ligado! Vrum!"). No final do seu script, chame a ação fazendo <strong>meu_carro.ligar_motor()</strong>.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Método Vender</div>
+      Também na classe <strong>Produto</strong>, adicione um método chamado <strong>vender(self, quantidade_vendida)</strong>. Este método deve subtrair a quantidade_vendida do atributo self.estoque. Se a venda for concluída, exiba o estoque restante. Instancie o produto e realize a chamada deste método simulando uma compra.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.4</div>
+    <h2>Herança (Reaproveitamento de Código)</h2>
+    <p>A <strong>Herança</strong> é um dos pilares mais poderosos da Orientação a Objetos.</p>
+    <p>Ela permite criarmos uma nova classe (chamada de <strong>subclasse</strong> ou classe filha) que absorve automaticamente todos os atributos e métodos de uma classe já existente (chamada de <strong>superclasse</strong> ou classe mãe).</p>
+    <p>Ao utilizar a herança, eliminamos a repetição de código.</p>
+    <div class="callout blue">
+      <div class="callout-title">A Relação "É UM"</div>
+      Pense nisso como uma relação categórica do tipo " <strong>É UM</strong> ": um Gerente " é um " Funcionário; uma Moto " é um " Veículo.
+    </div>
+      </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.4 · Exercício Guiado</div>
+    <h2>Prática de Herança</h2>
+    <div class="callout green">
+      <div class="callout-title">Passo 1 e 2</div>
+      Crie uma classe base chamada <strong>Pessoa</strong> com um construtor que recebe nome. Crie um método <strong>falar(self)</strong>. Depois, crie uma classe <strong>Professor</strong> que herda de Pessoa colocando <strong>class Professor(Pessoa):</strong>. Instancie o Professor, passe o nome dele e chame o método falar() para comprovar a herança.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Passo 3</div>
+      Melhore, faça a classe Professor ter seu próprio <strong>__init__</strong> recebendo nome e disciplina. Use <strong>super().__init__(nome)</strong> para repassar o nome para a mãe. Na classe Professor, adicione um método exclusivo <strong>dar_aula(self)</strong>. Teste instanciando o objeto e chamando os métodos.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>Demonstração Aplicada</h2>
+      <p>Construindo um Pet Shop utilizando Classes e Herança.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3</div>
+    <h2>Cenário Completo: Pet Shop</h2>
+    <p>Vamos analisar um cenário completo: um sistema para um <strong>Pet Shop</strong>.</p>
+    <p>Precisamos gerenciar os animais, mas cada animal se comporta de um jeito diferente, embora todos possuam nome e idade.</p>
+    <div class="code-block"># 1. Definindo a Classe Base
+class Animal:
+    def __init__(self, nome, idade):
+        self.nome = nome
+        self.idade = idade
+        
+    def emitir_som(self): # Método genérico que será sobrescrito
+        print(f"{self.nome} faz um som desconhecido.")</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3</div>
+    <h2>Criando as Especializações</h2>
+    <div class="code-block"># 2. Definindo as Especializações (Herança)
+class Cachorro(Animal):
+    def emitir_som(self): # Sobrescrevendo o comportamento da mãe
+        print(f"{self.nome} (Cachorro) diz: Au Au!")
+
+class Gato(Animal):
+    def emitir_som(self):
+        print(f"{self.nome} (Gato) diz: Miau!")</div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Casos de Uso Reais</h2>
+      <p>Como a herança é aplicada na indústria de software.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 4</div>
+    <h2>Jogos Digitais</h2>
+    <p><strong>Desenvolvimento de Jogos digitais (Unity, Unreal, PyGame):</strong> Praticamente todo jogo usa classes.</p>
+    <div class="two-col">
+      <div class="col-card">
+        <h4>Superclasse Inimigo</h4>
+        <p>Possui atributos de vida e métodos de receber dano.</p>
+      </div>
+      <div class="col-card">
+        <h4>Subclasses</h4>
+        <p>A subclasse <strong>InimigoZumbi</strong> herda tudo isso, mas possui uma velocidade menor e ataca de perto, enquanto a subclasse <strong>InimigoArqueiro</strong> atira de longe.</p>
+      </div>
+    </div>
+    <div class="callout blue">
+      <div class="callout-title">O Verdadeiro Poder</div>
+      A herança permite que o jogo gerencie milhares de inimigos diferentes com poucas linhas de código.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>FAQ – Dúvidas Frequentes</h2>
+      <p>Respondendo aos questionamentos comuns sobre POO.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 5</div>
+    <h2>FAQ – A Palavra 'self'</h2>
+    <div class="faq-item">
+      <div class="faq-q">O que significa exatamente a palavra self?</div>
+      <div class="faq-a">
+        <p>O <strong>self</strong> é como o objeto chama a si mesmo. Pense nele como o pronome "Eu".</p>
+        <p>Quando você escreve <strong>self.nome = "João"</strong>, o objeto está dizendo: "O MEU nome é João".</p>
+        <p>É a forma de garantir que o objeto modifique seus próprios dados e não os dados de outro objeto acidentalmente.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 5</div>
+    <h2>FAQ – Obrigatoriedade do __init__</h2>
+    <div class="faq-item">
+      <div class="faq-q">É obrigatório usar o __init__ em toda classe que eu criar?</div>
+      <div class="faq-a">
+        <p>Não é estritamente obrigatório (o Python aceita classes sem ele), mas no mercado de trabalho é uma regra implícita.</p>
+        <p>Um objeto sem estado inicial (sem <strong>__init__</strong>) costuma não ser muito útil e pode causar bugs silenciosos.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>Desafio Prático</h2>
+      <p>Desenvolvendo uma hierarquia de classes para um banco.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 6</div>
+    <h2>Criando o Sistema Bancário</h2>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <p>Crie uma superclasse chamada <strong>Conta</strong>. O construtor de Conta deve receber <strong>numero_conta</strong>, <strong>titular</strong> e <strong>saldo</strong>.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <p>Adicione em Conta os métodos <strong>depositar(valor)</strong> e <strong>sacar(valor)</strong>. O saque comum só pode acontecer se o valor for menor ou igual ao saldo.</p>
+      </div>
+    </div>
+    <div class="callout red">
+      <div class="callout-title">Regra de Negócio</div>
+      Caso contrário, imprima "Saldo insuficiente".
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 6</div>
+    <h2>A Conta Especial (Subclasse)</h2>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <p>Crie uma subclasse <strong>ContaEspecial</strong> que herda de Conta. O construtor de ContaEspecial deve receber os mesmos dados da mãe e mais o atributo <strong>limite</strong>. Use <strong>super().__init__</strong> para não repetir código.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <p>Sobrescreva o método <strong>sacar(valor)</strong> na ContaEspecial. O cliente VIP pode sacar dinheiro até que o saldo atinja o limite...</p>
+      </div>
+    </div>
+    <div class="callout yellow">
+      <div class="callout-title">Sugestão de Solução</div>
+      Na subclasse, a condição do if para liberar o saque no método sobreposto deve ser algo como: <strong>if valor <= (self.saldo + self.limite):</strong>.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <h2>Conexão com a Situação de Aprendizagem</h2>
+      <p>Como aplicar Classes ao seu Projeto de Semestre.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 7</div>
+    <h2>Do Modelo de Negócio para o Código</h2>
+    <p>Para desenvolver a Situação de Aprendizagem, a aula de hoje é a ponte definitiva entre a teoria do negócio e o sistema técnico. No primeiro bloco do semestre, vocês desenharam a "Modelagem de Negócios" (Canvas).</p>
+    <p>A partir de agora, cada quadro essencial do Canvas de vocês vai se transformar em uma <strong>Classe</strong>.</p>
+    <div class="callout blue">
+      <div class="callout-title">Exemplo prático</div>
+      Se o grupo escolheu fazer um Delivery, vocês criarão os módulos contendo as classes Restaurante, Entregador, Pedido e Cliente. As regras e tarifas de entrega viverão nos <strong>métodos</strong> dessas classes.
+    </div>
+    <p>Essa é a primeira etapa para garantir que a lógica do software (Back-End) funcione antes de criarmos as telas na internet.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 8</div>
+    <h2>Preparação para a Próxima Aula</h2>
+    <p>Hoje nós aprendemos a criar moldes virtuais para dar vida a entidades complexas através de Classes e Herança. O projeto de vocês vai ganhar robustez muito rapidamente a partir de agora.</p>
+    <p>Na nossa próxima aula (<strong>Aula 10</strong>), vamos encarar um novo desafio: "Como ter certeza de que nossos métodos estão funcionando?".</p>
+    <div class="callout green">
+      <div class="callout-title">O que vem a seguir</div>
+      Nós introduziremos ferramentas para aplicar <strong>Testes Unitários</strong> (Unittest) e técnicas de <strong>Depuração (Debugging)</strong> e <strong>Rastreabilidade</strong>. Você aprenderá a rastrear passo a passo o que ocorre por trás dos panos quando um objeto chama um método e testar automaticamente se a sua regra de saque de banco realmente impede fraudes.
+    </div>
+  </div>
+
+</div>
+
+<nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 34</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const deltaX = e.changedTouches[0].clientX - touchX;
+    if (deltaX > 50) changeSlide(-1);
+    if (deltaX < -50) changeSlide(1);
+  });
+</script>
+
+</body>
+</html>
