@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 5 - Introdução à Modelagem de Dados</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a2e;
+    --ink-light: #3d3d5c;
+    --accent: #c0392b;
+    --accent2: #2980b9;
+    --accent3: #27ae60;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --border: #e0ddd5;
+    --code-bg: #f4f1eb;
+    --tag-bg: #eaf4fb;
+    --tag-border: #2980b9;
+    --slide-max: 100%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #ededea;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(0,0,0,.18);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.1); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* ── PROGRESS ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width .3s ease;
+  }
+
+  /* ── SLIDE WRAPPER ── */
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .slide {
+    display: none;
+    width: 100%;
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 8vh 10vw;
+    animation: fadeIn .3s ease;
+  }
+  .slide.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(.95rem, 2vw, 1.05rem);
+    line-height: 1.75;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul {
+    margin-left: 20px;
+    margin-bottom: 14px;
+    color: var(--ink-light);
+    line-height: 1.75;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── COVER ── */
+  .cover-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* ── SECTIONS ── */
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding-top: 10vh;
+  }
+  .section-num {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 5rem;
+    font-weight: 900;
+    color: var(--accent);
+    opacity: 0.2;
+    margin-bottom: -20px;
+  }
+  .section-header h2 {
+    border: none;
+    padding: 0;
+    font-size: 2.5rem;
+  }
+
+  /* ── TWO COLUMNS ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 20px 0;
+  }
+  .col-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(.78rem, 1.6vw, .88rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+  }
+  .callout.blue { background: #eaf4fb; border-left: 4px solid var(--accent2); color: #1a3a50; }
+  .callout.green { background: #eafaf1; border-left: 4px solid var(--accent3); color: #1a3a28; }
+  .callout.red { background: #fdf0ee; border-left: 4px solid var(--accent); color: #3a1a18; }
+  .callout.yellow { background: #fefbe6; border-left: 4px solid #f39c12; color: #3a2e10; }
+  .callout .callout-title {
+    font-weight: 700;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar" style="width: 0%;"></div></div>
+
+<div id="stage">
+
+  <div class="slide active">
+    <div class="slide-label">Capa</div>
+    <h1>Aula 5 - Introdução à Modelagem de Dados</h1>
+    
+    <p class="cover-desc">
+      <strong>Descrição:</strong> Nesta aula vamos introduzir o Modelo Entidade-Relacionamento (MER), compreendendo as regras básicas de modelagem e seus principais componentes: entidades, atributos e relacionamentos.
+    </p>
+
+    <hr class="divider">
+
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Modelo conceitual</div>
+      <div class="topic-chip">Entidades, atributos e relacionamentos</div>
+      <div class="topic-chip">Regras básicas de modelagem</div>
+    </div>
+
+    <div class="cover-meta">
+      <span>Disciplina: Banco de Dados</span>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Abertura da Aula</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">1. Abertura da Aula</div>
+    <h2>Contextualizando o Problema</h2>
+    <p>Hoje, vamos pegar todo aquele levantamento de requisitos e informações brutas que organizamos na Aula 4 e transformá-los em um desenho arquitetônico lógico.</p>
+    <p>Na vida real e no mercado de tecnologia, de nada adianta saber programar nas melhores linguagens se você não souber como estruturar onde e como os dados do seu cliente serão armazenados.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">1. Abertura da Aula</div>
+    <h2>A Importância da Tradução</h2>
+    <div class="callout blue">
+      <div class="callout-title">Explicação</div>
+      O problema que resolveremos hoje é exatamente a "tradução" do mundo real (com suas regras de negócios complexas) para um modelo padronizado que qualquer profissional de TI consiga ler, entender e, futuramente, transformar em um banco de dados real.
+    </div>
+    <div class="callout red">
+      <div class="callout-title">Atenção</div>
+      Sem um Modelo Conceitual sólido, o seu sistema inevitavelmente falhará, apresentará inconsistências ou não conseguirá escalar. Arquitetos de dados e modeladores são alguns dos profissionais mais bem pagos e requisitados no mercado justamente porque o banco de dados é o ativo mais valioso de qualquer empresa moderna.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Conceitos Fundamentais</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>2.1. Modelo Entidade-Relacionamento (MER)</h2>
+    <p>O Modelo Conceitual é a primeira etapa do projeto de um banco de dados e representa a visão de alto nível do negócio, focando exclusivamente no "o quê" precisa ser armazenado, ignorando completamente o "como" isso será armazenado no software.</p>
+    <p>Nesta fase, não nos importamos se usaremos MySQL, PostgreSQL, Oracle ou MongoDB; nosso foco absoluto é compreender a realidade do cliente e traduzi-la em uma estrutura gráfica e semântica que faça sentido tanto para os programadores quanto para os gestores da empresa.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Linguagem Padronizada</h2>
+    <p>Este modelo utiliza uma linguagem padronizada, geralmente a abordagem Entidade-Relacionamento (ER), que nos permite mapear o cenário de forma abstrata.</p>
+    <p>A grande vantagem do modelo conceitual é servir como um contrato e um canal de comunicação claríssimo entre a equipe técnica e os usuários finais, garantindo que nenhum dado vital para a operação da empresa seja esquecido antes de começarmos a escrever qualquer linha de código.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>A Origem do MER</h2>
+    <p>O Modelo Entidade-Relacionamento (MER), proposto originalmente por Peter Chen em 1976, é uma técnica de modelagem conceitual de alto nível amplamente utilizada para descrever a estrutura de um banco de dados de forma abstrata e independente de tecnologias específicas de implementação ou SGBDs.</p>
+    <p>Ele funciona como uma ferramenta de comunicação entre técnicos e usuários, permitindo capturar os requisitos de dados da organização através de uma percepção do mundo real baseada em objetos e suas associações</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Notação Estrutural em Texto</h2>
+    <p>Como ainda não estamos no código SQL, nossa demonstração prática do Modelo Conceitual será feita através de uma notação estrutural em texto (que antecede o desenho do diagrama):</p>
+<div class="code-block">
+# Mapeamento Conceitual - Sistema de Biblioteca
+[CENÁRIO DO NEGÓCIO]
+- A biblioteca possui livros que são emprestados para usuários.
+- Precisamos saber quem pegou qual livro e quando.
+
+[ESTRUTURA EXTRAÍDA]
+Entidade 1: USUARIO
+Entidade 2: LIVRO
+Ação: EMPRÉSTIMO (conecta Usuário e Livro)
+</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Explicação linha por linha:</h2>
+    <ul>
+      <li><strong>[CENÁRIO DO NEGÓCIO]:</strong> Representa a frase dita pelo cliente na entrevista de requisitos.</li>
+      <li><strong>[ESTRUTURA EXTRAÍDA]:</strong> É a tradução da nossa mente de desenvolvedor isolando os substantivos e verbos.</li>
+      <li><strong>Entidade 1 e 2:</strong> São as coisas reais que identificamos que precisam ter dados guardados.</li>
+      <li><strong>Ação:</strong> É o evento que faz essas duas coisas interagirem no mundo real.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Prática</h2>
+    <div class="callout green">
+      <div class="callout-title">Exercício</div>
+      <p>Leia a frase: "Uma clínica médica possui médicos que realizam consultas para pacientes."</p>
+      <p>Escreva no bloco de notas a estrutura extraída, identificando as entidades principais e a ação que as conecta.</p>
+      <br>
+      <p>Depois faça o mesmo processo para o cenário: "Um restaurante de fast-food recebe pedidos feitos por clientes através de um aplicativo, e cada pedido contém diversos lanches."</p>
+      <p>Identifique as entidades e as interações.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>2.2. Entidades</h2>
+    <p>Uma Entidade, dentro do contexto de banco de dados e modelagem, é qualquer objeto, pessoa, evento ou conceito do mundo real que possua existência independente e sobre o qual desejamos guardar informações.</p>
+    <p>Se você olhar ao seu redor, "Aluno", "Computador", "Turma" e "Professor" são entidades clássicas em um ambiente escolar.</p>
+    <p>Na modelagem conceitual, as entidades são representadas graficamente por retângulos contendo o nome da entidade sempre no singular e em letras maiúsculas.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Entidades Fortes e Fracas</h2>
+    <p>É de extrema importância diferenciar uma entidade forte (que existe por si só, como "Cliente") de uma entidade fraca (que depende de outra para existir, como "Dependente" que só existe no sistema se o "Funcionário" pai existir).</p>
+    <p>Identificar corretamente as entidades é o primeiro passo de qualquer arquiteto de software.</p>
+    <p>As entidades são representadas por retângulos:</p>
+    <p>Entidade</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Representação Estruturada de Entidade</h2>
+    <p>Representação estruturada de como definimos uma entidade antes de desenhá-la no software de modelagem:</p>
+<div class="code-block">
+ENTIDADE: PRODUTO
+Definição: Representa os itens físicos que a loja vende.
+Tipo: Entidade Forte (independente).
+
+ENTIDADE: HISTORICO_PRECO
+Definição: Representa as variações de valor de um produto ao longo do tempo.
+Tipo: Entidade Fraca (só existe se o PRODUTO existir).
+</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Explicação linha por linha:</h2>
+    <ul>
+      <li><strong>ENTIDADE: PRODUTO:</strong> Nomeamos usando um substantivo no singular, caixa alta.</li>
+      <li><strong>Definição:</strong> Deixamos claro o que ela representa no escopo do negócio para evitar ambiguidades.</li>
+      <li><strong>Tipo:</strong> Classificamos para saber se ela precisará herdar identificadores de outra entidade no futuro.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Prática de Entidades</h2>
+    <div class="callout green">
+      <div class="callout-title">Exercício Guiado</div>
+      <p>Liste 3 entidades fortes que existem no sistema do SENAI (ex: portal do aluno).</p>
+      <p>Justifique por que elas são entidades e o que elas representam.</p>
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Exercício de Fixação</div>
+      <p>Crie 1 exemplo de entidade forte e 1 exemplo de entidade fraca para um sistema de Gerenciamento de Recursos Humanos (RH) de uma empresa.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>2.3. Atributos</h2>
+    <p>Os atributos são as propriedades, características ou qualidades que descrevem uma entidade.</p>
+    <p>Se a entidade fosse um substantivo ("Carro"), os atributos seriam os adjetivos e especificações ("Cor", "Placa", "Modelo", "Ano").</p>
+    <p>Todo atributo deve possuir um nome claro e ser vinculado diretamente a uma entidade específica, sendo representados graficamente no diagrama por elipses (círculos ovais) ligadas ao retângulo da entidade.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Classificação dos Atributos (Parte 1)</h2>
+    <p>Os atributos podem ser classificados de diversas maneiras, como podemos ver abaixo:</p>
+    <ul>
+      <li><strong>Atributo Identificador ou Chave</strong> (que é único para cada registro, como o CPF de uma pessoa ou o Chassi de um carro);</li>
+      <li><strong>Simples:</strong> São atributos considerados atômicos ou indivisíveis. Por exemplo, o atributo “cor” de uma entidade “carro” é indivisível;</li>
+      <li><strong>Composto:</strong> Já os atributos compostos podem ser divididos em partes menores, com significados independentes. Um caso clássico é o atributo “Endereço”, o qual pode ser dividido em “Rua”, “Número”, “Bairro”, “Cidade”, entre outros itens;</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Classificação dos Atributos (Parte 2)</h2>
+    <ul>
+      <li><strong>Monovalorado:</strong> Esse atributo possui apenas um valor para uma determinada entidade. Por exemplo, na entidade “Pessoa”, cada indivíduo pode ter apenas um valor de CPF;</li>
+      <li><strong>Multivalorado:</strong> Já o multivalorado permite que um atributo de uma mesma entidade possa ter mais de um valor. Um exemplo é o atributo “Telefone”, uma vez que uma pessoa pode ter mais de um número de telefone;</li>
+      <li><strong>Armazenado:</strong> São aqueles previamente definidos e armazenados em um banco de dados (Data de nascimento).</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Classificação dos Atributos (Parte 3)</h2>
+    <ul>
+      <li><strong>Derivado:</strong> O derivado é aquele que não é armazenado, mas que pode ser obtido através daqueles atributos armazenados. Por exemplo, suponha-se que o atributo “Data de Nascimento” seja definido em um banco de dados. Com isso, o atributo “idade” pode ser obtido através desse atributo previamente armazenado.</li>
+      <li><strong>Descritivo:</strong> Os atributos descritivos retratam as características intrínsecas de uma determinada entidade, como a idade, cor, nome, entre outros.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Classificação dos Atributos (Parte 4)</h2>
+    <ul>
+      <li><strong>Nominativo:</strong> Por sua vez, os nominativos, além de serem descritivos, possuem o objetivo de especificar e definir uma entidade. Por exemplo, código, CPF, nome, entre outros.</li>
+      <li><strong>Relacional:</strong> São os atributos presentes nos relacionamentos. Um exemplo, são os atributos “Local” e “Data” do relacionamento “Casamento”.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Representação Gráfica</h2>
+    <p>Os atributos são representados por elipses:</p>
+    <p>Atributo</p>
+    <p>Atributos multivalorados são representados por:</p>
+    <p>Atributo Multivalorado</p>
+    <p>Atributos compostos são representados por:</p>
+    <p>Atributo Composto</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Mapeando os Atributos</h2>
+    <p>Mapeando os atributos para a entidade "ALUNO":</p>
+<div class="code-block">
+ENTIDADE: ALUNO
+- cpf (Atributo Identificador / Único)
+- nome_completo (Atributo Simples)
+- data_nascimento (Atributo Simples)
+- telefones (Atributo Multivalorado)
+- endereco [rua, numero, bairro] (Atributo Composto)
+</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Explicação linha por linha:</h2>
+    <ul>
+      <li><strong>cpf:</strong> Marcado como identificador, pois garante que não existam dois alunos idênticos no sistema.</li>
+      <li><strong>nome_completo / data_nascimento:</strong> Dados atômicos diretos que descrevem o aluno.</li>
+      <li><strong>telefones:</strong> Marcado como multivalorado porque exigirá um tratamento especial futuramente nas regras de banco de dados.</li>
+      <li><strong>endereco:</strong> Marcado como composto pois na prática ele se subdivide em partes menores.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Prática de Atributos</h2>
+    <div class="callout green">
+      <div class="callout-title">Exercício</div>
+      <p>Para a entidade "LIVRO" de uma biblioteca. Crie 5 atributos para ela, sendo obrigatoriamente um deles um Atributo Identificador.</p>
+      <p>Para a entidade "VEICULO" de uma concessionária, defina: 1 atributo identificador, 2 simples, 1 composto e 1 multivalorado.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>2.4. Relacionamentos e Cardinalidade</h2>
+    <p>Os relacionamentos são as associações lógicas e estruturais entre duas ou mais entidades do nosso modelo.</p>
+    <p>No mundo real, as coisas não existem isoladas; elas interagem. Um "Cliente" COMPRA um "Produto". Um "Professor" MINISTRA uma "Disciplina".</p>
+    <p>O relacionamento é representado graficamente por um losango (diamante) contendo um verbo que liga os retângulos das entidades.</p>
+    <p>Os relacionamentos são representados por losangos: Relacionamento</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Cardinalidade</h2>
+    <p>Junto aos relacionamentos, temos o conceito fundamental de Cardinalidade, que define numericamente como essas entidades se associam e pode ser:</p>
+    <ul>
+      <li><strong>1:1 um-para-um:</strong> um gerente gerencia um único departamento;</li>
+      <li><strong>1:N um-para-muitos:</strong> uma mãe pode ter vários filhos, mas o filho só tem uma mãe biológica ou;</li>
+      <li><strong>N:M muitos-para-muitos:</strong> um aluno cursa várias disciplinas, e uma disciplina possui vários alunos.</li>
+    </ul>
+    <p>A cardinalidade correta dita como as tabelas do sistema se comportarão no futuro.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Entendendo o Diagrama</h2>
+    <p>Para facilitar o entendimento, observe o diagrama abaixo: Mas o que significa aqueles números na figura?</p>
+    <p>Bom, eles correspondem às cardinalidades das entidades. A cardinalidade da entidade está do lado oposto ao seu retângulo, havendo a cardinalidade mínima e a máxima.</p>
+    <p>Para lê-las, adotamos a seguinte estrutura:</p>
+    <p><strong>ENTIDADE + RELACIONAMENTO + CARDINALIDADE + ENTIDADE</strong></p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Leitura da Cardinalidade</h2>
+    <p>Desse modo, as cardinalidades de cada uma das duas entidades são: Um professor pode ministrar 0 (mínimo) ou ‘n’ (máximo) disciplinas.</p>
+    <p>Uma disciplina pode ser ministrada por apenas 1 (mínimo) ou 1 (máximo) professor.</p>
+    <p>O ‘n’ significa mais de uma, ou seja, um professor pode ministrar nenhuma disciplina ou mais de uma.</p>
+    <p>Já quando as cardinalidades mínima e máxima são iguais, é porque ela está restrita a apenas aquele número.</p>
+    <p>Assim, uma disciplina pode ser ministrada apenas por um professor.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Leitura Semântica</h2>
+    <p>Estruturando a leitura semântica de um relacionamento e sua cardinalidade:</p>
+<div class="code-block">
+RELACIONAMENTO: COMPRA
+Entidade A: CLIENTE
+Entidade B: CARRO
+
+Regra de Negócio:
+- 1 Cliente pode comprar (N) Carros.
+- 1 Carro é comprado por apenas (1) Cliente.
+Cardinalidade Final: 1:N (Um para Muitos)
+</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Explicação linha por linha:</h2>
+    <ul>
+      <li><strong>RELACIONAMENTO: COMPRA:</strong> Identificamos o verbo da ação.</li>
+      <li><strong>Entidade A e B:</strong> As pontas da conexão.</li>
+      <li><strong>Regra de Negócio:</strong> Lemos a relação nos dois sentidos. Do cliente para o carro, e do carro para o cliente.</li>
+      <li><strong>Cardinalidade Final:</strong> A união das regras define que este é um relacionamento 1:N, o que significa que futuramente a chave primária do cliente vai migrar como chave estrangeira para o carro.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Prática de Relacionamento</h2>
+    <div class="callout green">
+      <div class="callout-title">Exercício</div>
+      <p>Analise as entidades "MÉDICO" e "PACIENTE" no evento de uma "CONSULTA".</p>
+      <p>Escreva a regra de negócio nos dois sentidos e determine a cardinalidade (1:1, 1:N ou N:M).</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>2.5. Regras Básicas de Modelagem</h2>
+    <p>A modelagem de dados é um processo fundamental que exige rigor metodológico e padronização para traduzir requisitos informais de negócio em estruturas precisas e eficientes.</p>
+    <p>Essa prática não se resume à criação de diagramas visuais, mas sim à construção de um esquema formal e não ambíguo que serve como base para a implementação do banco de dados.</p>
+    <p>Abaixo, os conceitos fundamentais das regras básicas de modelagem são detalhados:</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Clareza na Nomenclatura: O Uso do Singular</h2>
+    <p>A primeira regra estabelece que as entidades devem ser nomeadas com substantivos no singular (ex: "CLIENTE" em vez de "CLIENTES"). Essa convenção é crucial por dois motivos conceituais:</p>
+    <ul>
+      <li><strong>Classe vs. Coleção:</strong> Uma entidade representa a intenção da relação (o molde ou definição estrutural), enquanto o conjunto de dados preenchidos representa a extensão ou o estado da relação. Nomear no singular reforça que estamos definindo o tipo de objeto e suas propriedades, e não listando seus registros.</li>
+      <li><strong>Significado Semântico:</strong> Nomes curtos e familiares ao negócio facilitam a comunicação entre técnicos e usuários finais, tornando o modelo auto documentado.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Identificação Obrigatória: A Chave Primária (PK)</h2>
+    <p>Toda entidade forte deve obrigatoriamente possuir um atributo identificador, conhecido no modelo relacional como Chave Primária (PK).</p>
+    <ul>
+      <li><strong>Integridade de Entidade:</strong> A função primordial da chave primária é garantir a identidade única de cada ocorrência (tupla), assegurando que nenhum componente da chave seja nulo e que não existam duplicatas. Sem um identificador bem definido, torna-se impossível distinguir ou recuperar um objeto específico do mundo real dentro do sistema.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Identificação Obrigatória: A Chave Primária (PK) (Continuação)</h2>
+    <ul>
+      <li><strong>Natureza do Identificador:</strong> O identificador deve ser mínimo, contendo apenas o conjunto essencial de atributos necessários para a distinção única. No nível conceitual, a identificação e a descrição são construtos distintos: o papel da chave é identificar a existência da entidade, não descrevê-la.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Evitar a Redundância Precoce</h2>
+    <p>Na fase de modelagem conceitual, a regra de ouro é "um fato em um lugar", visando minimizar a redundância para prevenir anomalias de atualização.</p>
+    <ul>
+      <li><strong>Minimalismo de Dados:</strong> O modelo deve seguir a regra do dado mínimo: "Tudo o que é necessário está lá e tudo o que está lá é necessário". Repetir atributos em entidades diferentes sem necessidade de negócio gera inconsistência, pois uma alteração em um local pode não ser refletida no outro, gerando dados conflitantes conhecido como princípio GIGO: Garbage In, Garbage Out.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>O Papel do Relacionamento</h2>
+    <p>No Modelo Entidade-Relacionamento (MER), as associações entre entidades são representadas por relacionamentos, e não pela repetição manual de campos.</p>
+    <p>A conexão física entre as informações (como o uso de Chaves Estrangeiras) é um detalhe de implementação que será resolvido na fase de projeto lógico/físico.</p>
+    <p>Se uma informação pode ser derivada através de um relacionamento existente, armazená-la novamente tornaria o atributo redundante e o modelo ineficiente.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Comparação de Mapeamentos</h2>
+    <p>Comparação de um mapeamento fora do padrão versus um mapeamento profissional:</p>
+    
+    <div class="two-col">
+      <div class="col-card">
+        <h3># ERRADO (Fora do Padrão)</h3>
+        <p>Entidades: Vendas, Usuarios</p>
+        <p>Atributos Vendas: id, quem_comprou, data_da_venda, cpf_do_usuario</p>
+        <p>Relacionamento: Faz</p>
+      </div>
+      <div class="col-card">
+        <h3># CORRETO (Padrão de Mercado)</h3>
+        <p>Entidade: VENDA</p>
+        <p>Atributos: codigo_venda (Identificador), data_venda</p>
+        <p>Entidade: USUARIO</p>
+        <p>Atributos: cpf (Identificador), nome</p>
+        <p>Relacionamento: REALIZA (Associa Usuario 1:N Venda)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">2. Conceitos Fundamentais</div>
+    <h2>Explicação linha por linha:</h2>
+    <p>No modelo incorreto, usamos plural ("Vendas"), misturamos dados que não pertencem à entidade ("cpf_do_usuario" dentro de venda) e usamos verbos fracos ("Faz").</p>
+    <p>No modelo correto, usamos singular ("VENDA", "USUARIO"), separamos as responsabilidades, garantimos um identificador para cada e deixamos o verbo formal ("REALIZA") unir as informações.</p>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Casos Reais do Mercado</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">3. Casos Reais do Mercado</div>
+    <h2>Caso 1: Aplicativos de Delivery (iFood / UberEats)</h2>
+    <p>A modelagem conceitual dessas empresas é gigantesca, mas o coração da plataforma gira em torno do relacionamento entre entidades principais: RESTAURANTE, CLIENTE, ENTREGADOR e PEDIDO.</p>
+    <p>O pedido é uma entidade central que se relaciona com as outras três simultaneamente.</p>
+    <p>O endereço de entrega não é um atributo simples do cliente, pois um cliente pode ter vários endereços (Casa, Trabalho), logo "ENDEREÇO" se torna uma entidade própria, relacionada ao cliente por uma cardinalidade 1:N.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">3. Casos Reais do Mercado</div>
+    <h2>Caso 2: Plataformas de Streaming (Netflix)</h2>
+    <p>Para garantir o funcionamento do sistema de recomendações, a modelagem distingue perfeitamente a entidade CONTA (quem paga, possui o cartão de crédito) da entidade PERFIL (quem assiste: você, seu irmão, seção Kids).</p>
+    <p>A relação é de 1 Conta para N Perfis. O histórico de visualização, chamado ASSISTIU, é um relacionamento N:M complexo entre PERFIL e CONTEÚDO, que inclusive guarda atributos no próprio relacionamento (como os minutos parados do filme ou a nota dada).</p>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Exercício Aplicado: Modelando um Sistema de E-learning</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">4. Exercício Aplicado</div>
+    <h2>Modelando um Sistema (Estilo Udemy/Alura)</h2>
+    <p><strong>Objetivo:</strong> Atuar como um Arquiteto de Dados para projetar o Modelo Conceitual de uma plataforma de cursos online.</p>
+    <p>Vamos focar apenas no mundo real: Entidades (retângulos), Atributos (elipses) e Relacionamentos (losangos).</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">4. Exercício Aplicado</div>
+    <h2>Passo 1: Identificando as Entidades Fortes</h2>
+    <p>No coração do nosso sistema, temos três entidades principais. Desenhe-as e adicione seus atributos identificadores e descritivos:</p>
+    <ul>
+      <li>ALUNO: cpf (Identificador), nome, email.</li>
+      <li>CURSO: codigo (Identificador), titulo, carga_horaria.</li>
+      <li>PROFESSOR: matricula (Identificador), nome, especialidade.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">4. Exercício Aplicado</div>
+    <h2>Passo 2: Relacionamentos Básicos e Cardinalidades (Min, Max)</h2>
+    <p>Conecte as entidades através de relacionamentos e defina as cardinalidades com base nas seguintes regras de negócio:</p>
+    <p><strong>Professor e Curso (Ministra):</strong> Um professor recém-contratado pode ainda não ter cursos publicados? Sim. Mas um curso pode existir sem um autor/instrutor? Não. Como ficam as cardinalidades (Mínima, Máxima) de ambos os lados?</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">4. Exercício Aplicado</div>
+    <h2>Passo 2: Relacionamentos Básicos (Continuação)</h2>
+    <p><strong>Aluno e Curso (Matricula-se):</strong> Um aluno pode criar conta e não comprar nada? Sim.</p>
+    <p>Um curso novo pode ter zero alunos matriculados? Sim. Um aluno pode fazer vários cursos e um curso ter vários alunos? Sim.</p>
+    <p>Defina a cardinalidade deste relacionamento N:M (Muitos para Muitos).</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">4. Exercício Aplicado</div>
+    <h2>Passo 3: O Desafio da Matrícula (Reflexão Ativa)</h2>
+    <p>Para o negócio funcionar, o sistema precisa saber quando o aluno comprou o curso e qual é o seu progresso percentual (0 a 100%).</p>
+    <ul>
+      <li><strong>Pergunta 1:</strong> Se você colocar o atributo "progresso" na entidade ALUNO, o que acontece se esse aluno fizer 3 cursos diferentes ao mesmo tempo?</li>
+      <li><strong>Pergunta 2:</strong> Se você colocar o atributo "progresso" na entidade CURSO, o que acontece se o curso tiver 1.000 alunos matriculados?</li>
+      <li><strong>Desafio:</strong> Como a modelagem Entidade-Relacionamento resolve o impasse de um dado que pertence à interação entre as duas entidades?</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">4. Exercício Aplicado</div>
+    <h2>Passo 4: Expandindo para a Realidade – A "Entidade Fraca"</h2>
+    <p>Um curso na vida real é dividido em "Aulas" (Módulos/Vídeos). Precisamos criar a entidade AULA com os atributos: numero_ordem, titulo_aula e duracao.</p>
+    <p><strong>Reflexão:</strong> A aula chamada "Introdução" existe em quase todos os cursos da plataforma. O banco de dados não consegue identificar quem é a aula "Introdução" a menos que saiba a qual curso ela pertence (ex: Introdução de Python vs. Introdução de Marketing).</p>
+    <p><strong>Ação:</strong> Modele a AULA como uma Entidade Fraca dependente da entidade CURSO. Como isso é representado visualmente no diagrama?</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">4. Exercício Aplicado</div>
+    <h2>Resultados Esperado</h2>
+    <p>Para concluir este exercício, você deverá entregar um documento técnico contendo os seguintes itens:</p>
+    <p><strong>1. Diagrama Entidade-Relacionamento (Modelo Conceitual):</strong> Um desenho contendo as entidades Aluno, Professor, Curso e a entidade fraca Aula.</p>
+    <p>A representação correta das cardinalidades mínimas e máximas em cada relacionamento.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">4. Exercício Aplicado</div>
+    <h2>Resultados Esperado (Continuação)</h2>
+    <p>A indicação clara dos atributos de relacionamento (data_matricula e progresso) posicionados no losango de ligação entre Aluno e Curso.</p>
+    <p>A representação visual diferenciada para a entidade fraca e seu relacionamento identificador (linhas duplas).</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">4. Exercício Aplicado</div>
+    <h2>Memorial Descritivo</h2>
+    <p><strong>2. Memorial Descritivo (Justificativas):</strong> Respostas curtas às perguntas de reflexão dos Passos 3 e 4, explicando:</p>
+    <ul>
+      <li>Por que o "progresso" não pode ficar na tabela Aluno nem na tabela Curso.</li>
+      <li>Por que a chave do Professor foi parar na tabela Curso e não o contrário.</li>
+      <li>O que define a identidade de uma Aula no sistema.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>FAQ – Dúvidas Reais de Alunos</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">5. FAQ</div>
+    <h2>Dúvidas Reais de Alunos (Parte 1)</h2>
+    <div class="callout blue">
+      <div class="callout-title">Explicação</div>
+      <p><strong>1. Qual a diferença entre modelo conceitual, lógico e físico?</strong></p>
+      <p>O conceitual foca nas regras de negócio e é focado no ser humano (diagrama). O lógico traduz isso para a tecnologia de tabelas e chaves (focado em como o software vê a estrutura). O físico é o código SQL real rodando no SGBD (PostgreSQL, MySQL).</p>
+    </div>
+    <div class="callout blue">
+      <div class="callout-title">Explicação</div>
+      <p><strong>2. Um atributo pode virar uma entidade?</strong></p>
+      <p>Sim! Isso acontece com frequência. Se um atributo como "Endereço" começa a precisar de muitos sub-dados (rua, cep, cidade, estado, país) e a empresa precisa gerenciar rotas de entrega baseadas nessas cidades, "Endereço" deixa de ser um atributo composto e vira sua própria entidade "ENDERECO".</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">5. FAQ</div>
+    <h2>Dúvidas Reais de Alunos (Parte 2)</h2>
+    <div class="callout blue">
+      <div class="callout-title">Explicação</div>
+      <p><strong>3. Como eu sei se um relacionamento é 1:N ou N:M?</strong></p>
+      <p>Fazendo a pergunta nos dois sentidos do verbo. "Um autor escreve quantos livros? Vários (N). Um livro pode ser escrito por quantos autores? Vários (M)". Se deu 'vários' dos dois lados, a relação é N:M.</p>
+    </div>
+    <div class="callout blue">
+      <div class="callout-title">Explicação</div>
+      <p><strong>4. Preciso colocar todos os dados do mundo em uma entidade?</strong></p>
+      <p>Não! Você só mapeia o que é relevante para o sistema. Num sistema de locadora de carros, saber o "Tipo Sanguíneo" do cliente é inútil. Em um sistema de Hospital, é um atributo vital. O cenário dita os atributos.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">5. FAQ</div>
+    <h2>Dúvidas Reais de Alunos (Parte 3)</h2>
+    <div class="callout blue">
+      <div class="callout-title">Explicação</div>
+      <p><strong>5. O que é um atributo identificador?</strong></p>
+      <p>É aquele dado que NUNCA se repete entre duas entidades do mesmo tipo. Pessoas podem ter o mesmo nome, mesma data de nascimento e morar na mesma rua. Mas não podem ter o mesmo CPF. O CPF é um identificador forte.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>Conexão com a Situação de Aprendizagem</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">6. Conexão com a Situação de Aprendizagem</div>
+    <h2>Roteiro do Projeto</h2>
+    <p>O que praticamos hoje não é apenas um exercício acadêmico. Lembra do Roteiro do Projeto? Um item obrigatório da sua documentação técnica e entrega final para a banca é exatamente o Modelo Entidade-Relacionamento (MER), diagrama conceitual.</p>
+    <p>O levantamento que vocês fizeram na Aula 4 se transformou no diagrama de hoje. As entidades, atributos e relacionamentos que vocês definirem agora para o sistema de vocês serão a espinha dorsal de todo o código SQL que programaremos a partir das próximas aulas.</p>
+    <p>Se o modelo estiver errado, a aplicação inteira vai quebrar na hora da programação.</p>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Preparação para a Próxima Aula</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">7. Preparação para a Próxima Aula</div>
+    <h2>Próximos Passos</h2>
+    <p>Na nossa próxima aula, pegaremos este Modelo Conceitual abstrato (os retângulos e losangos) e aprenderemos a transformá-lo no Modelo Lógico.</p>
+    <p>Vocês aprenderão como resolver o problema complexo das relações Muitos-para-Muitos (N:M) e introduziremos os conceitos práticos de "Chave Primária (PK)" e "Chave Estrangeira (FK)", regras fundamentais da Normalização.</p>
+    <p>Guardem os rascunhos de hoje, pois eles serão a matéria-prima direta da nossa próxima etapa!</p>
+  </div>
+
+</div>
+
+<nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 58</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe básico para mobile
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    let diff = touchX - e.changedTouches[0].clientX;
+    if (diff > 50) changeSlide(1);
+    if (diff < -50) changeSlide(-1);
+  });
+</script>
+</body>
+</html>
