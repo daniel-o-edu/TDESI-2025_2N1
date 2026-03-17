@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 10 - Tratamento de Erros, Testes Unitários e Debug</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a2e;
+    --ink-light: #3d3d5c;
+    --accent: #c0392b;
+    --accent2: #2980b9;
+    --accent3: #27ae60;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --border: #e0ddd5;
+    --code-bg: #f4f1eb;
+    --tag-bg: #eaf4fb;
+    --tag-border: #2980b9;
+    --slide-max: 100%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #ededea;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(0,0,0,.18);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.1); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* ── PROGRESS ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width .3s ease;
+  }
+
+  /* ── SLIDE WRAPPER ── */
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .slide {
+    display: none;
+    width: 100%;
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 8vh 10vw;
+    animation: fadeIn .3s ease;
+  }
+  .slide.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(.95rem, 2vw, 1.05rem);
+    line-height: 1.75;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul, .slide ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  .slide li {
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .slide li strong { color: var(--ink); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── COVER ── */
+  .cover-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(.78rem, 1.6vw, .88rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+  }
+  .callout.blue {
+    background: #eaf4fb;
+    border-left: 4px solid var(--accent2);
+    color: #1a3a50;
+  }
+  .callout.green {
+    background: #eafaf1;
+    border-left: 4px solid var(--accent3);
+    color: #1a3a28;
+  }
+  .callout.red {
+    background: #fdf0ee;
+    border-left: 4px solid var(--accent);
+    color: #3a1a18;
+  }
+  .callout.yellow {
+    background: #fefbe6;
+    border-left: 4px solid #f39c12;
+    color: #3a2e10;
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+
+  /* ── TWO COLUMN ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  .col-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .col-card h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(.85rem, 1.8vw, .95rem);
+  }
+  thead th {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: .85rem;
+    letter-spacing: .04em;
+  }
+  tbody tr:nth-child(even) { background: var(--code-bg); }
+  tbody tr:hover { background: #e8f4fd; }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-light);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  tbody td strong { color: var(--ink); }
+
+  /* ── ENTITY CARDS ── */
+  .entity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .entity-card {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .entity-card .entity-name {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    padding: 10px 14px;
+    font-size: 1rem;
+  }
+  .entity-card ul {
+    padding: 12px 18px;
+    margin: 0;
+  }
+  .entity-card li {
+    font-size: .9rem;
+    color: var(--ink-light);
+    margin-bottom: 4px;
+  }
+
+  /* ── FAQ ── */
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .faq-q {
+    background: var(--code-bg);
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: clamp(.93rem, 2vw, 1rem);
+    color: var(--ink);
+    border-left: 4px solid var(--accent2);
+  }
+  .faq-a {
+    padding: 12px 18px;
+    font-size: clamp(.9rem, 1.9vw, .98rem);
+    color: var(--ink-light);
+    line-height: 1.7;
+    background: var(--surface);
+  }
+
+  /* ── SECTION HEADER SLIDES ── */
+  .section-header {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .section-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--border);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .section-header h2 {
+    border: none;
+    padding: 0;
+    text-align: center;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: var(--ink);
+  }
+  .section-header p {
+    max-width: 560px;
+    margin: 16px auto 0;
+    text-align: center;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .slide { padding: 28px 22px 36px; }
+    #nav button { padding: 0 14px; font-size: .9rem; }
+  }
+  @media (max-width: 400px) {
+    .slide { padding: 20px 14px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<div id="stage">
+
+  <div class="slide active">
+    <div class="slide-label">Fundamentos Práticos</div>
+    <h1>Aula 10: Tratamento de Erros, Testes Unitários e Debug</h1>
+    <p class="cover-desc">Nesta aula, focaremos em tornar nosso sistema robusto e à prova de falhas. Para isso, aplicaremos blocos try/except para tratar erros de entrada do usuário sem encerrar o programa, criaremos testes automatizados com a biblioteca unittest para garantir a precisão das operações e utilizaremos o depurador da IDE para inspecionar as variáveis e o fluxo do código passo a passo.</p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Tratamento de Exceções</div>
+      <div class="topic-chip">Testes Automatizados</div>
+      <div class="topic-chip">Depurador (Debugger)</div>
+    </div>
+    <div class="cover-meta">
+      <span>Aula 10</span>
+      <span>Garantia de Qualidade (QA)</span>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>Abertura da Aula</h2>
+      <p>Contextualizando a importância de um código robusto.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 1</div>
+    <h2>Abertura da Aula</h2>
+    <p>Até agora, nossos programas partiam do princípio de que o usuário faria tudo certo. Se pedimos um número, assumimos que ele não digitou uma letra. Mas, no mundo real, os usuários cometem erros o tempo todo, redes caem e arquivos são deletados sem aviso.</p>
+    <div class="callout red">
+      <div class="callout-title">O Risco de Falhas</div>
+      Quando um erro inesperado acontece, um programa frágil "crasha" (quebra e fecha abruptamente), gerando uma experiência horrível e prejuízos financeiros para as empresas.
+    </div>
+    <p>Hoje, vamos aprender a criar softwares robustos, que preveem essas falhas e se recuperam elegantemente usando Tratamento de Exceções.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 1</div>
+    <h2>Ferramentas Exigidas pelo Mercado</h2>
+    <p>Além disso, introduziremos duas ferramentas exigidas pelo mercado:</p>
+    <ul>
+      <li><strong>Testes Automatizados:</strong> para garantir que uma alteração não quebre o que já funcionava.</li>
+      <li><strong>Debugger:</strong> para rastrear e exterminar bugs silenciosos passo a passo.</li>
+    </ul>
+    <div class="callout blue">
+      <div class="callout-title">Garantia de Qualidade</div>
+      O que aprenderemos hoje é a base da Garantia de Qualidade (QA) de qualquer software profissional e será fundamental para o sucesso do projeto da nossa Situação de Aprendizagem.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>Conceitos Fundamentais</h2>
+      <p>Try/Except, Testes Unitários e Depuração.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1</div>
+    <h2>Conceito 1: Tratamento de Exceções (try / except)</h2>
+    <p>Uma exceção é um evento que ocorre durante a execução de um programa e que interrompe o fluxo normal das instruções (por exemplo, tentar dividir um número por zero ou tentar converter a palavra "dez" em um número inteiro).</p>
+    <p>Em Python, quando o interpretador encontra um erro desse tipo, ele levanta (raise) uma exceção. Se essa exceção não for tratada, o programa é encerrado com uma mensagem de erro no terminal.</p>
+    <p>Para evitar isso, utilizamos a estrutura <strong>try/except</strong> (tentar/exceto). O código que tem potencial para dar erro é colocado dentro do bloco <strong>try</strong>.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1</div>
+    <h2>Como Funciona a Recuperação</h2>
+    <p>Se um erro ocorrer lá dentro, o programa não quebra; em vez disso, ele pula imediatamente para o bloco <strong>except</strong>, onde podemos lidar com o erro de forma amigável, alertar o usuário e permitir que a execução continue normalmente.</p>
+    <div class="callout blue">
+      <div class="callout-title">Relevância</div>
+      Essa prática é essencial para garantir a disponibilidade e a confiabilidade dos sistemas modernos.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Demonstração</div>
+    <h2>Solicitando Valor de Forma Segura</h2>
+    <div class="code-block">
+# Solicitando um valor financeiro ao usuário de forma segura
+while True:
+    try:
+        # Tenta converter a entrada diretamente para float
+        valor = float(input("Digite o valor do depósito: R$ "))
+        print(f"Depósito de R$ {valor:.2f} realizado com sucesso!")
+        break # Sai do loop se der tudo certo
+    except ValueError:
+        # Se o usuário digitar "cem", o float() levanta um ValueError
+        # O programa cai aqui em vez de crashar
+        print("ERRO: Por favor, digite apenas valores numéricos válidos (ex: 150.50).")
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Explicação</div>
+    <h2>Explicação linha por linha</h2>
+    <ul>
+      <li><strong>while True:</strong> Cria um loop infinito para insistir até que o usuário acerte.</li>
+      <li><strong>try:</strong> Inicia o bloco de "zona de risco", onde o erro pode ocorrer.</li>
+      <li><strong>valor = float(...):</strong> Tenta converter o texto em um número decimal. Se o usuário digitar "abc", o Python entra em pânico e lança a exceção ValueError.</li>
+      <li><strong>break:</strong> Se a linha acima não der erro, o break é executado, encerrando o while.</li>
+      <li><strong>except ValueError:</strong> Captura especificamente o erro de conversão de valor. Em vez de fechar o programa, ele executa o bloco abaixo.</li>
+      <li><strong>print(...):</strong> Exibe uma mensagem amigável instruindo o usuário a corrigir o erro.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Exercício</div>
+    <h2>Exercício Guiado</h2>
+    <div class="callout green">
+      <div class="callout-title">Desafio</div>
+      <p>Crie um programa que peça dois números ao usuário e mostre a divisão do primeiro pelo segundo.</p>
+      <p>Use try/except para capturar o erro ZeroDivisionError caso o usuário tente dividir por zero, avisando-o que "A divisão por zero não é permitida matematicamente".</p>
+      <p>Adicione um segundo except (sim, você pode ter vários!) para capturar ValueError caso o usuário digite texto no lugar dos números da divisão.</p>
+      <p>O programa deve rodar em um laço while até que uma divisão válida seja concluída com sucesso.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2</div>
+    <h2>Conceito 2: Testes Unitários Automatizados (unittest)</h2>
+    <p>Testar um programa manualmente (clicando em botões ou digitando valores no terminal toda vez que mudamos uma linha de código) é insustentável em grandes projetos, consome muito tempo e é sujeito a falhas humanas.</p>
+    <div class="callout blue">
+      <div class="callout-title">No Mercado</div>
+      No mercado corporativo, os desenvolvedores escrevem "código que testa código".
+    </div>
+    <p>O Teste Unitário verifica o menor pedaço testável de um software (geralmente uma função ou método isolado) para garantir que ele retorna exatamente o que foi projetado para retornar.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2</div>
+    <h2>A biblioteca unittest</h2>
+    <p>O Python possui uma biblioteca nativa chamada unittest. Com ela, criamos métodos de teste que utilizam asserções (como assertEqual, que verifica se "A" é igual a "B").</p>
+    <p>Se alterarmos a regra de negócios no futuro e a função passar a calcular errado, o teste automatizado falhará imediatamente, nos alertando sobre o defeito antes que o software seja entregue ao cliente.</p>
+    <p>A biblioteca unittest é um framework de testes unitários embutido na biblioteca padrão do Python. Inspirada no JUnit do Java, ela fornece um conjunto robusto de ferramentas para construir, executar e relatar testes em seu código, garantindo que ele funcione como esperado.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2</div>
+    <h2>Funcionalidades e Estruturas</h2>
+    <h3>A. Casos de Teste (unittest.TestCase)</h3>
+    <p>Para criar testes, você deve criar uma classe que herde de unittest.TestCase. Dentro dessa classe, qualquer método cujo nome comece com a palavra test_ será automaticamente reconhecido e executado como um teste.</p>
+    <h3>B. Asserções (Assertions)</h3>
+    <p>As asserções são os métodos usados dentro dos testes para verificar se o resultado obtido é igual ao resultado esperado. Se a asserção falhar, o teste falha. As principais são:</p>
+    <ul>
+      <li><strong>assertEqual(a, b):</strong> Verifica se a == b.</li>
+      <li><strong>assertNotEqual(a, b):</strong> Verifica se a != b.</li>
+      <li><strong>assertTrue(x):</strong> Verifica se x é verdadeiro.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2</div>
+    <h2>Mais Asserções</h2>
+    <ul>
+      <li><strong>assertFalse(x):</strong> Verifica se x é falso.</li>
+      <li><strong>assertIsNone(x):</strong> Verifica se x é None.</li>
+      <li><strong>assertIn(a, b):</strong> Verifica se a está contido em b (como em listas ou strings).</li>
+      <li><strong>assertRaises(Excecao, funcao, *args, **kwargs):</strong> Verifica se uma função levanta (dispara) uma exceção específica quando chamada com os argumentos fornecidos.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2</div>
+    <h2>C. Fixtures (Preparação e Limpeza)</h2>
+    <p>Muitas vezes, você precisa configurar um ambiente antes de testar (como conectar a um banco de dados temporário) e limpá-lo depois. O unittest fornece métodos especiais para isso:</p>
+    <ul>
+      <li><strong>setUp():</strong> Executado antes de cada método de teste individual. Ideal para criar variáveis ou estados iniciais.</li>
+      <li><strong>tearDown():</strong> Executado depois de cada método de teste. Ideal para fechar conexões ou limpar arquivos temporários.</li>
+      <li><strong>setUpClass() / tearDownClass():</strong> Métodos de classe (decorados com @classmethod) executados apenas uma vez antes e depois de todos os testes daquela classe, respectivamente.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2</div>
+    <h2>D. Executando e E. Mocking</h2>
+    <h3>D. Executando os Testes (unittest.main())</h3>
+    <p>A maneira mais simples de executar os testes dentro de um arquivo script é chamar a função principal da biblioteca no final do arquivo:</p>
+    <div class="code-block">
+if __name__ == '__main__':
+    unittest.main()
+    </div>
+    <p>Isso varre o arquivo atual, encontra todos os casos de teste e os executa, imprimindo um relatório no console.</p>
+    <h3>E. Mocking (unittest.mock)</h3>
+    <p>Embora seja um módulo à parte, o unittest.mock é frequentemente usado em conjunto. Ele permite que você substitua partes do seu sistema (como chamadas de API externas ou funções complexas) por objetos "falsos" (mocks) para que você possa testar seu código de forma isolada, sem depender de recursos externos.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Demonstração</div>
+    <h2>Demonstração: Código Base</h2>
+    <div class="callout yellow">
+      <div class="callout-title">Arquivo</div>
+      matematica.py (O código a ser testado)
+    </div>
+    <div class="code-block">
+def calcular_dobro(numero):
+    return numero * 2
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Demonstração</div>
+    <h2>Demonstração: Script de Teste</h2>
+    <div class="callout yellow">
+      <div class="callout-title">Arquivo</div>
+      teste_matematica.py (O script de teste)
+    </div>
+    <div class="code-block">
+import unittest
+from matematica import calcular_dobro
+
+class TestesMatematica (unittest.TestCase):
+    def test_calcular_dobro_positivo(self):
+        # A função assertEqual verifica se o 1º argumento é IGUAL ao 2º
+        # Esperamos que o dobro de 5 seja exatamente 10
+        self.assertEqual(calcular_dobro(5), 10)
+
+    def test_calcular_dobro_negativo(self):
+        # Testando como a função lida com números negativos
+        self.assertEqual(calcular_dobro(-3), -6)
+
+if __name__ == '__main__':
+    unittest.main()
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Explicação</div>
+    <h2>Explicação linha por linha</h2>
+    <ul>
+      <li><strong>import unittest:</strong> Traz o módulo de testes do Python para o nosso arquivo.</li>
+      <li><strong>class TestesMatematica (unittest.TestCase):</strong> Cria um grupo de testes que herda as capacidades do módulo unittest.</li>
+      <li><strong>def test_calcular_dobro_positivo(self):</strong> Todo método que testa algo OBRIGATORIAMENTE deve começar com a palavra test_.</li>
+      <li><strong>self.assertEqual(...):</strong> Executa a função passando 5 e verifica se a resposta interna do Python é 10. Se não for, o teste grita que falhou.</li>
+      <li><strong>unittest.main():</strong> É o motor que procura todos os métodos com test_ e os executa de uma vez, gerando um relatório no console.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Exercício</div>
+    <h2>Exercício de Fixação: Testes Unitários</h2>
+    <div class="callout green">
+      <div class="callout-title">Tarefa Prática</div>
+      <p>Crie uma função somar(a, b) em um arquivo operacoes.py. Crie o arquivo test_operacoes.py e escreva um teste garantindo que somar(10, 5) seja igual a 15. Execute o teste.</p>
+      <p>Adicione uma função eh_par (numero) que retorna True se for par e False se for ímpar.</p>
+      <p>No arquivo de testes, crie métodos usando self.assertTrue() e self.assertFalse() para testar se a função identifica corretamente o número 4 como par e o número 7 como ímpar.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3</div>
+    <h2>Conceito 3: Depuração de Código (Debug e Breakpoints)</h2>
+    <p>O processo de encontrar e remover falhas lógicas (bugs) é chamado de depuração (Debugging).</p>
+    <p>Programadores iniciantes costumam encher o código de funções print() para tentar descobrir onde uma variável está com o valor errado. Isso suja o código e é ineficiente. A abordagem profissional é utilizar o Debugger (Depurador) integrado à IDE (como VS Code, PyCharm ou o IDLE).</p>
+    <div class="callout blue">
+      <div class="callout-title">Como Funciona</div>
+      O Depurador permite que você insira um Breakpoint (ponto de parada) em uma linha específica de código. Quando você executa o programa no modo Debug, o interpretador "congela" a execução exatamente naquela linha, permitindo que você analise o valor atual das variáveis na memória.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.3 · Prática</div>
+    <h2>Exercício de Fixação: Debugger</h2>
+    <div class="callout green">
+      <div class="callout-title">Passo a Passo</div>
+      <p>Copiem o código do carrinho acima para a IDE de vocês. Marquem um Breakpoint dentro do for.</p>
+      <p>Executem o Debugger e observem como o valor da variável total muda no painel lateral a cada interação do laço.</p>
+      <p>Escreva uma função clássica de contagem regressiva com while. Introduza propositalmente um bug onde a variável de controle subtrai 2 ao invés de 1. Use o debugger para "assistir" ao bug acontecendo em tempo real na memória antes do programa imprimir o resultado errado.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>Demonstração Aplicada</h2>
+      <p>Vamos consolidar unindo try/except com uma classe, e testando-a com unittest.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3</div>
+    <h2>Classe Produto com Validação</h2>
+    <div class="callout yellow">
+      <div class="callout-title">Arquivo</div>
+      produto.py
+    </div>
+    <div class="code-block">
+class Produto:
+    def __init__(self, nome, preco_base):
+        self.nome = nome
+        self.preco_base = preco_base
+
+    def aplicar_desconto(self, percentual):
+        if percentual < 0 or percentual > 100:
+            # Levantando nossa própria exceção ativamente!
+            raise ValueError("O desconto deve estar entre 0 e 100.")
+        desconto = self.preco_base * (percentual / 100)
+        return self.preco_base - desconto
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Aplicações no Mercado</h2>
+      <p>Como o mundo real utiliza try/except e testes unitários diariamente.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 4</div>
+    <h2>Aplicações no Mercado</h2>
+    <ul>
+      <li><strong>Integração de APIs e Redes:</strong> Aplicações de celular que se comunicam com servidores. Se você abre o app do seu banco dentro do elevador (sem internet) e ele não usa try/except, o aplicativo fecha na sua cara. Empresas utilizam try: para tentar conectar. Se der o erro except ConnectionError:, elas mostram um dinossauro na tela ou uma mensagem fofa: "Parece que você está sem conexão". Isso é controle de danos na experiência do usuário (UX).</li>
+      <li><strong>Pipelines de CI/CD em Equipes:</strong> No Nubank ou iFood, quando um programador escreve um código novo e envia para o servidor (GitHub), o código não vai para a versão de produção (para o cliente final) imediatamente. Uma máquina liga automaticamente e roda os scripts de unittest. Se um único assertEqual falhar, o envio é bloqueado, impedindo que um bug chegue ao celular de milhões de usuários.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>FAQ - Dúvidas Reais de Alunos</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 5</div>
+    <h2>Perguntas Frequentes</h2>
+    <div class="faq-item">
+      <div class="faq-q">A. Eu posso usar um except: sozinho, sem especificar o erro?</div>
+      <div class="faq-a">Pode, mas é considerado uma das piores práticas de programação (chamado de Bare Except).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">O Debugger altera meu código?</div>
+      <div class="faq-a">Não. O Debugger é apenas um "óculos de visão de raio-X" para a memória RAM do computador. Ele não altera os arquivos .py, apenas observa a execução.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">E. Posso colocar breakpoints onde eu quiser?</div>
+      <div class="faq-a">Sim, inclusive dentro de blocos except para analisar por que o erro estourou, ou dentro de unittests que estejam falhando para entender o que deu errado com os dados enviados.</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>Conexão com a Situação de Aprendizagem</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 6</div>
+    <h2>Como se encaixa no projeto do semestre?</h2>
+    <p>Na construção do sistema da nossa Situação de Aprendizagem, vocês criarão dezenas de rotas e conexões com Bancos de Dados.</p>
+    <div class="callout red">
+      <div class="callout-title">Prevenção de Falhas</div>
+      Se um usuário preencher um formulário na interface tentando injetar um dado corrompido, o backend em Python de vocês precisará aplicar blocos try/except para impedir que toda a aplicação (API) trave.
+    </div>
+    <p>Além disso, as regras de negócio mais importantes do projeto (como o cálculo do carrinho de compras do cliente ou a validação de estoque) devem obrigatoriamente ser validadas com testes unitários.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 7</div>
+    <h2>Prática de Fixação: Conta Bancária</h2>
+    <ul>
+      <li>Crie um método que instancie uma Conta, faça um depósito de 100 e use assertEqual para verificar se o conta.saldo é exatamente 100.</li>
+      <li>Crie outro método que faça um depósito de 200, tente sacar 50 e verifique com assertEqual se o saldo final é 150.</li>
+    </ul>
+    <div class="callout green">
+      <div class="callout-title">Uso do Debugger</div>
+      <p>Force um erro lógico no seu código de depósito (ex: somar o dobro do valor sem querer). Coloque um breakpoint na função de depositar. Rode em modo Debug, olhe as variáveis no painel, encontre seu erro, desfaça-o e rode o teste automatizado novamente para ver ficar verde (OK).</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 7</div>
+    <h2>Resultado Esperado e Sugestões</h2>
+    <div class="callout blue">
+      <div class="callout-title">Resultado Esperado</div>
+      Ao digitar "teste" no depósito via terminal do main.py, o programa simplesmente não aceita e pede novamente. Ao rodar o teste.py pelo terminal, ele deve mostrar que 2 testes foram executados com sucesso (OK).
+    </div>
+    <h3>Sugestões de solução:</h3>
+    <ul>
+      <li>Na estrutura while True do seu menu interativo, coloque o try englobando desde o input de valor numérico até a chamada do método conta.depositar(valor). Se o input falhar, ele nem chegará a chamar a função de depósito.</li>
+      <li>Lembre-se de importar corretamente a classe Conta dentro do seu arquivo de testes usando from modelos import Conta (se seguiram a padronização de arquivos da aula passada).</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <h2>Preparação para a Próxima Aula</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 8</div>
+    <h2>Preparação para a Próxima Aula</h2>
+    <p>Hoje nós aprendemos a lidar com as incertezas dos usuários, paramos de apagar incêndios e passamos a prever falhas. Ensinamos nossas classes a se comportarem, testamos isso de modo automatizado e vimos o fluxo da memória em slow-motion com o Debugger.</p>
+    <div class="callout blue">
+      <div class="callout-title">Código Blindado</div>
+      Nosso código está profissionalmente blindado.
+    </div>
+    <p>Na próxima aula, vamos confirmar todo conhecimento que vocês adquiriram, vamos realizar nossa primeira avaliação objetiva, visando analisar gaps de conteúdo e ajustar nosso método de aprendizagem. Até Quinta-feira.</p>
+  </div>
+
+</div> <nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 34</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    let touchEndX = e.changedTouches[0].clientX;
+    if (touchX - touchEndX > 50) changeSlide(1);
+    if (touchEndX - touchX > 50) changeSlide(-1);
+  });
+  
+  // Setup inicial
+  showSlide(0);
+</script>
+
+</body>
+</html>
