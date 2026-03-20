@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 06 - Construção do MER</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a2e;
+    --ink-light: #3d3d5c;
+    --accent: #c0392b;
+    --accent2: #2980b9;
+    --accent3: #27ae60;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --border: #e0ddd5;
+    --code-bg: #f4f1eb;
+    --tag-bg: #eaf4fb;
+    --tag-border: #2980b9;
+    --slide-max: 100%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #ededea;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(0,0,0,.18);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.1); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* ── PROGRESS ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width .3s ease;
+  }
+
+  /* ── SLIDE WRAPPER ── */
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .slide {
+    display: none;
+    width: 100%;
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 8vh 10vw;
+    animation: fadeIn .3s ease;
+  }
+  .slide.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(.95rem, 2vw, 1.05rem);
+    line-height: 1.75;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul, .slide ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  .slide li {
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .slide li strong { color: var(--ink); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── COVER ── */
+  .cover-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(.78rem, 1.6vw, .88rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+  }
+  .callout.blue {
+    background: #eaf4fb;
+    border-left: 4px solid var(--accent2);
+    color: #1a3a50;
+  }
+  .callout.green {
+    background: #eafaf1;
+    border-left: 4px solid var(--accent3);
+    color: #1a3a28;
+  }
+  .callout.red {
+    background: #fdf0ee;
+    border-left: 4px solid var(--accent);
+    color: #3a1a18;
+  }
+  .callout.yellow {
+    background: #fefbe6;
+    border-left: 4px solid #f39c12;
+    color: #3a2e10;
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+
+  /* ── TWO COLUMN ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  .col-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .col-card h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(.85rem, 1.8vw, .95rem);
+  }
+  thead th {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: .85rem;
+    letter-spacing: .04em;
+  }
+  tbody tr:nth-child(even) { background: var(--code-bg); }
+  tbody tr:hover { background: #e8f4fd; }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-light);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  tbody td strong { color: var(--ink); }
+
+  /* ── ENTITY CARDS ── */
+  .entity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .entity-card {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .entity-card .entity-name {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    padding: 10px 14px;
+    font-size: 1rem;
+  }
+  .entity-card ul {
+    padding: 12px 18px;
+    margin: 0;
+  }
+  .entity-card li {
+    font-size: .9rem;
+    color: var(--ink-light);
+    margin-bottom: 4px;
+  }
+
+  /* ── FAQ ── */
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .faq-q {
+    background: var(--code-bg);
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: clamp(.93rem, 2vw, 1rem);
+    color: var(--ink);
+    border-left: 4px solid var(--accent2);
+  }
+  .faq-a {
+    padding: 12px 18px;
+    font-size: clamp(.9rem, 1.9vw, .98rem);
+    color: var(--ink-light);
+    line-height: 1.7;
+    background: var(--surface);
+  }
+
+  /* ── NUMBERED STEPS ── */
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: .9rem;
+    font-family: 'Source Code Pro', monospace;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body p { margin: 0; }
+
+  /* ── SECTION HEADER SLIDES ── */
+  .section-header {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .section-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--border);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .section-header h2 {
+    border: none;
+    padding: 0;
+    text-align: center;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: var(--ink);
+  }
+  .section-header p {
+    max-width: 560px;
+    margin: 16px auto 0;
+    text-align: center;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .slide { padding: 28px 22px 36px; }
+    #nav button { padding: 0 14px; font-size: .9rem; }
+  }
+  @media (max-width: 400px) {
+    .slide { padding: 20px 14px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<div id="stage">
+
+  <div class="slide active">
+    <div class="slide-label">Modelagem Lógica e Conceitual</div>
+    <h1>Aula 06 - Construção do MER</h1>
+    <p class="cover-desc">Descrição: Nesta aula vamos aprofundar os conceitos de Identificadores e Cardinalidade. Vamos consolidar o conhecimento das últimas aulas com uma Oficina Prática de Modelagem.</p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Abertura da Aula</div>
+      <div class="topic-chip">Conceitos Fundamentais</div>
+      <div class="topic-chip">Demonstração Aplicada</div>
+      <div class="topic-chip">Casos Reais do Mercado</div>
+      <div class="topic-chip">Oficina Prática de Modelagem</div>
+    </div>
+    <div class="cover-meta">
+      <span>Aula 06</span>
+      <span>Modelagem de Dados</span>
+      <span>MER</span>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 1</div>
+    <h2>1. Abertura da Aula</h2>
+    <p>Na aula anterior, nós entendemos o que são entidades, atributos e as regras básicas do Modelo Conceitual. Hoje, o problema que resolveremos é: como conectar essas peças de forma que elas representem perfeitamente as regras de um negócio real?</p>
+    <p>Para isso, realizaremos uma oficina prática para a construção do Modelo Entidade-Relacionamento (MER), focando cirurgicamente na definição de Cardinalidades e Identificadores.</p>
+    <p>Este passo é o coração da nossa SA, pois o MER será o mapa principal que guiará a criação das tabelas do nosso sistema.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 1 · Contextualização</div>
+    <h2>O Peso da Modelagem no Mercado</h2>
+    <div class="callout red">
+      <div class="callout-title">Atenção</div>
+      No mercado de tecnologia atual, empresas como Amazon, Nubank e iFood dependem de uma modelagem de dados impecável; um erro de cardinalidade no diagrama hoje significa um sistema lento, dados duplicados ou perdas financeiras milionárias amanhã.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>Conceitos Fundamentais</h2>
+      <p>Aprofundando em Identificadores e Cardinalidade Mínima e Máxima.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1</div>
+    <h2>2.1. Identificadores (Chaves Conceituais)</h2>
+    <p>Um Identificador (que no modelo lógico chamaremos de Chave Primária) é um atributo ou um conjunto de atributos capaz de individualizar e distinguir uma ocorrência de entidade das demais ocorrências da mesma entidade dentro do nosso banco de dados.</p>
+    <p>Em um sistema com milhões de registros, precisamos de uma garantia absoluta de que conseguiremos localizar uma pessoa ou um produto específico sem qualquer ambiguidade.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Regras de Ouro</div>
+    <h2>Atributos como Identificadores</h2>
+    <p>Para que um atributo seja escolhido como identificador perfeito no MER, ele deve seguir três regras de ouro:</p>
+    <ul>
+      <li>deve ser <strong>único</strong> (não pode haver dois iguais),</li>
+      <li>não pode ser <strong>nulo</strong> (toda entidade precisa ter um ao nascer no sistema) e,</li>
+      <li>preferencialmente, deve ser <strong>imutável</strong> (não deve mudar ao longo do tempo).</li>
+    </ul>
+    <div class="callout blue">
+      <div class="callout-title">Atributo Natural vs Artificial</div>
+      Pode ser um atributo natural, como um CPF para cidadãos brasileiros, ou um atributo artificial (um código numérico gerado pelo próprio sistema), o qual é amplamente adotado na indústria para evitar problemas com dados do mundo real.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Categorização</div>
+    <h2>Categorias de Identificadores e Entidades</h2>
+    <p>Identificadores são atributos, ou conjuntos de atributos, cujos valores servem para distinguir de forma exclusiva uma instância de uma entidade das demais no mesmo conjunto.</p>
+    <ul>
+      <li><strong>Chave Primária (PK):</strong> É o identificador escolhido para garantir a integridade da entidade; ela deve ter valores únicos e nunca pode ser nula.</li>
+      <li><strong>Chaves Candidatas e Alternativas:</strong> Uma entidade pode ter vários atributos que servem como identificadores exclusivos (chaves candidatas). O projetista escolhe um para ser a PK, enquanto os demais tornam-se chaves alternativas.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Categorização Cont.</div>
+    <h2>Composição e Entidades Fracas</h2>
+    <div class="two-col">
+      <div class="col-card">
+        <h4>Identificadores Simples vs. Compostos</h4>
+        <p>Um identificador simples consiste em um único atributo (ex: CPF), enquanto um composto exige a união de dois ou mais atributos para garantir a unicidade.</p>
+      </div>
+      <div class="col-card">
+        <h4>Entidades Fracas</h4>
+        <p>São entidades que não possuem atributos-chave próprios e dependem de um relacionamento de identificação com uma entidade proprietária para serem distinguidas.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Demonstração Prática</div>
+    <h2>Demonstração: Notação Estruturada</h2>
+    <p>Representação de entidades e a marcação de seus identificadores em notação estruturada para documentação de projeto:</p>
+    <div class="code-block">ENTIDADE: FUNCIONARIO
+Atributos:
+matricula (Identificador)
+cpf (Identificador Alternativo)
+nome_completo
+data_contratacao
+
+ENTIDADE: DEPENDENTE (Entidade Fraca)
+Atributos:
+sequencial_dependente (Identificador Parcial)
+nome
+grau_parentesco</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.1 · Explicação</div>
+    <h2>Explicação linha por linha:</h2>
+    <ul>
+      <li><strong>ENTIDADE:</strong> Nomeamos a entidade no singular.</li>
+      <li><strong>matricula:</strong> Marcado como Identificador principal. É um dado artificial, perfeito para o sistema.</li>
+      <li><strong>cpf:</strong> Marcado como identificador alternativo (chave candidata), pois também é único.</li>
+      <li><strong>nome_completo / data_contratacao:</strong> Atributos descritivos comuns.</li>
+      <li><strong>sequencial_dependente:</strong> Em entidades fracas, o identificador é parcial, pois ele dependerá da matrícula do funcionário para fazer sentido (ex: Dependente 1 do Funcionário 100).</li>
+    </ul>
+    <div class="callout green">
+      <div class="callout-title">Exercício</div>
+      Analise uma entidade "VEICULO". Liste 4 atributos e determine qual deles deve ser o Identificador natural, justificando o porquê de ele não poder se repetir.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2</div>
+    <h2>2.2. Cardinalidade Mínima e Máxima</h2>
+    <p>A Cardinalidade é a regra matemática e de negócios que define o número de instâncias (ocorrências) de uma entidade que podem (ou devem) estar associadas às instâncias de outra entidade através de um relacionamento.</p>
+    <p>No MER padrão, a cardinalidade é lida e expressa em pares: <strong>(Mínimo, Máximo)</strong>.</p>
+    <p>A cardinalidade mínima indica a obrigatoriedade da participação: se for 0 (zero), a participação é opcional; se for 1, a participação é obrigatória.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Limites</div>
+    <h2>Limites e Impactos no Banco</h2>
+    <p>A cardinalidade máxima indica o limite de associações: pode ser 1 (relação singular) ou N (relação múltipla/muitos).</p>
+    <div class="callout blue">
+      <div class="callout-title">Impacto Prático</div>
+      É a cardinalidade que dirá ao nosso futuro SGBD se uma coluna pode ficar vazia, se precisamos criar uma nova tabela para juntar informações, ou quem herda a chave estrangeira de quem.
+    </div>
+    <p>A cardinalidade é fundamental para definir as regras de negócio no Modelo Entidade-Relacionamento (MER) e divide-se em duas perspectivas:</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Perspectivas</div>
+    <h2>As Duas Perspectivas da Cardinalidade</h2>
+    <ul>
+      <li><strong>Razão de Cardinalidade (Máxima):</strong> Classifica os relacionamentos binários em três tipos principais: 1:1 (um-para-um), onde cada instância de uma entidade se associa a apenas uma da outra; 1:N (um-para-muitos), como um pintor que cria vários quadros; e M:N (muitos-para-muitos), como estudantes que se matriculam em diversas turmas.</li>
+      <li><strong>Restrição de Participação (Mínima):</strong> Especifica se a existência de uma entidade depende de sua associação com outra. A participação é total (obrigatória) quando cada entidade no conjunto deve participar de pelo menos uma instância do relacionamento, e parcial (opcional) quando algumas entidades podem não participar.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Notação</div>
+    <h2>Notação (min, max)</h2>
+    <p><strong>Notação (min, max):</strong> É uma forma mais precisa de representar essas restrições, onde um par de inteiros indica o número mínimo e máximo de instâncias de relacionamento das quais uma entidade pode participar.</p>
+    <br>
+    <h3>Demonstração:</h3>
+    <p>Mapeando a cardinalidade com limites mínimos e máximos para um cenário de Departamento e Funcionário:</p>
+    <div class="callout yellow">
+      <div class="callout-title">CENÁRIO: Empresa XYZ.</div>
+      <strong>Regra 1:</strong> Um funcionário deve obrigatoriamente trabalhar em 1 e somente 1 departamento.<br>
+      <strong>Regra 2:</strong> Um departamento pode ter vários funcionários, mas para existir, precisa de pelo menos 1.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Mapeamento</div>
+    <h2>Mapeamento do Relacionamento [ALOCA]</h2>
+    <div class="code-block">Sentido de DEPARTAMENTO para FUNCIONARIO: (1, N)
+Sentido de FUNCIONARIO para DEPARTAMENTO: (1, 1)
+
+Notação de Leitura Final do MER:
+DEPARTAMENTO (1, N) < ALOCA > (1, 1) FUNCIONARIO</div>
+    
+    <h3>Explicação linha por linha:</h3>
+    <ul>
+      <li><strong>Regra 1 e Regra 2:</strong> São as restrições impostas pelo cliente ou analista de negócios.</li>
+      <li><strong>Sentido DEPARTAMENTO -> FUNCIONARIO:</strong> O mínimo é 1 (departamento não fica vazio) e o máximo é N (vários).</li>
+      <li><strong>Sentido FUNCIONARIO -> DEPARTAMENTO:</strong> O mínimo é 1 (não existe funcionário sem setor) e o máximo é 1 (ele não pode estar em dois setores ao mesmo tempo).</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 2.2 · Exercício de Fixação</div>
+    <h2>Leitura Final e Prática</h2>
+    <p><strong>Notação Final:</strong> É como isso será escrito na linha do diagrama, próximo à entidade correspondente (dependendo da notação específica, como a de Peter Chen ou Engenharia da Informação/Pé de Galinha).</p>
+    <div class="callout green">
+      <div class="callout-title">Exercício</div>
+      <strong>Cenário:</strong> "Um paciente pode realizar várias consultas médicas ao longo da vida, ou pode apenas se cadastrar e ainda não ter consultas (0). Uma consulta, porém, pertence a um único paciente obrigatoriamente."
+      <br><br>
+      Defina a cardinalidade (Mínimo, Máximo) nos dois sentidos.
+      <br><br>
+      Também discuta a cardinalidade (Min, Max) para o relacionamento entre "CLIENTE" e "PEDIDO" em um e-commerce comum, lendo a regra nos dois sentidos.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>Demonstração Aplicada</h2>
+      <p>Construindo o esqueleto estrutural completo.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3 · Sistema de Vendas</div>
+    <h2>Esqueleto Estrutural de um MER</h2>
+    <p>Vamos construir o esqueleto estrutural completo de um MER para um sistema de Vendas de Passagens Aéreas.</p>
+    <p><strong>Estrutura do cenário:</strong> Precisamos gerenciar os Passageiros, os Voos e as Aeronaves.</p>
+    
+    <h3>Lógica de Identificadores e Entidades:</h3>
+    <ul>
+      <li><strong>PASSAGEIRO:</strong> passaporte (Identificador), nome, data_nascimento.</li>
+      <li><strong>VOO:</strong> numero_voo (Identificador), origem, destino, data_hora.</li>
+      <li><strong>AERONAVE:</strong> prefixo (Identificador), modelo, capacidade.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3 · Mapeamento REALIZA</div>
+    <h2>Mapeamento de Relacionamentos e Cardinalidade (Min, Max)</h2>
+    <p><strong>Relacionamento REALIZA (Aeronave e Voo):</strong> Uma aeronave pode não ter voos agendados ou realizar N voos (0, N). Um Voo específico é realizado por 1 e somente 1 aeronave obrigatoriamente (1, 1).</p>
+    <ul>
+      <li><strong>Aeronave:</strong> Possui cardinalidade (0, N). Isso indica que uma aeronave pode existir sem nenhum voo agendado (mínimo 0) ou pode realizar múltiplos voos (máximo N) ao longo do tempo.</li>
+      <li><strong>Voo:</strong> Possui cardinalidade (1, 1). Um voo específico deve estar associado a no máximo uma aeronave e obrigatoriamente a no mínimo uma aeronave.</li>
+      <li><strong>Classificação:</strong> Relacionamento 1:N (Um-para-Muitos).</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3 · Mapeamento RESERVA</div>
+    <h2>Relacionamento RESERVA (Passageiro e Voo)</h2>
+    <p>Um passageiro pode reservar vários voos ao longo do tempo (0, N). Um voo recebe vários passageiros (1, N supondo que o voo precise de pelo menos 1 passageiro para não ser cancelado, ou 0, N dependendo da regra da empresa).</p>
+    <p>A cardinalidade máxima total aqui é N:M (Muitos-para-Muitos).</p>
+    <ul>
+      <li><strong>Passageiro:</strong> Possui cardinalidade (0, N). O passageiro pode ser cadastrado e não ter reservas ativas ou pode realizar múltiplas reservas.</li>
+      <li><strong>Voo:</strong> Possui cardinalidade (1, N) ou (0, N). Um voo suporta a alocação de um número ilimitado (máximo N) de passageiros até a sua capacidade máxima.</li>
+      <li><strong>Classificação:</strong> Relacionamento N:M (Muitos-para-Muitos).</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3 · Conclusão Estrutural</div>
+    <h2>Resultado Esperado</h2>
+    <p>O mapa estrutural está claro. O desenvolvedor já sabe que "Prefixo" identifica o avião unicamente. Sabe também que o voo herda obrigatoriamente o prefixo do avião (devido à cardinalidade máxima 1 do lado da aeronave), e que a relação N:M entre Passageiro e Voo gerará uma nova estrutura no futuro.</p>
+    <div class="callout blue">
+      <div class="callout-title">Projeto Lógico</div>
+      Na etapa de projeto lógico, o modelo conceitual é transformado nas estruturas de tabelas de um modelo relacional. As lógicas de cardinalidade extraídas ditam como o banco será criado.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3 · Consequências Lógicas</div>
+    <h2>As Lógicas de Cardinalidade e a Criação do Banco</h2>
+    <ul>
+      <li><strong>Herança de Chave (1:N):</strong> Devido à cardinalidade máxima ser "1" do lado do Voo no relacionamento com a Aeronave, a chave primária da Aeronave (prefixo) deverá migrar para a tabela de VOO assumindo o papel de chave estrangeira. Assim, cada voo registra de forma única qual avião o realiza.</li>
+      <li><strong>Criação de Nova Estrutura (N:M):</strong> Como a cardinalidade máxima de ambos os lados no relacionamento RESERVA é "N" (muitos), o modelo relacional exige a criação de uma nova estrutura, como uma entidade associativa ou tabela de ligação. Essa nova tabela de "Reservas" herdará os identificadores das entidades base (passaporte e numero_voo) como chaves estrangeiras, sendo elas utilizadas em conjunto para formar a chave primária composta da nova tabela.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 3 · Esquema Final</div>
+    <h2>Esquema Relacional Resultante</h2>
+    <p>Esqueleto estrutural lógico:</p>
+    <div class="code-block">• Aeronave (prefixo, modelo, capacidade)
+• Passageiro (passaporte, nome, data_nascimento)
+• Voo (numero_voo, origem, destino, data_hora, prefixo_aeronave [Chave Estrangeira])
+• Reserva_Voo_Passageiro (passaporte [Chave Estrangeira], numero_voo [Chave Estrangeira])</div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Casos Reais do Mercado</h2>
+      <p>Entendendo a cardinalidade em cenários reais da indústria.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 4 · Casos de Mercado</div>
+    <h2>Uso no E-commerce e Redes Sociais</h2>
+    <div class="two-col">
+      <div class="col-card">
+        <h4>E-commerce (Mercado Livre)</h4>
+        <p>A modelagem de Carrinho de Compras e Pedidos depende estritamente da cardinalidade. O relacionamento entre PEDIDO e PRODUTO é N:M (um pedido tem muitos produtos, um produto aparece em muitos pedidos).</p>
+        <p>No mercado, isso exige criar uma "Entidade Associativa" chamada ITEM_DO_PEDIDO, que guardará atributos do próprio relacionamento, como "Quantidade Comprada" e "Preço no Momento da Compra" (para garantir que, se o produto mudar de preço amanhã, o histórico do pedido do cliente não seja alterado).</p>
+      </div>
+      <div class="col-card">
+        <h4>Redes Sociais (Instagram)</h4>
+        <p>O relacionamento de "Seguir" é um caso clássico de Auto-Relacionamento no MER. A entidade USUÁRIO se relaciona com ela mesma através da ação SEGUE.</p>
+        <p>A cardinalidade é (0,N) para ambos os lados: você pode seguir N pessoas, e pode ser seguido por N pessoas. É através desse modelo muito bem mapeado por identificadores de contas que algoritmos de grafos conseguem sugerir novos amigos para você.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>FAQ - Dúvidas Reais de Alunos</h2>
+      <p>As perguntas mais comuns sobre o processo de modelagem.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 5 · FAQ</div>
+    <h2>FAQ (1/2)</h2>
+    <div class="faq-item">
+      <div class="faq-q">1. O que acontece se eu errar a cardinalidade no MER?</div>
+      <div class="faq-a">Se você definir que a relação Cliente-Pedido é 1:1, seu sistema só permitirá que o cliente compre uma única vez na vida dele. Ele não conseguirá fazer um segundo pedido. É um erro fatal.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">2. Pode existir uma entidade sem identificador?</div>
+      <div class="faq-a">Não para entidades fortes. Toda entidade forte precisa de uma Chave Primária conceitual. Entidades fracas possuem identificadores parciais que se unem ao identificador da entidade forte de quem dependem.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">3. Uma pessoa pode ter dois identificadores (ex: CPF e RG)?</div>
+      <div class="faq-a">Sim! Chamamos ambos de "Chaves Candidatas". Porém, para a modelagem final, você deve escolher apenas UM para ser a Chave Primária (o Identificador principal). O outro se tornará uma Chave Alternativa (Unique constraint no banco de dados).</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 5 · FAQ</div>
+    <h2>FAQ (2/2)</h2>
+    <div class="faq-item">
+      <div class="faq-q">4. Qual a diferença entre MER e DER?</div>
+      <div class="faq-a">O MER (Modelo Entidade-Relacionamento) é o conceito, o mapeamento lógico e as regras abstratas. O DER (Diagrama Entidade-Relacionamento) é o desenho gráfico propriamente dito (os retângulos, losangos e elipses) que representa visualmente o MER.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">5. Quando devo usar a cardinalidade Mínima 0 (Zero)?</div>
+      <div class="faq-a">Sempre que a participação da entidade na ação for opcional. Exemplo: Se o sistema permite cadastrar um Funcionario e ele ainda não foi designado a um Departamento, o mínimo do lado do departamento em relação ao funcionário é 0.</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>Desafio Prático</h2>
+      <p>Oficina Prática de Modelagem</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 6 · Desafio Prático</div>
+    <h2>Contexto do Problema</h2>
+    <div class="callout blue">
+      <div class="callout-title">Cenário SENAI</div>
+      O SENAI solicitou que nossa turma projetasse o banco de dados do novo "Sistema de Controle de Laboratórios e Equipamentos". Professores reservam laboratórios para turmas em dias e horários específicos. Cada laboratório possui diversos equipamentos de tecnologia (computadores, kits de robótica) que pertencem apenas a ele.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 6 · Execução</div>
+    <h2>Requisitos do Desafio</h2>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body"><p>Identifique todas as Entidades necessárias (mínimo de 4).</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body"><p>Defina os Atributos e aponte o Identificador de cada entidade.</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body"><p>Crie os Relacionamentos (verbos) entre as entidades.</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body"><p>Defina as Cardinalidades (Mínimo, Máximo) para TODOS os relacionamentos criados.</p></div>
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Resultado Esperado</div>
+      Um documento de dicionário de dados (em texto ou tabela) contendo todo o Modelo Entidade-Relacionamento estruturado e livre de ambiguidades.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 6 · Dicas</div>
+    <h2>Sugestões de solução</h2>
+    <div class="callout yellow">
+      <div class="callout-title">Cuidado com a reserva</div>
+      Um professor reserva um laboratório para uma turma, isso pode ser um relacionamento que envolve mais de duas entidades (relacionamento ternário) ou exigir uma entidade de evento "RESERVA" com atributos de data e hora para garantir que dois professores não reservem o mesmo laboratório no mesmo instante.
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 7</div>
+    <h2>7. Conexão com a Situação de Aprendizagem</h2>
+    <p>O que vocês produzem hoje na Oficina Prática é a fundação para a entrega do item 3 do nosso Roteiro de Projeto final: o "Modelo Entidade-Relacionamento (MER)".</p>
+    <p>Vocês vão pegar os requisitos que a sua equipe documentou sobre a aplicação da SA e vão submetê-los exatamente a este processo de identificação de Chaves e Cardinalidades.</p>
+    <p>O documento construído com a perfeição exigida hoje impedirá falhas estruturais quando formos escrever os scripts SQL do projeto final para criar as tabelas.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Seção 8</div>
+    <h2>8. Preparação para a Próxima Aula</h2>
+    <p>Hoje vocês dominaram a visão abstrata do negócio e definiram regras poderosas usando cardinalidades e identificadores. Na próxima aula, pegaremos este mundo abstrato (o Modelo Conceitual) e vamos traduzi-lo para o Modelo Lógico Relacional.</p>
+    <div class="callout blue">
+      <div class="callout-title">Próximos Passos</div>
+      Vocês aprenderão como transformar Entidades em Tabelas, Identificadores em Primary Keys (PK) e como resolver os problemáticos relacionamentos N:M criando chaves estrangeiras (Foreign Keys - FK).
+    </div>
+  </div>
+
+</div>
+
+<nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 34</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    let dx = e.changedTouches[0].clientX - touchX;
+    if (dx > 50) changeSlide(-1);
+    if (dx < -50) changeSlide(1);
+  });
+
+  // Inicializa a apresentação
+  showSlide(0);
+</script>
+
+</body>
+</html>
