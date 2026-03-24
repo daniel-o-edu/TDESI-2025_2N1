@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 12 - (CRUD) Inserção e Leitura</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d2a4a;
+    --ink-light: #1e4976;
+    --accent: #1565c0;
+    --accent2: #1976d2;
+    --accent3: #0288d1;
+    --bg: #e8f0fe;
+    --surface: #ffffff;
+    --border: #b3cde8;
+    --code-bg: #eaf2fb;
+    --tag-bg: #dceefb;
+    --tag-border: #1976d2;
+    --slide-max: 90%;
+    --slide-title-max: 70%;
+    
+    /* Callout Colors */
+    --callout-blue-bg: #e3f2fd;
+    --callout-blue-border: #2196f3;
+    --callout-green-bg: #e8f5e9;
+    --callout-green-border: #4caf50;
+    --callout-red-bg: #ffebee;
+    --callout-red-border: #f44336;
+    --callout-yellow-bg: #fffde7;
+    --callout-yellow-border: #ffeb3b;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #c5d8f0;
+    color: var(--ink);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nav-bar {
+    height: 60px;
+    background: var(--surface);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 100;
+  }
+
+  .nav-bar button {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--surface);
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .nav-bar button:disabled {
+    background: var(--border);
+    cursor: not-allowed;
+  }
+  .nav-bar button:hover:not(:disabled) {
+    background: var(--accent2);
+  }
+
+  #slide-counter { font-weight: bold; color: var(--ink-light); }
+
+  .progress-container {
+    height: 6px;
+    background: var(--border);
+    width: 100%;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent2);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  #presentation {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .slide {
+    display: none;
+    width: 100%;
+    max-width: 1000px;
+    background: var(--surface);
+    padding: 50px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    animation: fadeIn 0.4s ease forwards;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .slide.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-label {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 20px;
+    border: 1px solid var(--tag-border);
+  }
+
+  h1 { font-family: 'Montserrat', sans-serif; font-size: 42px; color: var(--ink); margin-bottom: 20px; line-height: 1.2; }
+  h2 { font-family: 'Montserrat', sans-serif; font-size: 32px; color: var(--accent); margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+  h3 { font-family: 'Montserrat', sans-serif; font-size: 24px; color: var(--ink-light); margin-bottom: 15px; margin-top: 30px; }
+  p { font-size: 20px; line-height: 1.6; margin-bottom: 15px; color: #333; }
+  strong { color: var(--ink); }
+
+  ul, ol { margin-left: 30px; margin-bottom: 20px; font-size: 20px; line-height: 1.6; }
+  li { margin-bottom: 10px; }
+
+  /* Elementos Específicos */
+  .cover-desc { font-size: 22px; color: #444; margin-bottom: 30px; }
+  .divider { border: 0; height: 1px; background: var(--border); margin: 30px 0; }
+  
+  .topics-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+  .topic-chip { background: var(--bg); padding: 10px 20px; border-radius: 8px; font-weight: bold; border: 1px solid var(--border); }
+  
+  .cover-meta { margin-top: 40px; font-size: 16px; color: #666; text-align: right; }
+
+  .section-header { text-align: center; padding: 60px 20px; }
+  .section-num { font-family: 'Montserrat', sans-serif; font-size: 80px; font-weight: 900; color: var(--border); opacity: 0.5; margin-bottom: -20px; }
+  .section-header h2 { border: none; font-size: 48px; color: var(--ink); }
+
+  .callout { padding: 20px; border-left: 6px solid; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
+  .callout-title { font-weight: bold; font-family: 'Montserrat', sans-serif; margin-bottom: 10px; font-size: 20px; }
+  
+  .callout.blue { background: var(--callout-blue-bg); border-color: var(--callout-blue-border); }
+  .callout.blue .callout-title { color: var(--callout-blue-border); }
+  
+  .callout.green { background: var(--callout-green-bg); border-color: var(--callout-green-border); }
+  .callout.green .callout-title { color: var(--callout-green-border); }
+  
+  .callout.red { background: var(--callout-red-bg); border-color: var(--callout-red-border); }
+  .callout.red .callout-title { color: var(--callout-red-border); }
+  
+  .callout.yellow { background: var(--callout-yellow-bg); border-color: #fbc02d; }
+  .callout.yellow .callout-title { color: #f57f17; }
+
+  .two-col { display: flex; gap: 20px; margin-bottom: 20px; }
+  .col-card { flex: 1; background: var(--bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
+
+  .code-block { background: #1e1e1e; color: #d4d4d4; font-family: 'Source Code Pro', monospace; padding: 20px; border-radius: 8px; overflow-x: auto; margin-bottom: 20px; font-size: 18px; line-height: 1.5; white-space: pre; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border: 1px solid var(--border); padding: 12px 15px; text-align: left; font-size: 18px; }
+  th { background: var(--ink); color: white; font-family: 'Montserrat', sans-serif; }
+  tr:nth-child(even) { background: var(--bg); }
+</style>
+</head>
+<body>
+
+<nav class="nav-bar">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 28</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+<div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+
+<div id="presentation">
+
+  <div class="slide active">
+    <div class="slide-label">Aula 12</div>
+    <h1>Aula 12 - (CRUD) Inserção e Leitura</h1>
+    <p class="cover-desc">
+      Descrição: Nesta aula, vamos trabalhar os comandos fundamentais do CRUD (Create e Read) executados pela linguagem Python, aplicando as instruções INSERT e SELECT em um banco de dados relacional (SQLite).
+    </p>
+    <p class="cover-desc">
+      O foco principal está no aprimoramento do uso de coleções: o retorno bruto de um comando SELECT será processado, iterado e transformado em uma Lista de Dicionários para promover abstração, segurança na manutenção e fácil manipulação dos dados pelo sistema.
+    </p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Comandos CRUD (Create e Read)</div>
+      <div class="topic-chip">Instruções INSERT e SELECT (SQLite)</div>
+      <div class="topic-chip">Processamento de retorno bruto</div>
+      <div class="topic-chip">Lista de Dicionários</div>
+    </div>
+    <div class="cover-meta">
+      <span>O sistema deverá cadastrar os itens permanentemente no banco de dados e, na funcionalidade de listagem, buscar esses registros persistidos, convertê-los em listas de dicionários e exibi-los estruturadamente utilizando um laço de repetição for.</span>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>1. Abertura (Contexto da Aula)</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Contexto da Aula</div>
+    <h2>Abertura</h2>
+    <p>Até o momento, todos os dados que cadastramos em nossos sistemas ficavam restritos à Memória RAM.</p>
+    <p>Isso significava que fechar o terminal do Python resultava na perda irreparável de todos os clientes, produtos ou pedidos simulados em nossas listas.</p>
+    <p>No mundo corporativo, a informação é o ativo mais caro de uma organização; ela precisa sobreviver à reinicialização de servidores e atualizações de hardware.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Contexto da Aula</div>
+    <h2>O Túnel de Comunicação</h2>
+    <p>Hoje, vamos conectar a lógica estruturada do Python a uma base de dados real (SQLite).</p>
+    <p>Aprenderemos como abrir um túnel de comunicação entre o aplicativo e o armazenamento permanente do disco rígido, escrevendo dados de modo irreversível e aprendendo a lê-los de volta em estruturas de dados elegantes e profissionais.</p>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>2. Conceitos Fundamentais e Base Técnica</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Conceito 1</div>
+    <h2>Conceito 1: Inserção de Dados e Persistência (Comando INSERT)</h2>
+    <div class="callout red">
+      <div class="callout-title">A. Pergunta Desafiadora:</div>
+      <p>"Se a energia do seu computador cair neste exato segundo, como o aplicativo do banco garante que o pix que você acabou de fazer não desapareceu no meio do caminho e foi salvo com sucesso?"</p>
+    </div>
+    <div class="callout yellow">
+      <div class="callout-title">B. Cenário Real:</div>
+      <p>No desenvolvimento de um módulo de estoque para uma franquia de farmácias, cada vez que o leitor de código de barras bipa um novo remédio que chegou do caminhão, um aplicativo em Python recebe essa string. Para garantir que esse remédio conste no balanço da loja no dia seguinte, o Python precisa acionar o banco de dados imediatamente através de um comando INSERT, registrando a chegada sem margem para falhas voláteis da memória.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Explicação</div>
+    <h2>C. Explicação Teórica:</h2>
+    <p>A transição de dados temporários para armazenamento persistente é um marco fundamental no desenvolvimento de sistemas reais.</p>
+    <p>Quando utilizamos apenas variáveis e coleções em memória RAM, como listas e dicionários básicos, qualquer interrupção de energia ou o simples fechamento do aplicativo resulta na perda irreversível de todas as informações cadastradas.</p>
+    <p>Para solucionar esse problema crítico de persistência, os softwares corporativos utilizam Sistemas de Gerenciamento de Banco de Dados (SGBDs), que gravam as informações de forma estruturada e definitiva nos discos rígidos ou em unidades de estado sólido (SSD) dos servidores.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Explicação</div>
+    <h2>C. Explicação Teórica (cont.):</h2>
+    <p>O comando de inserção de dados, amplamente conhecido como INSERT na linguagem SQL, é a ponte direta entre o aplicativo em Python e a tabela de destino no banco de dados.</p>
+    <p>No contexto da programação estruturada moderna, o Python utiliza uma biblioteca nativa (como a sqlite3) para abrir um canal de comunicação seguro, pelo qual os dados coletados das telas ou terminais dos usuários são enviados.</p>
+    <p>O gerenciador de conexão estabelecido cria um objeto especial chamado "cursor", que atua como um mensageiro virtual encarregado de transportar e executar a instrução SQL exata juntamente com seus parâmetros até o núcleo do banco de dados.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Explicação</div>
+    <h2>C. Explicação Teórica (cont.):</h2>
+    <p>Contudo, não basta apenas enviar o comando para o banco de dados; é imperativo confirmar essa transação de forma explícita na arquitetura do software.</p>
+    <p>O conceito de commit, ou confirmação de transação, garante que o SGBD realmente efetive a gravação física dos dados nas tabelas, prevenindo corrompimentos caso ocorra uma falha grave durante o processo elétrico ou lógico.</p>
+    <p>Sem a invocação metódica do comando commit() após a instrução de INSERT no Python, as modificações ficam isoladas em uma memória temporária transitória do banco e são sumariamente e automaticamente descartadas assim que a conexão principal for finalizada pelo desenvolvedor.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Técnica</div>
+    <h2>D. Explicação Técnica:</h2>
+    <p>No Python, utilizamos a biblioteca sqlite3. O processo segue um ciclo de vida restrito:</p>
+    <ul>
+      <li>connect() para abrir o arquivo de banco;</li>
+      <li>cursor() para criar o executor;</li>
+      <li>execute() para disparar uma query parametrizada (INSERT INTO tabela (campos) VALUES (?, ?)) injetando uma Tupla para mitigar ataques de SQL Injection;</li>
+      <li>commit() para confirmar; e</li>
+      <li>close() para liberar o arquivo do Sistema Operacional.</li>
+    </ul>
+    <p>A interrogação (?) é a melhor prática de segurança e atua como uma âncora posicional.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Código</div>
+    <h2>E. Exemplo de Código:</h2>
+    <div class="code-block">Python
+import sqlite3
+#1. Estabelecendo a conexão
+conexao = sqlite3.connect("meu_sistema.db")
+cursor = conexao.cursor()
+
+#2. Dados hipotéticos
+nome_produto = "Teclado Mecânico"
+preco_produto = 250.00
+
+#3. Garante que a tabela exista
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS produtos (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+nome TEXT NOT NULL,
+preco REAL NOT NULL
+)
+""")
+
+#4. Execução da query com passagem segura
+comando_sql = "INSERT INTO produtos (nome, preco) VALUES (?, ?)"
+valores = (nome_produto, preco_produto)
+cursor.execute(comando_sql, valores)
+
+#5. Confirmação e Encerramento
+conexao.commit()
+cursor.close()
+conexao.close()
+print("Produto persistido com sucesso!")</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Prática</div>
+    <h2>F. Estudo de Caso & G. Exercícios</h2>
+    <div class="callout blue">
+      <div class="callout-title">F. Estudo de Caso (Analogia didática):</div>
+      <p>Imagine um Cartório:</p>
+      <ul>
+        <li>O connect() é você entrar pela porta principal do edifício.</li>
+        <li>O cursor() é o balconista do cartório designado para te atender.</li>
+        <li>O execute() é você ditar para o balconista o que ele deve preencher na folha de registro.</li>
+        <li>O commit() é o carimbo oficial do tabelião, garantindo que o documento tem valor legal.</li>
+      </ul>
+      <p>Se você for embora antes de carimbar (esquecer o commit), a folha vai diretamente para a lata de lixo.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Prática</div>
+    <h2>G. Exercícios de Fixação:</h2>
+    <div class="callout green">
+      <p>1. Crie um script Python que se conecte a um banco chamado escola.db (ele será criado automaticamente) e instancie um cursor.</p>
+      <p>2. Escreva o comando SQL de INSERT com ? (interrogações) para uma tabela alunos que possui as colunas nome e matricula. Atribua os valores através de uma tupla e execute usando o cursor.</p>
+      <p>3. Altere o código anterior inserindo uma simulação de erro sintático (comente o commit()) e verifique em um visualizador (como DB Browser) se os dados foram realmente persistidos fisicamente. Justifique o que ocorreu.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Conceito 2</div>
+    <h2>Conceito 2: Leitura de Dados e Transformação em Dicionários (SELECT e fetchall)</h2>
+    <div class="callout red">
+      <div class="callout-title">A. Pergunta Desafiadora:</div>
+      <p>"Se você pedisse um prato em um restaurante e o garçom te trouxesse os ingredientes todos misturados em uma bacia genérica e sem rótulos, como você identificaria o que comer? Como transformar dados brutos em algo organizado que nosso sistema consegue ler pelo nome?"</p>
+    </div>
+    <div class="callout yellow">
+      <div class="callout-title">B. Cenário Real:</div>
+      <p>Ao abrir um aplicativo de Delivery, a primeira tela exibe a lista de restaurantes com suas respectivas notas e taxas de entrega. O Python do servidor vai ao banco, faz um SELECT e recebe centenas de informações embaralhadas em matrizes (Tuplas de Tuplas). Antes de mandar para o aplicativo no celular (Frontend), o desenvolvedor backend itera essas matrizes, transformando-as em uma Lista de Dicionários bem desenhada (JSON) onde o celular consiga ler facilmente restaurante["nome"] e restaurante["taxa_entrega"].</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Explicação</div>
+    <h2>C. Explicação Teórica:</h2>
+    <p>Após estabelecermos a capacidade de gravar dados de forma persistente em um banco, o próximo desafio lógico é a capacidade de recuperar essas informações com precisão, integridade e velocidade.</p>
+    <p>A operação de leitura, padronizada pelo comando estruturado SELECT na linguagem SQL, permite que o sistema Python interrogue o banco de dados local ou remoto e traga em milissegundos conjuntos de registros que atendam a critérios estritamente definidos.</p>
+    <p>Quando utilizamos funções nativas do cursor como o fetchall(), o banco de dados finaliza a requisição e devolve as informações organizadas tecnicamente em um formato de tuplas dentro de uma grande lista, as quais representam linhas e colunas brutas extraídas da tabela do SGBD.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Explicação</div>
+    <h2>C. Explicação Teórica (cont.):</h2>
+    <p>Embora as tuplas sejam estruturas de dados incrivelmente eficientes em termos de processamento algorítmico e baixo consumo de memória interna, elas definitivamente não são a organização mais amigável ou segura para a manipulação de regras de negócios em um aplicativo Python moderno.</p>
+    <p>O acesso aos dados em uma tupla precisa ser feito unicamente por meio de índices numéricos invisíveis (como linha [0] para ID e linha [1] para o Nome), o que torna o código-fonte altamente opaco e extremamente complexo para a compreensão humana.</p>
+    <p>Se a ordem das colunas no banco de dados sofrer alterações por alguma atualização na infraestrutura, todo o código do sistema baseado em índices numéricos inevitavelmente quebrará em tempo de execução, gerando falhas operacionais.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Explicação</div>
+    <h2>C. Explicação Teórica (cont.):</h2>
+    <p>A solução madura, canônica e implementada por desenvolvedores seniores no cenário global da tecnologia da informação para este tipo de risco é a conversão explícita dos dados brutos do formato tupla para uma "Lista de Dicionários".</p>
+    <p>Ao percorrermos o resultado cru do banco de dados utilizando um laço de repetição condicional como o for, conseguimos mapear de forma segura chaves textuais e descritivas para cada índice recebido (por exemplo, associando "nome_produto": linha [1]).</p>
+    <p>O dicionário resultante fornece uma camada de significado profunda e inquebrável, permitindo que qualquer outra função ou interface de usuário web acesse a informação utilizando a string com o nome semântico do dado, blindando a arquitetura do software contra falhas por desorganização visual ou mecânica.</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Técnica</div>
+    <h2>D. Explicação Técnica:</h2>
+    <p>Quando chamamos cursor.execute("SELECT * FROM produtos") seguido de dados_brutos = cursor.fetchall(), o retorno de dados_brutos se parecerá com: [(1, 'Mouse', 50.0), (2, 'Teclado', 150.0)].</p>
+    <p>Ao instanciar uma lista vazia e fazer um for linha in dados_brutos:, construímos dicionários temporários onde nomeamos os índices [0], [1], [2] com strings que equivalem aos campos.</p>
+    <p>Utilizamos o método append() para povoar a nova lista tratada, garantindo fácil acesso via dicionario["chave"].</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Código</div>
+    <h2>E. Exemplo de Código:</h2>
+    <div class="code-block">Python
+import sqlite3
+conexao = sqlite3.connect("meu_sistema.db")
+cursor = conexao.cursor()
+
+#1. Busca todos os registros
+cursor.execute("SELECT id, nome, preco FROM produtos") # Ajustado o nome do campo id
+resultado_bruto = cursor.fetchall()
+
+#2. Processo de Transformação
+lista_produtos_tratada = []
+for linha in resultado_bruto:
+    produto_dicionario = {
+        "id": linha[0],
+        "nome": linha[1],
+        "preco_unitario": linha[2]
+    }
+    lista_produtos_tratada.append(produto_dicionario)
+
+conexao.close()
+
+#3. Consumo dos dados
+print("--- RELATÓRIO DO SISTEMA ---")
+for produto in lista_produtos_tratada:
+    print(f"[{produto['id']}] Item: {produto['nome']} | Valor: R$ {produto['preco_unitario']:.2f}")</div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Prática</div>
+    <h2>F. Estudo de Caso & G. Exercícios (Conceito 2)</h2>
+    <div class="callout blue">
+      <div class="callout-title">F. Estudo de Caso (Analogia didática):</div>
+      <p>Imagine um cofre forte de onde saem caixas de acrílico transparentes fechadas à chave, cheias de pastas de documentos ordenados por gavetas mas sem etiquetas (as tuplas retornadas pelo fetchall).</p>
+      <p>A List de Dicionários é o ato de você abrir essa caixa, tirar documento por documento e colocar em um fichário com abas coloridas e nomes como "Imposto", "Certidão de Nascimento" e "Identidade". Ao invés de mandar o ajudante buscar "a folha da posição zero", você pede para buscar na pasta chamada "Identidade".</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Prática</div>
+    <h2>G. Exercícios de Fixação (Conceito 2):</h2>
+    <div class="callout green">
+      <p>1. O comando cursor.fetchall() retorna os dados em qual estrutura fundamental do Python? Explique qual a principal desvantagem dessa estrutura na hora de ler regras de negócios.</p>
+      <p>2. Dado o retorno simulado de um banco de dados: tupla_cliente = (10, "Maria Souza", "mari@email.com", "Ativo"), construa um script usando Python para transformar esta tupla estática em um Dicionário contendo as chaves pertinentes.</p>
+      <p>3. Escreva um laço for que itere por uma lista_dicionarios = [{"id":1, "marca":"Ford"}, {"id":2, "marca":"Fiat"}] e imprima apenas a chave marca na tela formatada em letras maiúsculas.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>3. FAQ - Dúvidas Reais de Programação e Banco de Dados</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">FAQ</div>
+    <h2>Dúvidas Reais (Parte 1)</h2>
+    <ul>
+      <li><strong>Pergunta 1: Eu sempre preciso usar a interrogação (?) no INSERT? Por que não usar F-Strings direto?</strong><br>
+      Resposta: Nunca utilize f-strings em queries SQL. O uso direto de variáveis em f-strings na SQL abre o software para a maior brecha de segurança cibernética: O SQL Injection. Hackers podem inserir comandos destrutivos (como DROP TABLE) disfarçados de nomes de usuários na tela, destruindo seu banco. O ? força a biblioteca do banco a sanitizar a variável com segurança extrema.</li>
+      <li><strong>Pergunta 2: O que exatamente o comando commit faz nos bastidores da Máquina?</strong><br>
+      Resposta: Bancos de dados profissionais adotam propriedades chamadas ACID (Atomicidade, Consistência, Isolamento e Durabilidade). O commit é a garantia de Durabilidade. Até invocar o commit(), seus dados ficam trafegando nas memórias voláteis do gerenciador do banco. Somente o commit comanda a gravação magnética real no disco de estado sólido, blindando a modificação de falhas elétricas abruptas.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">FAQ</div>
+    <h2>Dúvidas Reais (Parte 2)</h2>
+    <ul>
+      <li><strong>Pergunta 3: Qual a diferença entre parâmetro e argumento ao executar uma query?</strong><br>
+      Resposta: O parâmetro é o "lugar vazio" esperado, ou seja, o ponto de interrogação ? no comando INSERT INTO valores (?, ?). O argumento é o dado concreto (Tupla("Maria", 30)) que você fornece para o cursor.execute(). O argumento preenche materialmente o vazio reservado pelo parâmetro na query.</li>
+      <li><strong>Pergunta 4: O que acontece se eu esquecer de chamar o método close() após terminar o SELECT?</strong><br>
+      Resposta: O arquivo.db continuará ocupado e trancado (lock de arquivo) pelo processo do Python perante o Sistema Operacional. Isso gerará lentidão, retenção de memória desnecessária (Memory Leak) no servidor e possivelmente impedirá que outras partes do sistema alterem os arquivos gerando o famoso erro de concorrência "database is locked".</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">FAQ</div>
+    <h2>Dúvidas Reais (Parte 3)</h2>
+    <ul>
+      <li><strong>Pergunta 5: Por que convertemos tuplas para Dicionários se o código fica maior? Isso não é ineficiente?</strong><br>
+      Resposta: Em desenvolvimento profissional, tempo de leitura (humanos lendo o código) é imensamente mais custoso que microssegundos de máquina. Transformar tuplas em dicionários melhora brutalmente a "Legibilidade do Código", respeitando a filosofia de Clean Code. Manutenção baseada em rótulos ({"idade":25}) é segura e auditável, basear lógica corporativa em índices (linha [14]) leva inevitavelmente a quebras críticas em futuras atualizações arquiteturais.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>4. Atividade Prática Guiada (Professor + Turma)</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Atividade Guiada</div>
+    <h2>Contexto e Requisitos</h2>
+    <div class="callout blue">
+      <div class="callout-title">Contexto do Problema:</div>
+      <p>Nosso sistema da empresa modelo está rodando no menu interativo, mas ao sair do loop do menu (apertando zero), os cadastros somem. O cliente exigiu que possamos fechar o terminal, abrir novamente amanhã, e conseguir consultar os clientes recém-cadastrados.</p>
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Requisitos:</div>
+      <p>1. Intervir e atualizar o arquivo atual main.py do projeto (Situação de Aprendizagem).</p>
+      <p>2. Onde existe o bloco elif opcao == 1 (Cadastrar Item), o usuário agora será questionado sobre os dados através do input(), e o sistema fará um INSERT parametrizado em vez de anexar em listas voláteis.</p>
+      <p>3. Onde existe o bloco elif opcao == 2: (Listar Itens), o sistema deve chamar SELECT *, transformar as tuplas em uma Lista de Dicionários contendo as propriedades fundamentais (ex: ID, Nome, e Info extra), e aplicar a exibição organizada e amigável.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Atividade Guiada</div>
+    <h2>Sugestões e Passo a Passo (1 a 3)</h2>
+    <p><strong>Sugestões de Solução e Cuidados:</strong> Para evitar que o arquivo principal fique desorganizado, vamos criar previamente o arquivo de banco chamado sistema.db e uma tabela estática registros(id INTEGER PRIMARY KEY, campo1 TEXT, campo2 TEXT) para evitar erros de criação. Recomendado forçar a verificação do commit.</p>
+    <div class="callout green">
+      <div class="callout-title">Passo a Passo da Implementação (Live Coding):</div>
+      <p>1. Importação e Arquitetura Inicial: No topo do main.py, adicionar import sqlite3 e fazer o sqlite3.connect().</p>
+      <p>2. Refatoração da Opção 1 (Gravação):</p>
+      <ul>
+        <li>Requisitar dados (dado1 = input("Digite o nome: ")).</li>
+        <li>Configurar cursor.execute("INSERT INTO... ", (dado1, ...)).</li>
+        <li>Fundamental: conexao.commit().</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Atividade Guiada</div>
+    <h2>Passo a Passo (cont.) e Resultados</h2>
+    <div class="callout green">
+      <p>3. Refatoração da Opção 2 (Leitura Inteligente):</p>
+      <ul>
+        <li>Disparar cursor.execute("SELECT * FROM ...").</li>
+        <li>Capturar com registros_crus = cursor.fetchall().</li>
+        <li>Abrir loop: lista_tratada = [] for x in registros_crus: ....</li>
+        <li>Mapear dicionário: dici_temp = {"id": x[0], "nome": x[1], ...} e adicionar lista_tratada.append(dici_temp).</li>
+        <li>Laço for final de UI: for item in lista_tratada: print(f"Nome do cadastro: {item['nome']}").</li>
+      </ul>
+      <p>4. Teste Extremo: Devemos registrar algo no terminal, sair pelo menu finalizando a aplicação (break), abrir a aplicação de novo e acionar imediatamente a opção de listagem (opcao 2) para provar a consistência e persistência magnética do armazenamento para a turma.</p>
+    </div>
+    <div class="callout yellow">
+      <div class="callout-title">Resultado Esperado:</div>
+      <p>O projeto compilar sem erro sintático. Ao reiniciar o código repetidas vezes, as opções antigas gravadas pelo prompt precisam continuar reaparecendo na tela de listagem estruturadas num Dicionário semântico, atestando a aquisição de competência na comunicação Banco → Python.</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>5. Exercícios de Fixação e Avaliação do Conhecimento</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Exercícios</div>
+    <h2>Avaliação (5.1 a 5.3)</h2>
+    <p>5.1. Com suas palavras técnicas, diferencie de forma clara a utilidade das funções estruturais .execute() e .commit() aplicadas no objeto Connection/Cursor em Python. Qual delas é a responsável por falar e qual efetivamente grava dados na mesa?</p>
+    <p>5.2. Baseando-se no paradigma do Clean Code, modifique a query literal abaixo adicionando as melhores práticas de cibersegurança e prevenindo SQL Injection utilizando o mapeamento por tupla no método execute.</p>
+    <div class="code-block">Python
+# CÓDIGO INSEGURO
+nome_usuario = input("Qual o usuário? ")
+cursor.execute(f"INSERT INTO usuarios (login) VALUES ('{nome_usuario}')")</div>
+    <p>5.3. A seguinte tupla foi devolvida por um fetchall() após uma busca na tabela de carros: dados_busca = (78, "Volkswagen", "Polo Track", 2024, 85000.00). Crie um bloco de código de 6 a 8 linhas construindo o dicionário veiculo = {} onde você nomeará com clareza cada um desses índices ordinais de zero até quatro para chaves descritivas como "ano_fabricacao".</p>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Exercícios</div>
+    <h2>Avaliação (5.4 a 5.6)</h2>
+    <p>5.4. Você está desenvolvendo o motor de faturamento para um Hospital. Crie o ciclo completo de script. O código deve (a) conectar num DB chamado faturamento.db; (b) Usar a estrutura DDL cursor.execute("CREATE TABLE IF NOT EXISTS guias (id INTEGER, valor REAL)"); (c) Inserir o ID número 10 e valor 1500.50 usando a restrição da Tupla segura; e (d) encerrar garantindo gravação total.</p>
+    <p>5.5. Crie um script simulando uma falha. Configure uma conexão com SQLite, chame o cursor.execute() e realize uma instrução de INSERT. Logo depois, force um erro matemático intencional (resultado = 1/0) ANTES que a linha de código alcance o conexao.commit(). Responda: O que a ausência ou interrupção antes do commit provocará no estado do banco de dados neste ciclo?</p>
+    <p>5.6. O conceito Custo Cognitivo (Carga Cognitiva) significa que o cérebro do programador esgota sua capacidade se ler coisas complexas demais. Crie um parágrafo argumentativo embasando e convencendo o Diretor de TI da sua empresa sobre a extrema necessidade de gastar 5 minutos convertendo fetchall em Listas de Dicionários antes de devolver dados à aplicação Web (Front-end), em vez de simplesmente retornar os dados em matriz numérica bruta para a tela e as equipes consumirem.</p>
+  </div>
+
+  <div class="slide">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>6. Conexão com Curso e Próximos Passos</h2>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-label">Conexão</div>
+    <h2>Integração com a SA e Próxima Aula</h2>
+    <div class="callout blue">
+      <div class="callout-title">Conexão com a Situação de Aprendizagem:</div>
+      <p>Tudo o que construímos logicamente até então servia como um ensaio local. Hoje, sua Situação de Aprendizagem abandona a fase juvenil de ser apenas um script temporário e assume propriedades corporativas: um banco de dados relacional sólido e à prova de quedas de sistemas operacionais. Vocês implementaram as camadas Model (onde os Dicionários agem) e a base do DAO (Data Access Object - onde o cursor do sqlite interage com o Banco). Seu sistema agora guarda e resgata estado, a competência fundamental do Backend.</p>
+    </div>
+    <div class="callout yellow">
+      <div class="callout-title">O que veremos na Próxima Aula:</div>
+      <p>Vamos elevar a estabilidade dessa comunicação Banco-Python a outro patamar. Atualmente, se o banco falhar, estourar sua cota de acesso ou a tabela for digitada errada na SQL (Ex: em vez de alunos digitar aluno), seu programa em Python quebra no meio ("Crash"). Introduziremos as arquiteturas defensivas de Tratamento de Exceções (try / except / finally), garantindo que se a comunicação com o SQLite3 sofrer rupturas e o programa travar, o usuário final do seu Sistema não verá telas vermelhas catastróficas, mas será devolvido ao Menu Principal com um alerta amigável do sistema.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    document.getElementById('presentation').scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e => {
+    if (e.changedTouches[0].screenX < touchX - 50) changeSlide(1);
+    if (e.changedTouches[0].screenX > touchX + 50) changeSlide(-1);
+  });
+
+  // Init
+  showSlide(0);
+</script>
+</body>
+</html>
