@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 13 - (CRUD) Atualização e Exclusão</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d2a4a;
+    --ink-light: #1e4976;
+    --accent: #1565c0;
+    --accent2: #1976d2;
+    --accent3: #0288d1;
+    --bg: #e8f0fe;
+    --surface: #ffffff;
+    --border: #b3cde8;
+    --code-bg: #eaf2fb;
+    --tag-bg: #dceefb;
+    --tag-border: #1976d2;
+    --slide-max: 90%;
+    --slide-title-max: 70%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #c5d8f0;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── IMAGENS DE FUNDO ── */
+  .slide-cover {
+    background-image: url('https://i.ibb.co/fzwwYWW6/img-frente01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.82);
+    border-radius: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-cover > * { position: relative; z-index: 1; }
+
+  .slide-section {
+    background-image: url('https://i.ibb.co/1tBjw9p9/img-tit01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.80);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-section > * { position: relative; z-index: 1; }
+
+  .slide-common {
+    background-image: url('https://i.ibb.co/m1J6vPd/img-frente02.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-common::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.88);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-common > * { position: relative; z-index: 1; }
+
+  /* ── NAV ── */
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(13,42,74,.28);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.12); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* ── PROGRESS ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent2);
+    transition: width .3s ease;
+  }
+
+  /* ── SLIDE WRAPPER ── */
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── SLIDES GENÉRICOS ── */
+  .slide {
+    display: none;
+    width: var(--slide-max);
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 4px 32px rgba(13,42,74,.12);
+    padding: 7vh 8vw;
+    animation: fadeIn .3s ease;
+    margin: 0 auto;
+  }
+  .slide.active { display: block; }
+
+  .slide.slide-section,
+  .slide.slide-cover {
+    width: var(--slide-title-max);
+    max-width: var(--slide-title-max);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent2);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(.95rem, 2vw, 1.05rem);
+    line-height: 1.75;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul, .slide ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  .slide li {
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .slide li strong { color: var(--ink); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── COVER ── */
+  .cover-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(.78rem, 1.6vw, .88rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: clamp(.93rem, 2vw, 1.02rem);
+    line-height: 1.7;
+  }
+  .callout.blue {
+    background: #dceefb;
+    border-left: 4px solid var(--accent2);
+    color: var(--ink);
+  }
+  .callout.green {
+    background: #e1f5e8;
+    border-left: 4px solid #2e7d32;
+    color: #1a3a28;
+  }
+  .callout.red {
+    background: #e3f0fb;
+    border-left: 4px solid var(--accent);
+    color: var(--ink);
+  }
+  .callout.yellow {
+    background: #e8f4fd;
+    border-left: 4px solid var(--accent3);
+    color: var(--ink);
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-family: 'Roboto', sans-serif;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+
+  /* ── TWO COLUMN ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  .col-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .col-card h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(.85rem, 1.8vw, .95rem);
+  }
+  thead th {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: .85rem;
+    letter-spacing: .04em;
+  }
+  tbody tr:nth-child(even) { background: var(--code-bg); }
+  tbody tr:hover { background: #d0e8f8; }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-light);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  tbody td strong { color: var(--ink); }
+
+  /* ── ENTITY CARDS ── */
+  .entity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .entity-card {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .entity-card .entity-name {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    padding: 10px 14px;
+    font-size: 1rem;
+  }
+  .entity-card ul {
+    padding: 12px 18px;
+    margin: 0;
+  }
+  .entity-card li {
+    font-size: .9rem;
+    color: var(--ink-light);
+    margin-bottom: 4px;
+  }
+
+  /* ── FAQ ── */
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .faq-q {
+    background: var(--code-bg);
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: clamp(.93rem, 2vw, 1rem);
+    color: var(--ink);
+    border-left: 4px solid var(--accent2);
+  }
+  .faq-a {
+    padding: 12px 18px;
+    font-size: clamp(.9rem, 1.9vw, .98rem);
+    color: var(--ink-light);
+    line-height: 1.7;
+    background: var(--surface);
+  }
+
+  /* ── NUMBERED STEPS ── */
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    background: var(--accent2);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: .9rem;
+    font-family: 'Source Code Pro', monospace;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body p { margin: 0; }
+
+  /* ── SECTION HEADER SLIDES ── */
+  .section-header {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .section-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    color: #b3cde8;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .section-header h2 {
+    border: none;
+    padding: 0;
+    text-align: center;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: var(--ink);
+  }
+  .section-header p {
+    max-width: 560px;
+    margin: 16px auto 0;
+    text-align: center;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .slide { padding: 28px 22px 36px; width: 97%; max-width: 97%; }
+    .slide.slide-section, .slide.slide-cover { width: 97%; max-width: 97%; }
+    #nav button { padding: 0 14px; font-size: .9rem; }
+  }
+  @media (max-width: 400px) {
+    .slide { padding: 20px 14px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<div id="stage">
+
+  <div class="slide slide-cover active">
+    <div class="slide-label">Operações de Banco de Dados</div>
+    <h1>Aula 13 - (CRUD) Atualização e Exclusão</h1>
+    <p class="cover-desc">Descrição: Nesta aula, concluiremos o ciclo do CRUD (Create, Read, Update, Delete) dominando as operações de Atualização (UPDATE) e Exclusão (DELETE) de dados no banco de dados SQLite usando Python.</p>
+    <p class="cover-desc">Abordaremos as práticas fundamentais de segurança cibernética e integridade de dados, com foco absoluto na cláusula WHERE para evitar a corrupção do banco. Além disso, implementaremos lógicas condicionais de validação prévia: o sistema deverá reutilizar a função de busca para checar a existência de um registro antes de tentar atualizá-lo ou deletá-lo, elevando a robustez da aplicação.</p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">1. Introdução</div>
+      <div class="topic-chip">2. Desenvolvimento e Prática</div>
+      <div class="topic-chip">3. FAQ - Dúvidas Reais</div>
+      <div class="topic-chip">4. Exercícios de fixação</div>
+      <div class="topic-chip">5. Fechamento</div>
+    </div>
+    <div class="cover-meta">
+      <span>Aula 13</span>
+      <span>Python & SQLite</span>
+      <span>CRUD</span>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>Introdução</h2>
+      <p>Contextualização e Cenário Real</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">1. Introdução</div>
+    <h2>Cenário Real</h2>
+    <p>Imagine o desespero de um desenvolvedor júnior que, ao tentar alterar o preço de apenas um produto no e-commerce da empresa, acidentalmente muda o valor de todo o estoque para R$ 0,00.</p>
+    <p>Esse tipo de desastre ocorre no mercado de trabalho quando ignoramos uma regra de ouro: nunca manipule dados sem uma trava de segurança.</p>
+    <p>Hoje, vamos aprender a criar sistemas que protegem a empresa contra falhas humanas, garantindo que as operações de atualização e exclusão atinjam apenas o alvo correto.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">1. Introdução</div>
+    <h2>Desafio e Análise</h2>
+    <div class="callout red">
+      <div class="callout-title">Pergunta</div>
+      Se o sistema de um grande hospital permitisse alterar o diagnóstico de um paciente sem verificar o ID correto, quais seriam as consequências éticas e legais para a equipe de desenvolvimento?
+    </div>
+    <div class="callout blue">
+      <div class="callout-title">Ação</div>
+      Vamos analisar um trecho de código "bomba" que realiza um UPDATE sem a cláusula WHERE. Juntos, faremos o "teste de mesa" para entender como um simples esquecimento pode sobrescrever milhares de registros em milissegundos e causar prejuízos milionários.
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>Desenvolvimento e Prática</h2>
+      <p>Atualização e Exclusão Segura de Dados</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>Atualização de Dados com UPDATE e Validação</h2>
+    <h3>A. Conceito</h3>
+    <p>No ciclo de vida de um sistema, os dados raramente são estáticos. Clientes mudam de endereço, produtos sofrem reajustes de preço e senhas precisam ser redefinidas.</p>
+    <p>É para isso que utilizamos a operação de Atualização (UPDATE). Ela nos permite modificar informações que já estão armazenadas no banco de dados, mantendo o sistema vivo e espelhando a realidade do negócio sem precisarmos apagar e recriar o registro do zero.</p>
+    <p>Para realizarmos isso com responsabilidade, precisamos adotar uma postura defensiva: o "como" envolve não apenas enviar o novo dado para o banco, mas antes, checar se a informação realmente existe.</p>
+    <p>Ao construirmos essa lógica em duas etapas (Buscar e depois Atualizar), desenvolvemos nossa capacidade analítica e evitamos falhas silenciosas no sistema, protegendo a integridade do banco de dados.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>B. Explicação técnica</h2>
+    <p>A instrução SQL UPDATE é utilizada para alterar valores em uma tabela. A sintaxe básica requer a definição da tabela, a cláusula SET para indicar as colunas e os novos valores, e, de forma obrigatória em boas práticas, a cláusula WHERE para filtrar quais linhas sofrerão a alteração.</p>
+    <p>Sem o WHERE, o comando modificará, acidentalmente, todas as linhas da tabela.</p>
+    <p>No Python, utilizando a biblioteca sqlite3, o fluxo consiste em estabelecer a conexão, executar um SELECT para validar a existência do dado (reutilizando métodos de busca) e, mediante sucesso, executar o UPDATE passando os parâmetros de forma segura através de placeholders ?, blindando o sistema contra ataques de SQL Injection.</p>
+    <p>O fluxo é concluído com a chamada ao método commit(), que grava definitivamente as mudanças em disco.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>C. Pensamento Visual</h2>
+    <p>Imagine um mapa mental onde o bloco central é o "Pedido de Alteração".</p>
+    <p>A partir dele, temos duas setas: uma vai para o bloco de checagem "Validar ID (SELECT)", que age como uma catraca de segurança.</p>
+    <p>Se o ID não for localizado, o fluxo desvia para uma rota vermelha "Erro: Registro não encontrado".</p>
+    <p>Se o ID existir, a catraca libera o acesso para o próximo bloco: "Executar UPDATE com WHERE", finalizando no bloco verde de "Banco de Dados Atualizado".</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>D. Exemplo de Código (Parte 1)</h2>
+    <p><strong>Python</strong></p>
+    <div class="code-block">import sqlite3
+
+def atualizar_preco_produto(id_produto, novo_preco):
+    #1. Conexão com o banco de dados
+    conexao = sqlite3.connect('sistema_estoque.db')
+    cursor = conexao.cursor()
+    try:
+        #2. Validação Defensiva: Checar se o produto existe
+        cursor.execute("SELECT id, nome FROM produtos WHERE id = ?", (id_produto,))
+        produto_encontrado = cursor.fetchone()</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>D. Exemplo de Código (Parte 2)</h2>
+    <div class="code-block">        if produto_encontrado is None:
+            print(f"Erro: Produto com ID {id_produto} não encontrado no sistema.")
+            return False
+
+        #3. Execução da Atualização com WHERE e Proteção (Placeholders)
+        cursor.execute("UPDATE produtos SET preco = ? WHERE id = ?", (novo_preco, id_produto))
+        conexao.commit()
+
+        print(f"Sucesso: O preço do produto '{produto_encontrado[1]}' foi atualizado para R$ {novo_preco:.2f}.")
+        return True</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>D. Exemplo de Código (Parte 3)</h2>
+    <div class="code-block">    except sqlite3.Error as erro:
+        print(f"! Erro de Banco de Dados: {erro}")
+        return False
+    finally:
+        #4. Fechamento seguro do recurso
+        conexao.close()
+
+# Invocando a função de atualização
+atualizar_preco_produto(5, 199.90)</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>E. Explicação linha por linha do código (1/2)</h2>
+    <ul>
+      <li><strong>def atualizar_preco_produto(id_produto, novo_preco)::</strong> Declaramos a função solicitando o ID do registro alvo e a nova informação.</li>
+      <li><strong>conexao = sqlite3.connect('sistema_estoque.db'):</strong> Estabelecemos o canal de comunicação com o arquivo do banco SQLite.</li>
+      <li><strong>cursor.execute("SELECT ... WHERE id=?", (id_produto,)):</strong> Primeiro movimento defensivo: usar um placeholder ? e passar o ID como tupla para localizar se o item é válido.</li>
+      <li><strong>if produto_encontrado is None::</strong> Estrutura de decisão que trava a execução se o item não for retornado, poupando processamento de uma alteração fantasma.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>E. Explicação linha por linha do código (2/2)</h2>
+    <ul>
+      <li><strong>cursor.execute("UPDATE ... WHERE id=?", (novo_preco, id_produto)):</strong> O núcleo da operação. Os placeholders recebem a Tupla com os dados exatamente na ordem dos pontos de interrogação. A cláusula WHERE restringe a área de impacto a uma única linha.</li>
+      <li><strong>conexao.commit():</strong> Disparo final que grava a alteração no armazenamento físico.</li>
+      <li><strong>finally: conexao.close():</strong> Boa prática que atesta o fechamento da conexão, liberando memória e evitando travamento do arquivo, independentemente de sucesso ou falha.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>F. Dinâmica Code React</h2>
+    <div class="callout green">
+      <div class="callout-title">Desafio de Reflexão</div>
+      Nós vamos construir um trecho de código "gerado rapidamente por uma IA" que atualiza os dados do usuário, mas que não incluiu a instrução WHERE. Vocês terão 3 minutos para debater por que confiar cegamente em código gerado por ferramentas automatizadas, sem revisão humana e visão analítica, é uma quebra ética de responsabilidade técnica que pode arruinar o negócio.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>Exclusão Segura de Dados (DELETE)</h2>
+    <h3>A. Conceito</h3>
+    <p>Todo dado tem um ciclo de vida e, em algum momento, certas informações precisam ser removidas da aplicação, seja para cumprir a Lei Geral de Proteção de Dados (LGPD), apagar cadastros duplicados ou liberar registros cancelados.</p>
+    <p>A operação de Exclusão (DELETE) serve como a borracha final do CRUD.</p>
+    <p>No entanto, o poder de deletar traz consigo um altíssimo grau de periculosidade operacional, visto que uma exclusão sem filtros destrói o histórico de operações de uma empresa.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>Arquitetos de Software de Confiança</h2>
+    <p>Neste momento, evoluímos de simples codificadores para arquitetos de software de confiança.</p>
+    <p>Nossa regra é clara: não excluímos dados às cegas. Temos que programar nossos scripts para validar o alvo antes da exclusão, checar se ele não possui pendências estruturais críticas no sistema e confirmar a ação.</p>
+    <p>Com isso, evitamos acidentes irreparáveis e fortalecemos a cultura de engenharia segura e meticulosa.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>B. Explicação técnica</h2>
+    <p>A operação se realiza via instrução SQL DELETE FROM nome_tabela WHERE condicao;. A palavra-chave FROM especifica a origem dos dados e a cláusula WHERE aponta a condição restritiva (geralmente via Chave Primária - ID).</p>
+    <p>Omitir o WHERE resulta em um esvaziamento total e catastrófico de toda a tabela.</p>
+    <p>Assim como no UPDATE, rodamos isso em Python empacotando o comando dentro do método cursor.execute(), passando o parâmetro de restrição encapsulado em uma Tupla para neutralizar ataques lógicos.</p>
+    <p>Utilizamos blocos condicionais try...except minuciosos para interceptar infrações de regras do banco de dados relacional, como a interrupção gerada por Chaves Estrangeiras, impedindo que o script "quebre" na cara do usuário e devolvendo um alerta formatado.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>C. Pensamento Visual</h2>
+    <p>Visualizem mentalmente um funil de segurança. No topo, uma Requisição de Exclusão com um ID tenta entrar.</p>
+    <p>O funil possui filtros grossos: o primeiro é o bloco "SELECT: O ID existe?". Se a resposta for não, a requisição é ejetada com erro. Se sim, desce.</p>
+    <p>O segundo filtro verifica "O usuário confirmou a ação?". Somente transpassando os filtros, a requisição atinge a base do funil: a execução do comando DELETE que extirpa o dado de forma cirúrgica.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>D. Exemplo de Código (Parte 1)</h2>
+    <p><strong>Python</strong></p>
+    <div class="code-block">import sqlite3
+
+def deletar_produto(id_produto):
+    conexao = sqlite3.connect('sistema_estoque.db')
+    cursor = conexao.cursor()
+    try:
+        #1. Validação de Checagem: Mirar antes de atirar
+        cursor.execute("SELECT nome FROM produtos WHERE id = ?", (id_produto,))
+        produto = cursor.fetchone()
+
+        if not produto:
+            print(f"Cancelado: Nenhum produto associado ao ID {id_produto}.")
+            return False</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>D. Exemplo de Código (Parte 2)</h2>
+    <div class="code-block">        # 2. Execução da Exclusão com a trava do WHERE
+        cursor.execute("DELETE FROM produtos WHERE id = ?", (id_produto,))
+        conexao.commit()
+        print(f" Sucesso: Produto '{produto[0]}' removido de forma definitiva.")
+
+    except sqlite3.Error as erro:
+        print(f"! Operação de Exclusão bloqueada. Possível restrição de sistema.\nDetalhes técnicos: {erro}")
+    finally:
+        conexao.close()
+
+# Solicitando a remoção do ID 10
+deletar_produto(10)</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>E. Explicação linha por linha do código (1/2)</h2>
+    <ul>
+      <li><strong>cursor.execute("SELECT nome ... WHERE id=?", (id_produto,)):</strong> O movimento de reconhecimento. Inserimos o identificador e verificamos se há retorno.</li>
+      <li><strong>if not produto: return:</strong> A trava de bloqueio de processamento inútil. Sem produto localizado, encerra o ciclo de execução imediatamente através do retorno vazio.</li>
+      <li><strong>cursor.execute("DELETE FROM ... WHERE id=?", (id_produto,)):</strong> O evento de deleção. Percebam o quão crucial é a presença do WHERE id = ?. Ele orienta a remoção para uma única célula referenciada.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>E. Explicação linha por linha do código (2/2)</h2>
+    <ul>
+      <li><strong>conexao.commit():</strong> Assina eletronicamente a ação, concluindo o percurso do deletar permanentemente o registro de memória em disco.</li>
+      <li><strong>except sqlite3.Error as erro::</strong> Estrutura de contingência que abraça exceções do SQLite. Caso esse registro de produto estivesse amarrado a uma tabela de histórico de vendas, o banco impediria a ação para não deixar pontas soltas, ativando esta linha protetora sem paralisar (crashar) o aplicativo.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2. Desenvolvimento e Prática</div>
+    <h2>F. Dinâmica de Desafio</h2>
+    <div class="callout green">
+      <div class="callout-title">Desafio Relâmpago</div>
+      Desafio relâmpago de 5 minutos! Vocês vão criar um pequeno bloco de exclusão contendo um erro furtivo no código (cursor.execute("DELETE * FROM produtos")). Usando o conhecimento da diferença estrutural do SELECT para o DELETE, corrijam o erro de sintaxe e insiram a cláusula de proteção faltante.
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>FAQ - Dúvidas Reais</h2>
+      <p>As perguntas mais comuns sobre o processo</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">3. FAQ</div>
+    <h2>FAQ (1/3)</h2>
+    <div class="faq-item">
+      <div class="faq-q">1. "Professor, tem como dar um 'Ctrl+Z' num UPDATE ou DELETE direto pelo SQLite depois do código rodar?"</div>
+      <div class="faq-a">Não!!!! Após a execução do conexao.commit(), a transação está gravada fisicamente e se torna irreversível na tabela. Por isso, as lógicas de bloqueio e confirmação antes de rodar essas operações são essenciais para evitar perdas colossais de histórico.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">2. "O que acontece se eu passar a variável errada na hora de substituir o ponto de interrogação ?"</div>
+      <div class="faq-a">O Python injetará a variável errada no alvo incorreto de forma bem-sucedida! Se a variável apontar para o ID 5 em vez do pretendido ID 6, o comando irá focar no ID 5. A sintaxe estará correta, mas a regra do negócio será ferida. A validação via SELECT previne esse tipo de cegueira.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">3. FAQ</div>
+    <h2>FAQ (2/3)</h2>
+    <div class="faq-item">
+      <div class="faq-q">3. "Por que na tupla de um parâmetro só nós temos que usar a vírgula (id_produto,)?"</div>
+      <div class="faq-a">Sem a vírgula final, o interpretador Python entende os parênteses apenas como agrupadores de expressões matemáticas e ignora o fato de que precisa formatá-lo como Tupla. A vírgula obriga o empacotamento em uma Tupla contendo aquele item exclusivo, formato exigido pela biblioteca sqlite3 para substituir as interrogações de maneira segura.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">4. "Consigo atualizar mais de uma coluna no mesmo evento UPDATE?"</div>
+      <div class="faq-a">Sim, e deve! Usar um evento aglutinado gera mais eficiência para o sistema. Exemplo: UPDATE produtos SET preco = ?, nome = ? WHERE id = ?. Você alinhará sua Tupla com três parâmetros e o Python alimentará todos simultaneamente em uma única consulta.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">3. FAQ</div>
+    <h2>FAQ (3/3)</h2>
+    <div class="faq-item">
+      <div class="faq-q">5. "Meu assistente virtual de inteligência artificial me orientou a realizar a atualização com strings diretamente (f'UPDATE banco SET valor={novo_valor}'). Há problema?"</div>
+      <div class="faq-a">Problema gravíssimo! Esse tipo de escrita abre sua aplicação para SQL Injection (Injeção de Código), permitindo que um usuário mal-intencionado use formulários na sua aplicação web para digitar instruções destrutivas que manipulam o banco. Recuse esses atalhos de IAs inexperientes e use sempre parâmetros com interrogações ?.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Exercícios de fixação</h2>
+      <p>Práticas progressivas para consolidar o aprendizado</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">4. Exercícios</div>
+    <h2>4.1. O Ajuste de Rota (Fácil)</h2>
+    <p><strong>Descrição:</strong> Crie uma função chamada mudar_setor_funcionario() que exija receber o ID do funcionário e o nome do seu novo Setor de trabalho. Construa a comunicação via SQLite, execute um UPDATE restringido ao funcionário exato e ative a inserção. Sem requisito de blocos condicionais de teste.</p>
+    <div class="callout green">
+      <div class="callout-title">Entrega</div>
+      O arquivo atualizar_facil.py que demonstre pelo terminal a mudança de departamento do funcionário.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">4. Exercícios</div>
+    <h2>4.2. Faxina Controlada (Médio)</h2>
+    <p><strong>Descrição:</strong> Implemente uma função formal de remoção. O script deve exigir um ID numérico e processar a instrução DELETE. A exigência desta etapa é abrigar tudo sob as camadas de contenção try / except / finally capturando o sqlite3.Error e garantindo o aviso do fechamento do conector.</p>
+    <div class="callout green">
+      <div class="callout-title">Entrega</div>
+      Código funcional que exclui o item e reporta sucesso, não interrompendo a interface de terminal caso uma falha relacional ocorra.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">4. Exercícios</div>
+    <h2>4.3. Alteração Dupla Eficiente (Médio)</h2>
+    <p><strong>Descrição:</strong> Modernize a função base de Update aprendida em aula. Crie a função ajustar_perfil_cliente() que aceita 3 argumentos: ID do Usuário, e dois novos valores - seu endereço de Email e seu número Celular. Construa a querry SQL para processar a alteração em uma única investida.</p>
+    <div class="callout green">
+      <div class="callout-title">Entrega</div>
+      Código estruturado que reflete a atualização simultânea em duas colunas com o mínimo de chamadas ao BD, atestando economia de processamento.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">4. Exercícios</div>
+    <h2>4.4. O Escudo Protetor Lógico - Soft Delete (Difícil)</h2>
+    <p><strong>Descrição:</strong> No universo corporativo real não se exclui nada comumente, desativa-se. Implemente a habilidade técnica de "Deleção Suave" (Soft Delete). Você deve ter uma coluna de texto chamada status_registro. Escreva a função remover_acesso() onde, em vez de disparar DELETE, você aplicará a cláusula UPDATE configurando o registro para status = 'Inativo' usando restrição da cláusula WHERE.</p>
+    <div class="callout green">
+      <div class="callout-title">Entrega</div>
+      Script robusto garantindo a integridade dos volumes da base de dados sem perdê-los, mascarando o registro com Inativo aos sistemas visuais.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">4. Exercícios</div>
+    <h2>4.5. A Missão Final: Integração Segura (Difícil)</h2>
+    <p><strong>Descrição:</strong> Desenvolva um menu interativo completo ativado no terminal através de laço while. O sistema exigirá do operador a submissão de um ID para alvo de Exclusão. Recebido o dado, a aplicação dispara o "Modo Validador": localiza o item pelo SELECT, emite para o terminal as informações (Ex: "ATENÇÃO: Você deseja obliterar a Matrícula 219 de Fernando Santos? S/N"). Se o teclado autorizar S, roda a query DELETE. Caso digite N, retrocede ao modo inicial abortando a transação.</p>
+    <div class="callout green">
+      <div class="callout-title">Entrega</div>
+      Programa fechado que abrange interatividade algorítmica mesclada com as mecânicas finais de Segurança da Informação do banco de dados (Read com Validação, Decisão Humana, e Delete Final).
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>Fechamento</h2>
+      <p>Conexões com a Situação de Aprendizagem e Próxima Aula</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">5. Fechamento</div>
+    <h2>Conexão com a Situação de Aprendizagem</h2>
+    <p>Nosso projeto do semestre exige que a nossa simulação empresarial rode nas métricas do mundo real.</p>
+    <p>Quando o administrador (ou o cliente do sistema) clicar no botão visual de "Cancelar Encomenda" ou "Corrigir os Dados da Entrega", a funcionalidade lógica que vocês aprenderam agora - com as etapas vitais do SELECT de validação acompanhados da precisão do WHERE será exatamente a barreira de contenção que evitará que um clique mal dado deteriore a plataforma corporativa inteira.</p>
+    <p>O Back-End se torna profissional agora.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">5. Fechamento</div>
+    <h2>Conexão com a Próxima Aula</h2>
+    <p>Com o código inteiramente dominado em suas 4 operações máximas (CRUD), na próxima aula vamos tratar o banco de dados de forma profissional, realizaremos a instalação/configuração do SGBD, aprenderemos sobre modularizar a conexão e os tratamentos de erros.</p>
+  </div>
+
+</div>
+
+<nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 34</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    let dx = e.changedTouches[0].clientX - touchX;
+    if (dx > 50) changeSlide(-1);
+    if (dx < -50) changeSlide(1);
+  });
+
+  // Inicializa a apresentação
+  showSlide(0);
+</script>
+
+</body>
+</html>
