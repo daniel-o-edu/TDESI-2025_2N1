@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 07 - Do MER ao DER</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d2a4a;
+    --ink-light: #1e4976;
+    --accent: #1565c0;
+    --accent2: #1976d2;
+    --accent3: #0288d1;
+    --bg: #e8f0fe;
+    --surface: #ffffff;
+    --border: #b3cde8;
+    --code-bg: #eaf2fb;
+    --tag-bg: #dceefb;
+    --tag-border: #1976d2;
+    --slide-max: 90%;
+    --slide-title-max: 90%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #c5d8f0;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── IMAGENS DE FUNDO ── */
+  /* Capa */
+  .slide-cover {
+    background-image: url('https://i.ibb.co/fzwwYWW6/img-frente01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.82);
+    border-radius: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-cover > * { position: relative; z-index: 1; }
+
+  /* Slides de Título/Seção */
+  .slide-section {
+    background-image: url('https://i.ibb.co/1tBjw9p9/img-tit01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.80);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-section > * { position: relative; z-index: 1; }
+
+  /* Slides comuns */
+  .slide-common {
+    background-image: url('https://i.ibb.co/m1J6vPd/img-frente02.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-common::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.88);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-common > * { position: relative; z-index: 1; }
+
+  /* ── NAV ── */
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(13,42,74,.28);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.12); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* ── PROGRESS ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent2);
+    transition: width .3s ease;
+  }
+
+  /* ── SLIDE WRAPPER ── */
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── SLIDES GENÉRICOS ── */
+  .slide {
+    display: none;
+    width: var(--slide-max);
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 4px 32px rgba(13,42,74,.12);
+    padding: 7vh 2vw;
+    animation: fadeIn .3s ease;
+    margin: 0 auto;
+  }
+  .slide.active { display: block; }
+
+  /* Slides de título ocupam 70% */
+  .slide.slide-section,
+  .slide.slide-cover {
+    width: var(--slide-title-max);
+    max-width: var(--slide-title-max);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(3rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent2);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.5rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(1.7rem, 2.5vw, 1.3rem);
+    line-height: 1.75;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul, .slide ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  .slide li {
+    font-size: clamp(1.5rem, 1.7vw, 1.3rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .slide li strong { color: var(--ink); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── COVER ── */
+  .cover-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(1.5rem, 2vw, 1.3rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: clamp(1.5rem, 2.5vw, 1.3rem);
+    line-height: 1.7;
+  }
+  .callout.blue {
+    background: #dceefb;
+    border-left: 4px solid var(--accent2);
+    color: var(--ink);
+  }
+  .callout.green {
+    background: #e1f5e8;
+    border-left: 4px solid #2e7d32;
+    color: #1a3a28;
+  }
+  .callout.red {
+    background: #e3f0fb;
+    border-left: 4px solid var(--accent);
+    color: var(--ink);
+  }
+  .callout.yellow {
+    background: #e8f4fd;
+    border-left: 4px solid var(--accent3);
+    color: var(--ink);
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+
+  /* ── TWO COLUMN ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  .col-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .col-card h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(1.3rem, 1.5vw, 1.2rem);
+  }
+  thead th {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: .85rem;
+    letter-spacing: .04em;
+  }
+  tbody tr:nth-child(even) { background: var(--code-bg); }
+  tbody tr:hover { background: #d0e8f8; }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-light);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  tbody td strong { color: var(--ink); }
+
+  /* ── ENTITY CARDS ── */
+  .entity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .entity-card {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .entity-card .entity-name {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    padding: 10px 14px;
+    font-size: 1rem;
+  }
+  .entity-card ul {
+    padding: 12px 18px;
+    margin: 0;
+  }
+  .entity-card li {
+    font-size: .9rem;
+    color: var(--ink-light);
+    margin-bottom: 4px;
+  }
+
+  /* ── FAQ ── */
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .faq-q {
+    background: var(--code-bg);
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: clamp(2.5rem, 2vw, 1rem);
+    color: var(--ink);
+    border-left: 4px solid var(--accent2);
+  }
+  .faq-a {
+    padding: 12px 18px;
+    font-size: clamp(1.3rem, 1.9vw, .98rem);
+    color: var(--ink-light);
+    line-height: 1.7;
+    background: var(--surface);
+  }
+
+  /* ── NUMBERED STEPS ── */
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    background: var(--accent2);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: .9rem;
+    font-family: 'Source Code Pro', monospace;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body p { margin: 0; }
+
+  /* ── SECTION HEADER SLIDES ── */
+  .section-header {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .section-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    color: #b3cde8;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .section-header h2 {
+    border: none;
+    padding: 0;
+    text-align: center;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: var(--ink);
+  }
+  .section-header p {
+    max-width: 100%;
+    margin: 16px auto 0;
+    text-align: center;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .slide { padding: 28px 22px 36px; width: 97%; max-width: 97%; }
+    .slide.slide-section, .slide.slide-cover { width: 97%; max-width: 97%; }
+    #nav button { padding: 0 14px; font-size: .9rem; }
+  }
+  @media (max-width: 400px) {
+    .slide { padding: 20px 14px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<div id="stage">
+
+  <div class="slide slide-cover active">
+    <div class="slide-label">Banco de Dados</div>
+    <h1>Aula 7 - Do MER ao DER (Modelo Lógico)</h1>
+    <p class="cover-desc">Descrição: Vamos realizar a transformação do modelo conceitual para tabelas (Modelo Lógico), estabelecendo Chaves Primárias (PK), Chaves Estrangeiras (FK) e resolvendo relacionamentos N:N para a construção do banco de dados.</p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Introdução e Cenário Real</div>
+      <div class="topic-chip">Transformação para Tabelas</div>
+      <div class="topic-chip">Chaves Primárias (PK) e Estrangeiras (FK)</div>
+      <div class="topic-chip">Relacionamentos N:N</div>
+      <div class="topic-chip">Exercícios Práticos</div>
+    </div>
+    <div class="cover-meta">
+      <span>Aula 07</span>
+      <span>Modelagem Lógica</span>
+      <span>DER</span>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>Introdução</h2>
+      <p>O que é o Modelo Lógico (DER) e por que ele é crucial.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 1 · Introdução</div>
+    <h2>1. Introdução</h2>
+    <div class="callout yellow">
+      <div class="callout-title">Cenário Real</div>
+      Pensem em gigantes como Amazon ou iFood. Na aula passada, vimos que essas empresas dependem de uma modelagem de dados impecável, pois um erro no diagrama hoje significa um sistema lento ou dados duplicados amanhã.
+    </div>
+    <p>Nós já desenhamos o nosso "mapa" abstrato, o Modelo Entidade-Relacionamento (MER), que documenta as regras de negócio.</p>
+    <p>Mas um banco de dados real não lê desenhos ou conceitos abstratos; ele lê tabelas concretas.</p>
+    <p>O passo de hoje é exatamente a ponte que transforma a nossa ideia de negócio em uma estrutura que a máquina compreende: o Modelo Lógico (DER).</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 1 · Problema Central</div>
+    <h2>O Desafio dos Dados</h2>
+    <div class="callout red">
+      <div class="callout-title">Pergunta</div>
+      Se o nosso banco de dados armazenar clientes e pedidos, como ele sabe exatamente qual cliente fez qual pedido em um universo de milhões de registros, sem misturar os dados de todo mundo?
+    </div>
+    <div class="callout blue">
+      <div class="callout-title">Ação</div>
+      Nós vamos analisar rapidamente uma planilha "bagunçada", onde o nome do cliente e os detalhes do pedido estão repetidos na mesma linha várias vezes.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 1 · Exemplo Prático</div>
+    <h2>A Planilha "Bagunçada"</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID do Pedido</th>
+            <th>Data</th>
+            <th>Nome do Cliente</th>
+            <th>Telefone do Cliente</th>
+            <th>E-mail do Cliente</th>
+            <th>Produto</th>
+            <th>Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1001</td>
+            <td>10/05</td>
+            <td>João Silva</td>
+            <td>(11) 9999-1234</td>
+            <td>joao.silva@email.com</td>
+            <td>Notebook</td>
+            <td>R$ 3.500</td>
+          </tr>
+          <tr>
+            <td>1002</td>
+            <td>12/05</td>
+            <td>Maria Souza</td>
+            <td>(21) 8888-5678</td>
+            <td>maria.s@email.com</td>
+            <td>Mouse Sem Fio</td>
+            <td>R$ 120</td>
+          </tr>
+          <tr>
+            <td>1003</td>
+            <td>15/05</td>
+            <td>João Silva</td>
+            <td>(11) 9999-1234</td>
+            <td>joao.silva@email.com</td>
+            <td>Teclado Mecânico</td>
+            <td>R$ 350</td>
+          </tr>
+          <tr>
+            <td>1004</td>
+            <td>18/05</td>
+            <td>Joao Sliva</td>
+            <td>(11) 9000-0000</td>
+            <td>joao.silva@email.com</td>
+            <td>Monitor 24"</td>
+            <td>R$ 800</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 1 · Solução</div>
+    <h2>Entendendo a Necessidade de Tabelas</h2>
+    <p>Juntos, vamos perceber como a repetição excessiva gera inconsistência e entender como a separação dessas informações em tabelas distintas conectadas por "fios invisíveis" resolve esse problema de forma elegante e definitiva.</p>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>Desenvolvimento e Prática</h2>
+      <p>Transformação para Tabelas</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>Transformação para Tabelas - A. Conceito</h2>
+    <p>Quando terminamos o Modelo Conceitual (MER), temos entidades (retângulos) e atributos (elipses).</p>
+    <p>O processo de transformação para o Modelo Lógico significa que cada entidade forte que desenhamos vai se tornar uma Tabela no nosso banco de dados.</p>
+    <p>Os atributos descritivos que pertencem a essa entidade se transformam nas Colunas dessa tabela.</p>
+    <p>Essa é a fundação para estruturar a informação de forma que um Sistema de Gerenciamento de Banco de Dados (SGBD) consiga gravar e recuperar os dados.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>Transformação para Tabelas - Cuidados</h2>
+    <p>Esse mapeamento precisa ser feito com cuidado. Um atributo que guarda o nome do cliente será uma coluna de texto (VARCHAR), enquanto a data de nascimento será uma coluna de data (DATE).</p>
+    <p>Transformar entidades em tabelas é o ato de dar um formato físico às nossas ideias de negócio, preparando o terreno para que o sistema de fato ganhe vida.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>B. Explicação técnica</h2>
+    <p>A tradução de conjuntos de entidades do modelo ER para o relacional resulta na criação de relações (tabelas) que contêm o mesmo número de colunas que os atributos simples da entidade original.</p>
+    <p>Os atributos compostos ou multivalorados exigem tratamentos específicos, mas a regra geral é o mapeamento direto de Entidade para Tabela.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>O Roteiro DDL</h2>
+    <p>O modelo lógico resultante deve ser livre de ambiguidades estruturais.</p>
+    <p>Ele não só define os nomes das tabelas e colunas, mas também os tipos de dados básicos, servindo de roteiro exato para os comandos de criação (DDL) que executaremos no SGBD.</p>
+    <p>Vamos traduzir esse conceito didaticamente em três partes principais:</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>1. A Regra de Ouro: Entidade vira Tabela</h2>
+    <p>No MER (o desenho), nós temos Entidades (como "Cliente" ou "Produto") e Atributos (como "Nome" e "Preço"). A regra geral e mais simples da tradução é:</p>
+    <ul>
+      <li>A Entidade inteira se transforma em uma Tabela.</li>
+      <li>Cada Atributo Simples se transforma em uma Coluna dessa tabela.</li>
+    </ul>
+    <p>Se você tinha uma entidade chamada Cliente com os atributos simples CPF e Nome, você terá exatamente uma tabela Cliente com as colunas CPF e Nome.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>2. Os Rebeldes: Atributos Compostos e Multivalorados</h2>
+    <p>Alguns atributos exigem "tratamentos específicos". Isso acontece porque bancos de dados relacionais odeiam bagunça e exigem que cada "célula" da tabela tenha apenas um único valor.</p>
+    <ul>
+      <li><strong>Atributos Compostos:</strong> São aqueles que podem ser divididos. Por exemplo, "Endereço". O banco de dados não gosta de um campo gigante com "Rua X, Número 10, Bairro Y". A solução é quebrá-lo em colunas simples: Rua, Numero, Bairro.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>Atributos Multivalorados</h2>
+    <ul>
+      <li><strong>Atributos Multivalorados:</strong> São aqueles onde você pode ter vários valores ao mesmo tempo, como "Telefone" (uma pessoa pode ter celular e fixo). Não podemos colocar dois números na mesma célula. A solução geralmente é criar uma nova tabela só para os telefones, ligada ao cliente (usando aquele "fio invisível" que vimos antes!).</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>3. A Planta Baixa Exata (O Modelo Lógico e o DDL)</h2>
+    <p>O modelo lógico deve ser "livre de ambiguidades estruturais" e serve de "roteiro exato" para o DDL.</p>
+    <p>O que isso significa? Significa que acabou a fase de rascunho.</p>
+    <p>No modelo lógico, não basta dizer "aqui vai o telefone".</p>
+    <p>Você precisa ser absurdamente específico, definindo os tipos de dados básicos:</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>Tipos de Dados</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome da Coluna</th>
+            <th>Tipo de Dado (Exemplo)</th>
+            <th>O que o Banco de Dados entende</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Nome</td>
+            <td>VARCHAR(50)</td>
+            <td>Aceita até 50 letras.</td>
+          </tr>
+          <tr>
+            <td>Idade</td>
+            <td>INT</td>
+            <td>Só aceita números inteiros.</td>
+          </tr>
+          <tr>
+            <td>Data_Nascimento</td>
+            <td>DATE</td>
+            <td>Tem que seguir o formato de calendário.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>Conexão com DDL</h2>
+    <p>Quando você deixa tudo assim, tão bem definido e sem ambiguidades, esse modelo serve como um roteiro direto para o DDL (Data Definition Language).</p>
+    <p>O DDL é a linguagem de comandos que о SGBD (Sistema de Gerenciamento de Banco de Dados, como MySQL ou PostgreSQL) usa para efetivamente criar a tabela.</p>
+    <p>É o famoso comando CREATE TABLE que os programadores digitam.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>C. Pensamento Visual</h2>
+    <p>Imaginem o desenho de um retângulo chamado CLIENTE com três bolinhas ligadas a ele: cpf, nome e telefone.</p>
+    <p>Agora, visualizem esse desenho se achatando e virando uma planilha do Excel vazia: o nome da aba é CLIENTE, e os cabeçalhos das três primeiras colunas são cpf, nome e telefone.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>D. Exemplo de Código</h2>
+    <div class="code-block">SQL
+Criando a tabela a partir da Entidade 'Cliente'
+
+CREATE TABLE Cliente (
+  cpf VARCHAR(11) NOT NULL,
+  nome VARCHAR(100) NOT NULL,
+  telefone VARCHAR(15)
+);</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>E. Explicação linha por linha:</h2>
+    <ul>
+      <li><strong>CREATE TABLE Cliente (:</strong> Comando SQL que avisa ao banco que estamos traduzindo uma entidade chamada Cliente em uma tabela.</li>
+      <li><strong>cpf VARCHAR(11) NOT NULL,:</strong> Cria a coluna cpf para guardar texto de até 11 caracteres. O NOT NULL significa que este dado é obrigatório.</li>
+      <li><strong>nome VARCHAR(100) NOT NULL,:</strong> Cria a coluna nome com limite de 100 caracteres.</li>
+      <li><strong>telefone VARCHAR(15):</strong> Cria a coluna telefone. Como não tem NOT NULL, o preenchimento é opcional.</li>
+      <li><strong>);:</strong> Fecha o comando de criação da tabela.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 2 · Desenvolvimento</div>
+    <h2>F. Dinâmica - Tutorial</h2>
+    <div class="callout green">
+      <div class="callout-title">Atividade em Duplas</div>
+      Em duplas, escolham uma entidade simples que vocês criaram na Oficina da aula passada. Um de vocês terá 2 minutos para explicar ao colega, como essa entidade se transformará em um bloco de código CREATE TABLE, detalhando o tipo de dado de cada coluna.
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>Chaves Primárias e Estrangeiras</h2>
+      <p>Estabelecendo Identificadores e Relacionamentos.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>A. Conceito de Chave Primária (PK)</h2>
+    <p>Na última aula, vimos que o identificador é um atributo capaz de individualizar uma ocorrência dentro do sistema, seguindo regras de ouro: deve ser único e nunca pode ser nulo.</p>
+    <p>No Modelo Lógico, esse identificador recebe o nome técnico de Chave Primária (Primary Key - PK).</p>
+    <p>Ela é o "CPF" daquela linha dentro da tabela.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>Chave Estrangeira (FK)</h2>
+    <p>Para que as tabelas conversem entre si, usamos a Chave Estrangeira (Foreign Key - FK).</p>
+    <p>A FK é simplesmente a cópia da Chave Primária de uma tabela colocada dentro de outra tabela.</p>
+    <p>É assim que criamos os relacionamentos de 1:N (um para muitos).</p>
+    <p>Se um Cliente faz vários Pedidos, a tabela de Pedidos terá uma coluna (FK) guardando o ID do Cliente para sabermos a quem aquele pedido pertence.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>B. Explicação técnica</h2>
+    <p>A restrição de Chave Primária garante a integridade de entidade, assegurando que não haja registros duplicados.</p>
+    <p>A restrição de Chave Estrangeira garante a integridade referencial, o que impede que um registro aponte para uma chave inexistente (por exemplo, cadastrar um pedido para um cliente que não está no banco de dados).</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>Mapeamento 1:N</h2>
+    <p>Quando mapeamos um relacionamento 1:N do modelo conceitual para o lógico, a regra de conversão dita que a chave primária do lado "1" migra como chave estrangeira para a tabela do lado "N".</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>Traduzindo as Regras</h2>
+    <div class="callout blue">
+      <div class="callout-title">A Chave Primária (A Lei do CPF Único)</div>
+      Traduzindo a "integridade de entidade". A Chave Primária (PK) é como o CPF daquela linha da tabela. Vocês já viram duas pessoas com o mesmo CPF? Não. A regra do banco de dados é a mesma: é terminantemente proibido ter dois clientes com o ID 'C-01'. Essa regra garante que ninguém seja confundido. Cada registro é único e exclusivo."
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>Traduzindo as Regras</h2>
+    <div class="callout red">
+      <div class="callout-title">A Chave Estrangeira (A Lei "Não Atendemos Fantasmas")</div>
+      A "integridade referencial" conectando com a vida real. A Chave Estrangeira (FK) é aquele 'fio invisível que liga o Pedido ao Cliente. Mas o banco de dados tem um segurança na porta: ele não deixa você cadastrar uma venda para o cliente 'C-99' se esse cliente não existir na Tabela de Clientes. O sistema vai gritar: 'Erro! Você está tentando vender para um fantasma!'. Isso é a integridade referencial: você só pode apontar para algo que existe."
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>O Mapeamento 1:N (A Regra de "Quem carrega quem?")</h2>
+    <p>Esta é a parte crucial. Por que a chave do lado 1 (Cliente) vai para a tabela do lado N (Pedidos) e não o contrário?</p>
+    <p>Use a lógica do espaço:</p>
+    <p><strong>O Cenário:</strong> Temos uma relação 1:N. 1 Cliente pode fazer N (Muitos) Pedidos.</p>
+    <p><strong>Pergunta:</strong> "Onde faz mais sentido guardar o fio invisível? Na tabela de Clientes ou na de Pedidos?"</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>Migração da Chave</h2>
+    <ul>
+      <li><strong>Opção Errada (N migrando para o 1):</strong> "Se colocarmos a chave na tabela de Clientes, teríamos que criar infinitas colunas lá dentro: Pedido_1, Pedido_2, Pedido_30... A tabela ia estourar! O Cliente não consegue segurar todos os pedidos."</li>
+      <li><strong>A Regra Certa (1 migrando para o N):</strong> "É mais fácil o Pedido carregar o 'crachá' do Cliente. Como cada pedido pertence a apenas um cliente, nós simplesmente colocamos o ID do Cliente dentro da tabela de Pedidos. É por isso que a chave primária do lado '1' sempre viaja e vira chave estrangeira no lado 'N'."</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>Resumindo</h2>
+    <ul>
+      <li><strong>Chave Primária:</strong> "Eu sou único."</li>
+      <li><strong>Chave Estrangeira:</strong> "Eu pertenço a alguém que existe de verdade."</li>
+      <li><strong>Regra 1:N:</strong> "O filho (N) carrega o sobrenome do pai (1)."</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>C. Pensamento Visual</h2>
+    <p>Imaginem duas tabelas lado a lado.</p>
+    <p>A tabela CLIENTE tem uma coluna id_cliente com uma chave dourada (PK).</p>
+    <p>A tabela PEDIDO tem várias colunas, e uma delas é fk_cliente.</p>
+    <p>Visualizem uma seta forte saindo da coluna fk_cliente na tabela de Pedidos e apontando diretamente para a chave dourada na tabela de Clientes.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>D. Exemplo de Código</h2>
+    <div class="code-block">SQL
+Criando a tabela de Pedidos com Chave Estrangeira
+
+CREATE TABLE Pedido (
+  id_pedido INT PRIMARY KEY AUTO_INCREMENT,
+  data_pedido DATE NOT NULL,
+  valor DECIMAL(10,2) NOT NULL,
+  fk_cliente VARCHAR(11),
+  FOREIGN KEY (fk_cliente) REFERENCES Cliente(cpf)
+);</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>E. Explicação linha por linha:</h2>
+    <ul>
+      <li><strong>id_pedido INT PRIMARY KEY AUTO_INCREMENT,:</strong> Cria a Chave Primária da tabela pedido. O banco vai gerar esse número automaticamente.</li>
+      <li><strong>data_pedido... e valor...:</strong> Colunas comuns do pedido.</li>
+      <li><strong>fk_cliente VARCHAR(11),:</strong> Cria a coluna que vai receber a informação do cliente (ela deve ter o mesmo tipo de dado da PK do cliente).</li>
+      <li><strong>FOREIGN KEY (fk_cliente) REFERENCES Cliente (cpf):</strong> A mágica acontece aqui! O banco cria a restrição (o fio invisível) dizendo que a coluna fk_cliente deve obrigatoriamente referenciar um cpf válido lá na tabela Cliente.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 3 · Chaves</div>
+    <h2>F. Dinâmica - Desafio relâmpago (5 minutos)</h2>
+    <div class="callout green">
+      <div class="callout-title">Desafio Prático</div>
+      Vamos observar um trecho de código no quadro onde um INSERT em uma tabela falhou com o erro Foreign Key Constraint Fails. Em duplas, descubram e anotem qual foi o erro lógico cometido pelo programador ao tentar gravar a informação e como resolvê-lo.
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Relacionamentos N:N</h2>
+      <p>Resolvendo o Muitos para Muitos</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>A. Conceito</h2>
+    <p>Às vezes, as regras de negócio criam teias complexas. Um Aluno cursa várias Disciplinas, e uma Disciplina tem vários Alunos.</p>
+    <p>Isso é um relacionamento Muitos para Muitos (N:N). O grande problema é que bancos de dados relacionais não aceitam relacionamentos N:N diretos nas tabelas, pois isso violaria as regras de normalização (não podemos guardar uma lista de valores dentro de uma única célula da tabela).</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>A Solução Associativa</h2>
+    <p>Para resolver isso de forma inteligente, nós criamos uma "Tabela Associativa" no meio das duas.</p>
+    <p>Essa nova tabela herda as chaves primárias de ambas as tabelas originais, transformando-as em chaves estrangeiras.</p>
+    <p>O que antes era um problema intransponível se quebra em dois relacionamentos de 1:N muito fáceis de gerenciar!</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>B. Explicação técnica</h2>
+    <p>A conversão de conjuntos de relacionamentos M:N exige a criação de uma nova relação (tabela) para representar a associação.</p>
+    <p>A chave primária desta nova tabela é tipicamente composta pela combinação das chaves estrangeiras que referenciam as tabelas originais participantes.</p>
+    <p>Qualquer atributo que estava alocado no losango de relacionamento do MER (por exemplo, a "nota" de um aluno em uma disciplina) migra e se torna uma coluna nesta nova tabela associativa.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>Analogia Prática</h2>
+    <p>Esse é o famoso cenário do "Muitos para Muitos" (M:N), que costuma ser o último grande obstáculo no aprendizado de modelagem.</p>
+    <p>Para explicar isso de forma leve e sem dar dor de cabeça na turma, vamos usar uma analogia que eles vivem na pele todos os dias: Alunos e Disciplinas.</p>
+    <p>Aqui está uma forma estruturada e didática de apresentar esse conceito no quadro ou nos slides:</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>O Impasse do "Muitos para Muitos" (O Problema)</h2>
+    <p>Temos a Tabela Aluno e a Tabela Disciplina.</p>
+    <ul>
+      <li>1 Aluno cursa várias Disciplinas.</li>
+      <li>1 Disciplina tem vários Alunos.</li>
+    </ul>
+    <div class="callout red">
+      <div class="callout-title">Pergunta</div>
+      "Onde nós vamos plugar o nosso 'fio invisível' (a Chave Estrangeira)? Se colocarmos dentro do Aluno, ele só vai poder se matricular em uma única matéria. Se colocarmos dentro da Disciplina, a matéria só vai poder ter um único aluno matriculado. E agora? Deu empate!"
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>A Tabela "Casamenteira" (A Solução)</h2>
+    <p>Bancos de dados não lidam bem com empates. Quando temos um relacionamento M:N, precisamos chamar um "mediador".</p>
+    <p>A regra de ouro aqui é: Muitos para Muitos sempre gera uma tabela nova.</p>
+    <p>Nós criamos uma terceira tabela, que podemos chamar de Tabela Associativa (ou 'Tabela Casamenteira').</p>
+    <p>O único trabalho dela na vida é cruzar os fios invisíveis. Vamos chamá-la de Matricula.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>Tabelas Originais</h2>
+    <div class="two-col">
+      <div class="col-card">
+        <h4>Tabela: Aluno (O Lado A)</h4>
+        <table>
+          <thead><tr><th>ID_Aluno</th><th>Nome</th></tr></thead>
+          <tbody>
+            <tr><td>A-01</td><td>João</td></tr>
+            <tr><td>A-02</td><td>Maria</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-card">
+        <h4>Tabela: Disciplina (O Lado B)</h4>
+        <table>
+          <thead><tr><th>ID_Disciplina</th><th>Nome_Materia</th></tr></thead>
+          <tbody>
+            <tr><td>D-01</td><td>Banco de Dados</td></tr>
+            <tr><td>D-02</td><td>Programação</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>Tabela Nova: Matricula (A Casamenteira)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID_Aluno (Fio A)</th>
+            <th>ID_Disciplina (Fio B)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A-01</td>
+            <td>D-01 (João cursa BD)</td>
+          </tr>
+          <tr>
+            <td>A-01</td>
+            <td>D-02 (João cursa Programação)</td>
+          </tr>
+          <tr>
+            <td>A-02</td>
+            <td>D-01 (Maria cursa BD)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>O Atributo "Órfão" (Onde entra a Nota?)</h2>
+    <p>E a tal da 'Nota'? Pense bem: a nota 8,0 pertence só ao João? Não, em Programação ele tirou 5,0.</p>
+    <p>A nota pertence só à disciplina de Banco de Dados? Não, a Maria tirou 10,0 lá.</p>
+    <p>A nota não é do aluno, nem da matéria. A nota é do evento, do momento em que o João se encontrou com o Banco de Dados. Por isso, tudo o que estava no losango do desenho (o relacionamento em si) ganha uma coluna nova e vai morar nessa nossa tabela associativa."</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>Como a tabela Matricula fica de verdade:</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID_Aluno</th>
+            <th>ID_Disciplina</th>
+            <th>Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A-01</td>
+            <td>D-01</td>
+            <td>8,5</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>A Chave Composta (O Super-Combo)</h2>
+    <p>"A chave primária é tipicamente composta pela combinação das chaves"</p>
+    <p>Para fechar, lembram da regra de que toda tabela precisa de uma Chave Primária (PK) única, como um CPF?</p>
+    <p>Nossa tabela 'Matricula' não tem uma coluna de ID próprio. O que ela faz? Ela junta as duas chaves estrangeiras!</p>
+    <p>O banco de dados checa o 'combo': <strong>A-01+D-01</strong>. Essa combinação vira a nossa Chave Primária Composta. Isso é genial porque impede que o sistema cometa um erro grotesco: matricular o João duas vezes na exata mesma matéria no mesmo semestre.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>C. Pensamento Visual</h2>
+    <p>Pensem em duas ilhas separadas: Ilha ALUNO e Ilha DISCIPLINA.</p>
+    <p>O relacionamento N:N é como tentar pular de uma para a outra sem sucesso.</p>
+    <p>A solução é construir uma ponte (Tabela Associativa) chamada MATRICULA no meio do rio.</p>
+    <p>Agora, a ilha Aluno liga para a ponte (1:N), e a ilha Disciplina liga para a ponte (1:N).</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>D. Exemplo de Código</h2>
+    <div class="code-block">SQL
+Criando a tabela associativa (Ponte)
+
+CREATE TABLE Aluno_Disciplina (
+  fk_aluno INT,
+  fk_disciplina INT,
+  nota_final DECIMAL(4,2),
+  PRIMARY KEY (fk_aluno, fk_disciplina),
+  FOREIGN KEY (fk_aluno) REFERENCES Aluno(id_aluno),
+  FOREIGN KEY (fk_disciplina) REFERENCES Disciplina(id_disciplina)
+);</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>E. Explicação linha por linha:</h2>
+    <ul>
+      <li><strong>fk_aluno INT, e fk_disciplina INT,:</strong> Criamos as colunas que receberão os IDs originais.</li>
+      <li><strong>nota_final...:</strong> Atributo próprio do relacionamento.</li>
+      <li><strong>PRIMARY KEY (fk_aluno, fk_disciplina),:</strong> Chave Primária Composta! A combinação do aluno com a disciplina é única, garantindo que o mesmo aluno não se matricule duas vezes na mesma matéria.</li>
+      <li><strong>FOREIGN KEY... REFERENCES...:</strong> Cria as duas restrições garantindo que o aluno exista e a disciplina também.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 4 · N:N</div>
+    <h2>F. Dinâmica - Code React</h2>
+    <div class="callout blue">
+      <div class="callout-title">Debate</div>
+      Vamos ver um código onde o desenvolvedor tentou criar uma coluna lista_de_disciplinas VARCHAR(500) dentro da tabela Aluno para resolver o N:N. Nós vamos debater por que isso é uma "gambiarra" perigosa e como isso destruiria o desempenho do sistema em poucos meses.
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>FAQ - Dúvidas Reais</h2>
+      <p>Perguntas Frequentes sobre Modelagem.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 5 · FAQ</div>
+    <h2>FAQ 01</h2>
+    <div class="faq-item">
+      <div class="faq-q">1. Qual a diferença prática entre o MER e o DER?</div>
+      <br><div class="faq-a">O MER é conceitual e focado nas regras de negócio (desenho voltado para o cliente e analista). Ο DER (Modelo Lógico) é técnico, voltado para o banco de dados, mostrando PKs, FKs e os tipos de dados precisos.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 5 · FAQ</div>
+    <h2>FAQ 02</h2>
+    <div class="faq-item">
+      <div class="faq-q">2. Posso ter mais de uma Chave Primária (PK) em uma tabela?</div>
+     <br><div class="faq-a">Não! Uma tabela só pode ter UMA chave primária. No entanto, como vimos no caso do N:N, essa única PK pode ser "composta" por duas ou mais colunas juntas.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 5 · FAQ</div>
+    <h2>FAQ 03</h2>
+    <div class="faq-item">
+      <div class="faq-q">3. Toda tabela no meu sistema precisa ter uma Chave Estrangeira (FK)?</div>
+      <br><div class="faq-a">Não. Tabelas de domínio independentes (como Categorias, Cargos ou Cidades) muitas vezes só possuem a Chave Primária e fornecem dados para que outras tabelas usem sua FK.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 5 · FAQ</div>
+    <h2>FAQ 04</h2>
+    <div class="faq-item">
+      <div class="faq-q">4. O que acontece se eu tentar apagar um registro de Cliente que já está atrelado a Pedidos (sendo FK)?</div>
+      <br><div class="faq-a">O SGBD vai bloquear a ação e lançar um erro de restrição de chave. Você precisará lidar com os pedidos primeiro (apagando-os ou inativando-os) antes de apagar o cliente, protegendo o banco contra "dados órfãos".</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 5 · FAQ</div>
+    <h2>FAQ 05</h2>
+    <div class="faq-item">
+      <div class="faq-q">5. Por que não posso deixar um relacionamento N:N direto no banco?</div>
+      <br><div class="faq-a">Porque bancos relacionais armazenam valores atômicos por coluna (apenas uma informação). Colocar múltiplos IDs em uma única célula impede o banco de fazer consultas eficientes e quebra as regras de Normalização.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>Exercícios de Fixação</h2>
+      <p>Atividades Práticas.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 6 · Exercícios</div>
+    <h2>Exercício 1</h2>
+    <div class="callout green">
+      <div class="callout-title">1. [Fácil] Título: Caça ao Tesouro das Chaves</div>
+      <strong>Descrição:</strong> Analise o diagrama da lousa que mostra as tabelas Departamento e Funcionario. Identifique claramente quem fornece a Chave Primária e quem a recebe como Chave Estrangeira.<br>
+      <br><strong>Entrega:</strong> Resposta escrita informando: "Tabela X possui a PK e Tabela Y possui a FK".
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 6 · Exercícios</div>
+    <h2>Exercício 2</h2>
+    <div class="callout green">
+      <div class="callout-title">2. [Médio] Título: Do Retângulo para a Tabela</div>
+      <strong>Descrição:</strong> Converta a entidade LIVRO (com atributos: ISBN [identificador principal], titulo, ano_publicacao, preco) para um código SQL válido usando CREATE TABLE.<br>
+      <br><strong>Entrega:</strong> O script SQL escrito no caderno ou editor de texto.
+    </div>
+  </div>
+
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 6 · Exercícios</div>
+    <h2>Exercício 3</h2>
+    <div class="callout green">
+      <div class="callout-title">3. [Médio] Título: O Elo Perdido (1:N)</div>
+      <strong>Descrição:</strong> Escreva o código SQL para criar a tabela EMPRESTIMO. Ela deve possuir sua própria PK e deve obrigatoriamente possuir uma Chave Estrangeira apontando para o ISBN da tabela Livro criada no exercício anterior.<br>
+      <br><strong>Entrega:</strong> O script SQL da tabela EMPRESTIMO contendo a cláusula FOREIGN KEY.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 6 · Exercícios</div>
+    <h2>Exercício 4</h2>
+    <div class="callout green">
+      <div class="callout-title">4. [Difícil] Título: O Construtor de Pontes (N:N)</div>
+      <strong>Descrição:</strong> Um MEDICO atende vários PACIENTES, e um PACIENTE é atendido por vários MEDICOS. O relacionamento possui um atributo: data_consulta. Crie o modelo lógico completo resolvendo este N:N.<br>
+      <br><strong>Entrega:</strong> O script SQL de 3 tabelas (Medico, Paciente e a Tabela Associativa) com PKs e FKs corretamente aplicadas.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 6 · Exercícios</div>
+    <h2>Exercício 5</h2>
+    <div class="callout green">
+      <div class="callout-title">5. [Difícil] Título: Engenharia Reversa (Soft Skill: Análise)</div>
+      <strong>Descrição:</strong> Recebam o script SQL impresso que cria um pequeno sistema de e-commerce. Lendo o código e prestando atenção nas chaves estrangeiras, desenhem no papel como seria o diagrama lógico dessas tabelas interligadas.<br>
+      <br><strong>Entrega:</strong> O diagrama (DER) desenhado mostrando as tabelas e os vínculos entre elas.
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <h2>Fechamento</h2>
+      <p>Conexão com a Situação de Aprendizagem.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 7 · Fechamento</div>
+    <h2>Conexão com a Situação de Aprendizagem</h2>
+    <p>Lembram que o MER é o passo principal para o nosso projeto prático? O documento que construímos antes guiará as tabelas do sistema.</p>
+    <p>Hoje vocês aprenderam as ferramentas exatas (PK, FK e tabelas associativas) que vão utilizar para transformar a modelagem de requisitos da nossa SA nos scripts SQL reais que criaremos na reta final do semestre.</p>
+    <p>É esse código que criará a base de dados da aplicação onde vocês farão as inserções, atualizações e relatórios.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Seção 7 · Fechamento</div>
+    <h2>Conexão com a Próxima Aula</h2>
+    <p>Na próxima aula, daremos um passo fundamental: vamos revisar o nosso Modelo Lógico sob a ótica da Normalização de Dados.</p>
+    <p>Vamos aprender a eliminar anomalias, dados repetitivos e dependências problemáticas, garantindo que o banco de dados de vocês atinja o nível de qualidade exigido pelo mercado profissional de tecnologia!</p>
+  </div>
+
+</div>
+
+<nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 53</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    let dx = e.changedTouches[0].clientX - touchX;
+    if (dx > 50) changeSlide(-1);
+    if (dx < -50) changeSlide(1);
+  });
+
+  // Inicializa a apresentação
+  showSlide(0);
+</script>
+
+</body>
+</html>
