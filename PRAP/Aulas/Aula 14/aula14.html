@@ -57,11 +57,11 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  h1 { font-family: 'Montserrat', sans-serif; font-size: 2.8rem; color: var(--ink); margin-bottom: 1rem; line-height: 1.2; }
-  h2 { font-family: 'Montserrat', sans-serif; font-size: 2rem; color: var(--ink-light); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
-  h3 { font-family: 'Montserrat', sans-serif; font-size: 1.4rem; color: var(--accent); margin: 1.5rem 0 1rem; }
-  p { font-size: 1.3rem; line-height: 1.6; margin-bottom: 1.2rem; color: #334; }
-  ul, ol { margin-left: 2rem; margin-bottom: 1.2rem; font-size: 1.3rem; line-height: 1.6; }
+  h1 { font-family: 'Montserrat', sans-serif; font-size: 3rem; color: var(--ink); margin-bottom: 1rem; line-height: 1.2; }
+  h2 { font-family: 'Montserrat', sans-serif; font-size: 2.5rem; color: var(--ink-light); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+  h3 { font-family: 'Montserrat', sans-serif; font-size: 2rem; color: var(--accent); margin: 1.5rem 0 1rem; }
+  p { font-size: 2rem; line-height: 1.6; margin-bottom: 1.2rem; color: #334; }
+  ul, ol { margin-left: 2rem; margin-bottom: 1.2rem; font-size: 1.7rem; line-height: 1.8; }
   li { margin-bottom: 0.5rem; }
 
   .slide-label {
@@ -85,7 +85,7 @@
 
   /* Callouts */
   .callout { padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 6px solid; }
-  .callout-title { font-weight: bold; margin-bottom: 0.5rem; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .callout-title { font-weight: bold; margin-bottom: 0.5rem; font-size: 2.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
   .callout.blue { background: #e3f2fd; border-color: #1e88e5; color: #0d47a1; }
   .callout.blue .callout-title { color: #1565c0; }
   .callout.green { background: #e8f5e9; border-color: #43a047; color: #1b5e20; }
@@ -96,7 +96,20 @@
   .callout.yellow .callout-title { color: #f57f17; }
 
   /* Code Blocks */
-  .code-block { background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 1.1rem; overflow-x: auto; margin-bottom: 1.5rem; border: 1px solid #333; line-height: 1.5; }
+  .code-block { 
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(1.5rem, 1.6vw, .88rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+    }
   
   /* Two Column */
   .two-col { display: flex; gap: 2rem; margin-bottom: 1.5rem; }
@@ -202,9 +215,14 @@
   <div class="slide-label">Diagrama</div>
   <h2>C. Visualizando</h2>
   <p>Vamos visualizar um fluxo lógico: temos um bloco verde representando a Class Produto (com atributos: id, nome, preco).</p>
-  <p>Uma seta grande aponta para a direita, indicando "Mapeamento DDL", levando até um bloco azul representando a Tabela tb_produto no banco de dados, com três colunas: id (PK, Integer), nome (Text, Not Null) e preco (Real). {ver img01.png}</p>
+  <p>Uma seta grande aponta para a direita, indicando "Mapeamento DDL", levando até um bloco azul representando a Tabela tb_produto no banco de dados, com três colunas: id (PK, Integer), nome (Text, Not Null) e preco (Real).</p>
 </div>
 
+<div class="slide">
+  <div class="slide-label">Diagrama</div>
+  <h2>C. Visualizando</h2>
+  img01.png
+  </div>
 <div class="slide">
   <div class="slide-label">Prática</div>
   <h2>D. Exemplo de Código</h2>
@@ -316,18 +334,14 @@ CREATE TABLE tb_produto (
 
 <div class="slide">
   <div class="slide-label">Fundamentos</div>
-  <h2>A. Conceito - Vulnerabilidade</h2>
+  <h2>A. Conceito - Vulnerabilidade e Tratamento</h2>
   <p>A conectividade com o banco de dados é um dos pontos mais vulneráveis de qualquer aplicação de software.</p>
   <p>Quando solicitamos uma conexão, estamos lidando com operações de Entrada e Saída (I/O) no disco ou na rede.</p>
   <p>O que acontece se o arquivo do banco estiver corrompido, bloqueado por outro processo ou se o servidor de rede cair? Para criar softwares de qualidade profissional, devemos prever e tratar esses cenários ativamente.</p>
-</div>
-
-<div class="slide">
-  <div class="slide-label">Fundamentos</div>
   <h2>A. Conceito - Tratamento</h2>
   <p>Para isso, empregamos os blocos de tratamento de exceção <strong>try/except</strong> na criação do nosso módulo conexao.py.</p>
   <p>O bloco <strong>try</strong> tenta executar a ação perigosa (a conexão), enquanto o <strong>except</strong> captura qualquer erro, impedindo que o Python encerre a aplicação abruptamente ("crash").</p>
-</div>
+  </div>
 
 <div class="slide">
   <div class="slide-label">Fundamentos</div>
@@ -353,9 +367,14 @@ CREATE TABLE tb_produto (
   <p>Vamos visualizar um Fluxograma de Decisão. No topo, o aplicativo solicita conectar().</p>
   <p>A seta vai para o bloco amarelo de Try: Iniciar Conexão. Dali, o fluxo se divide.</p>
   <p>Se der certo (Verdadeiro), a seta verde leva ao retorno do Objeto Conn. Se der erro (Falso), a seta vermelha cai no bloco laranja de Except: Capturar Erro, que envia a falha para o log do sistema e exibe "Tente novamente" para a interface.</p>
-  <p>{ver img02.png}</p>
 </div>
 
+<div class="slide">
+  <div class="slide-label">Diagrama</div>
+  <h2>C. Visualizando</h2>
+  img02.png
+  </div>
+  
 <div class="slide">
   <div class="slide-label">Prática</div>
   <h2>D. Exemplo de Código</h2>
@@ -412,11 +431,16 @@ if __name__ == '__main__':
 
 <div class="slide">
   <div class="slide-label">Dúvidas Reais</div>
-  <h2>FAQ - Parte 1</h2>
+  <h2>FAQ</h2>
   <div class="callout blue">
     <div class="callout-title">1. Qual a diferença entre INTEGER PRIMARY KEY e apenas INTEGER?</div>
     <p><strong>Resposta:</strong> O INTEGER PRIMARY KEY avisa ao banco que este campo será a "identidade" única do registro. Ele não só guarda um número, mas garante que não haverá duplicidade e cria um índice interno que torna buscas por este ID infinitamente mais rápidas.</p>
   </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Dúvidas Reais</div>
+  <h2>FAQ</h2>
   <div class="callout blue">
     <div class="callout-title">2. Por que usar IF NOT EXISTS na criação da tabela?</div>
     <p><strong>Resposta:</strong> Sem isso, ao rodar seu código pela segunda vez, o SQL tentaria criar uma tabela que já está lá, disparando um erro fatal e interrompendo o programa. É uma prática clássica de segurança preventiva.</p>
@@ -425,11 +449,16 @@ if __name__ == '__main__':
 
 <div class="slide">
   <div class="slide-label">Dúvidas Reais</div>
-  <h2>FAQ - Parte 2</h2>
+  <h2>FAQ - Parte</h2>
   <div class="callout blue">
     <div class="callout-title">3. O que acontece se o try/except não estiver no meu código de conexão?</div>
     <p><strong>Resposta:</strong> Se houver falha (arquivo em uso, sem permissão de leitura), o Python lançará um Traceback e o programa encerrará imediatamente (crash). O usuário perderá o que estava fazendo na tela.</p>
   </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Dúvidas Reais</div>
+  <h2>FAQ - Parte</h2>
   <div class="callout blue">
     <div class="callout-title">4. Onde devo salvar o arquivo conexao.py no meu projeto?</div>
     <p><strong>Resposta:</strong> Ele deve ficar separado do seu arquivo main.py e das telas HTML. Geralmente, colocamos ele numa pasta chamada database ou config. Isso organiza o projeto e aplica o princípio de "Responsabilidade Única".</p>
@@ -438,7 +467,7 @@ if __name__ == '__main__':
 
 <div class="slide">
   <div class="slide-label">Dúvidas Reais</div>
-  <h2>FAQ - Parte 3</h2>
+  <h2>FAQ - Parte</h2>
   <div class="callout blue">
     <div class="callout-title">5. Se eu usar uma IA para gerar meu DDL, devo me preocupar?</div>
     <p><strong>Resposta:</strong> Sim! As IAs generativas criam bons modelos, mas muitas vezes "esquecem" restrições importantes de negócio (como senhas que não podem ser nulas). Sempre revise o código, valide a estrutura (tipos de dados) e lembre-se de que a responsabilidade final pelo banco ético e íntegro é sua.</p>
@@ -464,12 +493,12 @@ if __name__ == '__main__':
   <div class="slide-label">Exercícios</div>
   <h2>Exercícios de Fixação - Médio (Parte 1)</h2>
   <div class="callout green">
-    <div class="callout-title">3. O Script de Mapeamento</div>
+    <div class="callout-title">03. O Script de Mapeamento</div>
     <p><strong>Descrição:</strong> Crie um script Python que executa o DDL elaborado no Exercício 2, salvando a tabela num arquivo chamado estoque.db.</p>
     <p><strong>Entrega:</strong> Arquivo setup_banco.py.</p>
   </div>
   <div class="callout green">
-    <div class="callout-title">4. Módulo de Conexão Base</div>
+    <div class="callout-title">04. Módulo de Conexão Base</div>
     <p><strong>Descrição:</strong> Crie o arquivo conexao.py usando o bloco try/except demonstrado na aula. Faça o sistema retornar a conexão.</p>
     <p><strong>Entrega:</strong> Arquivo conexao.py.</p>
   </div>
@@ -517,7 +546,7 @@ if __name__ == '__main__':
 
 <div class="slide">
   <div class="slide-label">Exercícios</div>
-  <h2>Exercícios de Fixação - Difícil (Parte 3)</h2>
+  <h2>Exercícios de Fixação - Muito Difícil</h2>
   <div class="callout green">
     <div class="callout-title">10. Recriando a Estrutura (DROP / CREATE)</div>
     <p><strong>Descrição:</strong> Crie um script chamado resetar_banco.py. Ele deve conectar no banco, tentar excluir uma tabela tb_usuario existente com o comando DROP TABLE IF EXISTS e logo em seguida executar o comando CREATE TABLE com novos atributos inseridos por você.</p>
