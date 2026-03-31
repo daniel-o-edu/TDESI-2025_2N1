@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 14 - Conectividade e Mapeamento Objeto-Relacional (ORM)</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d2a4a;
+    --ink-light: #1e4976;
+    --accent: #1565c0;
+    --accent2: #1976d2;
+    --accent3: #0288d1;
+    --bg: #e8f0fe;
+    --surface: #ffffff;
+    --border: #b3cde8;
+    --code-bg: #eaf2fb;
+    --tag-bg: #dceefb;
+    --tag-border: #1976d2;
+    --slide-max: 100%;
+    --slide-title-max: 90%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #c5d8f0;
+    color: var(--ink);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0; height: 6px;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+    z-index: 100;
+  }
+
+  .slide {
+    display: none;
+    height: calc(100vh - 60px);
+    padding: 3rem 4rem;
+    background: var(--surface);
+    overflow-y: auto;
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+
+  .slide.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h1 { font-family: 'Montserrat', sans-serif; font-size: 2.8rem; color: var(--ink); margin-bottom: 1rem; line-height: 1.2; }
+  h2 { font-family: 'Montserrat', sans-serif; font-size: 2rem; color: var(--ink-light); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+  h3 { font-family: 'Montserrat', sans-serif; font-size: 1.4rem; color: var(--accent); margin: 1.5rem 0 1rem; }
+  p { font-size: 1.3rem; line-height: 1.6; margin-bottom: 1.2rem; color: #334; }
+  ul, ol { margin-left: 2rem; margin-bottom: 1.2rem; font-size: 1.3rem; line-height: 1.6; }
+  li { margin-bottom: 0.5rem; }
+
+  .slide-label {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+  }
+
+  /* Cover Slide */
+  .cover-desc { font-size: 1.4rem; border-left: 4px solid var(--accent); padding-left: 1rem; color: var(--ink-light); }
+  .divider { border: 0; height: 1px; background: var(--border); margin: 2rem 0; }
+  .topics-grid { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 2rem; }
+  .topic-chip { background: var(--tag-bg); border: 1px solid var(--tag-border); padding: 0.5rem 1rem; border-radius: 20px; font-size: 1.1rem; color: var(--ink); font-weight: 500; }
+
+  /* Callouts */
+  .callout { padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 6px solid; }
+  .callout-title { font-weight: bold; margin-bottom: 0.5rem; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .callout.blue { background: #e3f2fd; border-color: #1e88e5; color: #0d47a1; }
+  .callout.blue .callout-title { color: #1565c0; }
+  .callout.green { background: #e8f5e9; border-color: #43a047; color: #1b5e20; }
+  .callout.green .callout-title { color: #2e7d32; }
+  .callout.red { background: #ffebee; border-color: #e53935; color: #b71c1c; }
+  .callout.red .callout-title { color: #c62828; }
+  .callout.yellow { background: #fff8e1; border-color: #ffb300; color: #f57f17; }
+  .callout.yellow .callout-title { color: #f57f17; }
+
+  /* Code Blocks */
+  .code-block { background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 6px; font-family: 'Source Code Pro', monospace; font-size: 1.1rem; overflow-x: auto; margin-bottom: 1.5rem; border: 1px solid #333; line-height: 1.5; }
+  
+  /* Two Column */
+  .two-col { display: flex; gap: 2rem; margin-bottom: 1.5rem; }
+  .col-card { flex: 1; background: #f8faff; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); }
+
+  /* Section Header */
+  .section-header { display: flex; align-items: center; justify-content: center; flex-direction: column; height: 100%; text-align: center; }
+  .section-num { font-size: 5rem; font-weight: 900; color: var(--accent); opacity: 0.2; margin-bottom: -1rem; }
+  .section-header h2 { font-size: 3rem; border: none; padding: 0; margin-bottom: 1rem; }
+
+  /* Navigation */
+  nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: white; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+  nav button { padding: 0.6rem 1.2rem; font-size: 1.1rem; border: none; background: var(--accent); color: white; border-radius: 4px; cursor: pointer; font-weight: 500; transition: background 0.2s; }
+  nav button:hover:not(:disabled) { background: var(--accent2); }
+  nav button:disabled { background: #ccc; cursor: not-allowed; }
+  #slide-counter { font-weight: 600; color: var(--ink-light); font-size: 1.1rem; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<div class="slide active">
+  <div class="slide-label">Aula 14</div>
+  <h1>Conectividade e Mapeamento Objeto-Relacional (ORM)</h1>
+  <p class="cover-desc">
+    Descrição: Esta aula foca na criação da estrutura do banco (DDL) e no módulo de conexão robusto. Criação de tabelas (CREATE TABLE) com restrições (PRIMARY KEY, NOT NULL) que espelham os atributos das classes. Desenvolvimento do módulo conexao.py utilizando try/except para capturar falhas de rede ou arquivo. Mapear a classe principal do projeto para uma tabela SQL e garantir que o script de conexão retorne um objeto de conexão ativo ou uma mensagem de erro amigável.
+  </p>
+  <hr class="divider">
+  <h3>Tópicos desta aula</h3>
+  <div class="topics-grid">
+    <div class="topic-chip">Mapeamento DDL</div>
+    <div class="topic-chip">Conexão Robusta</div>
+    <div class="topic-chip">Try/Except</div>
+    <div class="topic-chip">Resiliência</div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Contexto</div>
+  <h2>O Mundo Real</h2>
+  <div class="callout yellow">
+    <div class="callout-title">Cenário Real</div>
+    <p>Em qualquer aplicação de mercado, desde o sistema da padaria do bairro até gigantes como a Netflix, os dados não podem simplesmente "desaparecer" quando o computador é desligado. No mundo do desenvolvimento de software, os objetos que vivem na memória RAM do Python precisam encontrar um "lar permanente" no disco rígido.</p>
+    <p>Esse processo exige uma ponte confiável e uma estrutura bem definida para organizar as informações, transformando a lógica orientada a objetos em tabelas relacionais eficientes e seguras.</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Contexto</div>
+  <h2>Provocação Inicial</h2>
+  <div class="callout red">
+    <div class="callout-title">Pergunta</div>
+    <p>Se o servidor do nosso aplicativo travar e fechar repentinamente agora, para onde vão os dados dos clientes que acabaram de ser digitados?</p>
+    <p>Como garantimos que nossa aplicação consiga "conversar" com o banco de dados sem quebrar na primeira falha de rede?</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <h2>Mapeamento Objeto-Relacional (DDL) e Criação de Tabelas</h2>
+    <p>Compreendendo a conversão de objetos em registros</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Fundamentos</div>
+  <h2>A. Conceito</h2>
+  <p>O Mapeamento Objeto-Relacional (conhecido pelas iniciais ORM, do inglês Object-Relational Mapping) é a técnica que utilizamos para converter a estrutura rica de nossas classes em Python para a estrutura tabular de um banco de dados relacional.</p>
+  <p>Por que fazemos isso? Porque a memória do computador é volátil, e os bancos de dados são os cofres onde nossas informações residem perpetuamente.</p>
+  <p>Sem esse mapeamento cuidadoso, um objeto "Cliente" complexo perderia seus dados e seu significado ao longo do tempo.</p>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Fundamentos</div>
+  <h2>A. Conceito - Implementação</h2>
+  <p>Como implementamos essa estrutura inicial? Utilizamos os comandos DDL (Data Definition Language) da linguagem SQL, especificamente a instrução <strong>CREATE TABLE</strong>.</p>
+  <p>É nesse momento que definimos as colunas que espelharão os atributos da nossa classe.</p>
+  <p>Mais do que apenas criar o espaço, aplicamos regras rígidas (restrições) como <strong>PRIMARY KEY</strong> para garantir que cada registro seja único e <strong>NOT NULL</strong> para impedir que informações essenciais fiquem em branco.</p>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Fundamentos</div>
+  <h2>A. Conceito - Boas Práticas</h2>
+  <p>Tecnicamente, essa etapa exige um planejamento (design) sólido. O tipo de dado no Python, como uma string ou um int, deve corresponder aos tipos do banco, como TEXT ou INTEGER.</p>
+  <p>É essencial garantir a integridade dos dados desde o primeiro momento, aplicando boas práticas de Engenharia de Software.</p>
+  <p>Um banco mal planejado nesta etapa inicial custará caro em performance e na manutenção do código legado futuramente.</p>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Analogia</div>
+  <h2>B. Explicação didática</h2>
+  <div class="callout blue">
+    <div class="callout-title">Explicação</div>
+    <p>Imaginem que a nossa Classe em Python é um molde 3D detalhado para fabricar um boneco de ação. A tabela no banco de dados, por outro lado, é um grande armário cheio de gavetas etiquetadas, projetado sob medida para guardar esses bonecos sem amassar nenhum.</p>
+    <p>Cada atributo do molde (tamanho, cor, acessório) precisa de um compartimento específico com o tamanho exato na gaveta (a coluna no banco).</p>
+    <p>O Mapeamento é justamente o projeto de marcenaria que cria essa gaveta sob medida.</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Diagrama</div>
+  <h2>C. Visualizando</h2>
+  <p>Vamos visualizar um fluxo lógico: temos um bloco verde representando a Class Produto (com atributos: id, nome, preco).</p>
+  <p>Uma seta grande aponta para a direita, indicando "Mapeamento DDL", levando até um bloco azul representando a Tabela tb_produto no banco de dados, com três colunas: id (PK, Integer), nome (Text, Not Null) e preco (Real). {ver img01.png}</p>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Prática</div>
+  <h2>D. Exemplo de Código</h2>
+  <div class="code-block">
+import sqlite3
+
+def criar_tabela_produto():
+    # Conectando ao banco (cria o arquivo se não existir)
+    conn = sqlite3.connect('banco_app.db')
+    cursor = conn.cursor()
+    
+    # Executando o DDL para mapear a classe Produto
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS tb_produto (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        preco REAL NOT NULL
+    )
+    """)
+    
+    #Confirmando e fechando
+    conn.commit()
+    conn.close()
+    print("Tabela 'tb_produto' mapeada e criada com sucesso!")
+
+# Executando a função
+criar_tabela_produto()
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Análise de Código</div>
+  <h2>E. Explicação linha por linha (Parte 1)</h2>
+  <ul>
+    <li><strong>import sqlite3:</strong> Importamos a biblioteca nativa do Python para interagir com o banco de dados SQLite.</li>
+    <li><strong>def criar_tabela_produto():</strong> Definimos uma função que isola a lógica de criação da nossa estrutura.</li>
+    <li><strong>conn = sqlite3.connect('banco_app.db'):</strong> Estabelecemos a ponte com o banco. Se o arquivo banco_app.db não existir, ele é criado nesta linha.</li>
+    <li><strong>cursor = conn.cursor():</strong> O cursor é o nosso "carteiro" que levará as ordens em SQL do Python para o banco de dados.</li>
+    <li><strong>cursor.execute('''...'''):</strong> Abrimos um bloco de texto multilinha para escrever nossa instrução SQL de forma legível.</li>
+  </ul>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Análise de Código</div>
+  <h2>E. Explicação linha por linha (Parte 2)</h2>
+  <ul>
+    <li><strong>CREATE TABLE IF NOT EXISTS tb_produto (:</strong> Instrução DDL que só cria a tabela se ela ainda não existir, prevenindo erros em execuções repetidas.</li>
+    <li><strong>id INTEGER PRIMARY KEY AUTOINCREMENT,:</strong> Define o ID como número inteiro, chave primária (único) e autoincremental (o banco gerencia o número).</li>
+    <li><strong>nome TEXT NOT NULL,:</strong> Define a coluna nome como texto, com a regra de que não pode ficar vazia.</li>
+    <li><strong>preco REAL NOT NULL:</strong> Define o preço como número decimal (ponto flutuante).</li>
+    <li><strong>conn.commit():</strong> Salva permanentemente as mudanças (a criação da tabela) no banco de dados.</li>
+    <li><strong>conn.close():</strong> Fecha a conexão de forma limpa, liberando o arquivo do banco para outros processos.</li>
+  </ul>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Atividade Guiada</div>
+  <h2>F. Desafio Relâmpago: "O Mapeador de Dados"</h2>
+  <div class="callout green">
+    <div class="callout-title">Exercício ou Tarefa</div>
+    <p><strong>Objetivo:</strong> Corrigir a sintaxe e as restrições de integridade para transformar uma Classe de Software em uma Tabela de Banco de Dados funcional.</p>
+    <p><strong>O Cenário:</strong> Vocês receberam o diagrama lógico que mapeia a Classe Produto para a tabela tb_produto. No entanto, o script enviado ao terminal está "sujo" - faltam separadores e regras de obrigatoriedade.</p>
+    <p><strong>O Código Corrompido:</strong> Copie o código abaixo e resolva os erros lógicos e de sintaxe:</p>
+  </div>
+  <div class="code-block">
+DESAFIO: Corrija o script abaixo
+CREATE TABLE tb_produto (
+    id INTEGER PRIMARY KEY
+    nome TEXT
+    preco REAL
+)
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Atividade Guiada</div>
+  <h2>Missões e Regras</h2>
+  <div class="callout green">
+    <div class="callout-title">Instruções</div>
+    <p><strong>Suas Missões:</strong></p>
+    <ol>
+      <li>Sintaxe: Adicione as vírgulas necessárias para separar as colunas.</li>
+      <li>Regra de Negócio: Aplique a restrição NOT NULL na coluna correta.</li>
+      <li>Execução: Rode o script no seu ambiente.</li>
+    </ol>
+    <p><strong>Regras do Jogo:</strong></p>
+    <ul>
+      <li>Tempo Limite: 5 minutos.</li>
+      <li>Critério de Vitória: O primeiro participante a enviar o print do terminal com a mensagem "Table created" ou o comando SELECT na tabela vazia ganha os pontos.</li>
+    </ul>
+    <p><strong>Dica de Ouro:</strong> Fique atento aos parênteses e à ordem das palavras-chave!</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Reflexão</div>
+  <h2>Por que isso importa?</h2>
+  <p>No mundo real, o Mapeamento Objeto-Relacional (ORM) faz muito disso automaticamente, mas entender o que acontece "sob o capô" é o que diferencia um desenvolvedor de um apertador de botões.</p>
+  <p>Erros de vírgula e falta de NOT NULL são as causas #1 de falhas em migrações de banco de dados.</p>
+</div>
+
+<div class="slide">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <h2>Conexão Robusta com Banco de Dados (Try/Except)</h2>
+    <p>Garantindo resiliência e integridade na comunicação com o banco</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Fundamentos</div>
+  <h2>A. Conceito - Vulnerabilidade</h2>
+  <p>A conectividade com o banco de dados é um dos pontos mais vulneráveis de qualquer aplicação de software.</p>
+  <p>Quando solicitamos uma conexão, estamos lidando com operações de Entrada e Saída (I/O) no disco ou na rede.</p>
+  <p>O que acontece se o arquivo do banco estiver corrompido, bloqueado por outro processo ou se o servidor de rede cair? Para criar softwares de qualidade profissional, devemos prever e tratar esses cenários ativamente.</p>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Fundamentos</div>
+  <h2>A. Conceito - Tratamento</h2>
+  <p>Para isso, empregamos os blocos de tratamento de exceção <strong>try/except</strong> na criação do nosso módulo conexao.py.</p>
+  <p>O bloco <strong>try</strong> tenta executar a ação perigosa (a conexão), enquanto o <strong>except</strong> captura qualquer erro, impedindo que o Python encerre a aplicação abruptamente ("crash").</p>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Fundamentos</div>
+  <h2>A. Conceito - Objetivo e Ética</h2>
+  <p>O objetivo é garantir que a função retorne o objeto da conexão se tiver sucesso, ou devolva um erro amigável, permitindo que o sistema tome uma decisão técnica (como tentar novamente ou alertar o usuário).</p>
+  <p>Profissionais de desenvolvimento sabem que confiar cegamente no "caminho feliz" é uma falha de design grave.</p>
+  <p>Implementar módulos robustos não é apenas sobre o código funcionar na nossa máquina; é garantir resiliência, integridade e manter um comportamento ético em relação à experiência do usuário, que nunca deve se deparar com telas travadas com mensagens de erros sistêmicos indecifráveis.</p>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Analogia</div>
+  <h2>B. Explicação didática</h2>
+  <div class="callout blue">
+    <div class="callout-title">Explicação</div>
+    <p>Fazer uma conexão com o banco de dados é igual a ligar para uma pessoa no celular. Às vezes a ligação completa perfeitamente (o caminho feliz). Mas, e se o celular dela estiver sem sinal, ou se a linha estiver ocupada?</p>
+    <p>Usar o try/except é como colocar a chamada no viva-voz e, caso caia direto na caixa postal (erro), você diz amigavelmente: "Poxa, a linha caiu, tento novamente mais tarde", em vez de simplesmente jogar seu celular na parede de frustração (o aplicativo travando).</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Fluxograma</div>
+  <h2>C. Visualizando</h2>
+  <p>Vamos visualizar um Fluxograma de Decisão. No topo, o aplicativo solicita conectar().</p>
+  <p>A seta vai para o bloco amarelo de Try: Iniciar Conexão. Dali, o fluxo se divide.</p>
+  <p>Se der certo (Verdadeiro), a seta verde leva ao retorno do Objeto Conn. Se der erro (Falso), a seta vermelha cai no bloco laranja de Except: Capturar Erro, que envia a falha para o log do sistema e exibe "Tente novamente" para a interface.</p>
+  <p>{ver img02.png}</p>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Prática</div>
+  <h2>D. Exemplo de Código</h2>
+  <div class="code-block">
+import sqlite3
+from sqlite3 import Error
+
+def criar_conexao(caminho_banco):
+    """Cria uma conexão robusta com o banco SQLite"""
+    conexao = None
+    try:
+        # Tenta estabelecer a ponte com o banco
+        conexao = sqlite3.connect(caminho_banco)
+        print("Conexão com SQLite estabelecida com sucesso!")
+        return conexao
+    except Error as e:
+        # Captura o erro específico do SQLite sem travar o app
+        print(f"Erro ao conectar ao banco de dados: {e}")
+        print("Verifique se o diretório existe ou se o arquivo está bloqueado.")
+        return None
+
+#Testando a robustez do módulo
+if __name__ == '__main__':
+    conn = criar_conexao(r"C:\caminho_impossivel\banco.db")
+    if not conn:
+        print("Iniciando modo offline da aplicação...")
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Análise de Código</div>
+  <h2>E. Explicação linha por linha (Parte 1)</h2>
+  <ul>
+    <li><strong>from sqlite3 import Error:</strong> Importamos a classe de erro específica do SQLite, permitindo tratar problemas de banco de dados diretamente.</li>
+    <li><strong>def criar_conexao(caminho_banco):</strong> Função que recebe o nome/caminho do arquivo do banco e tenta conectar.</li>
+    <li><strong>conexao = None:</strong> Inicializamos a variável vazia para garantir que ela exista mesmo se o código falhar antes de conectá-la.</li>
+    <li><strong>try::</strong> Abrimos o bloco de proteção. Tudo aqui dentro é "área de risco monitorada".</li>
+    <li><strong>conexao = sqlite3.connect(caminho_banco):</strong> Tentativa real de criar o arquivo ou abrir o banco.</li>
+  </ul>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Análise de Código</div>
+  <h2>E. Explicação linha por linha (Parte 2)</h2>
+  <ul>
+    <li><strong>return conexao:</strong> Retorna a ponte de acesso funcional para ser usada pelo resto do aplicativo.</li>
+    <li><strong>except Error as e::</strong> Se a linha do connect gerar falha, o fluxo pula para cá instantaneamente. A variável e guarda o motivo do erro.</li>
+    <li><strong>print(f"Erro... {e}"):</strong> Mostramos uma mensagem amigável no log junto com o detalhe técnico de forma controlada.</li>
+    <li><strong>return None:</strong> Retornamos "Nulo", avisando a quem chamou a função que não há conexão disponível.</li>
+    <li><strong>if __name__ == '__main__'::</strong> Trecho para testes locais.</li>
+    <li><strong>conn = criar_conexao(...):</strong> Provocamos intencionalmente um erro passando um caminho de pasta impossível para ver a resiliência em ação.</li>
+  </ul>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Dúvidas Reais</div>
+  <h2>FAQ - Parte 1</h2>
+  <div class="callout blue">
+    <div class="callout-title">1. Qual a diferença entre INTEGER PRIMARY KEY e apenas INTEGER?</div>
+    <p><strong>Resposta:</strong> O INTEGER PRIMARY KEY avisa ao banco que este campo será a "identidade" única do registro. Ele não só guarda um número, mas garante que não haverá duplicidade e cria um índice interno que torna buscas por este ID infinitamente mais rápidas.</p>
+  </div>
+  <div class="callout blue">
+    <div class="callout-title">2. Por que usar IF NOT EXISTS na criação da tabela?</div>
+    <p><strong>Resposta:</strong> Sem isso, ao rodar seu código pela segunda vez, o SQL tentaria criar uma tabela que já está lá, disparando um erro fatal e interrompendo o programa. É uma prática clássica de segurança preventiva.</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Dúvidas Reais</div>
+  <h2>FAQ - Parte 2</h2>
+  <div class="callout blue">
+    <div class="callout-title">3. O que acontece se o try/except não estiver no meu código de conexão?</div>
+    <p><strong>Resposta:</strong> Se houver falha (arquivo em uso, sem permissão de leitura), o Python lançará um Traceback e o programa encerrará imediatamente (crash). O usuário perderá o que estava fazendo na tela.</p>
+  </div>
+  <div class="callout blue">
+    <div class="callout-title">4. Onde devo salvar o arquivo conexao.py no meu projeto?</div>
+    <p><strong>Resposta:</strong> Ele deve ficar separado do seu arquivo main.py e das telas HTML. Geralmente, colocamos ele numa pasta chamada database ou config. Isso organiza o projeto e aplica o princípio de "Responsabilidade Única".</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Dúvidas Reais</div>
+  <h2>FAQ - Parte 3</h2>
+  <div class="callout blue">
+    <div class="callout-title">5. Se eu usar uma IA para gerar meu DDL, devo me preocupar?</div>
+    <p><strong>Resposta:</strong> Sim! As IAs generativas criam bons modelos, mas muitas vezes "esquecem" restrições importantes de negócio (como senhas que não podem ser nulas). Sempre revise o código, valide a estrutura (tipos de dados) e lembre-se de que a responsabilidade final pelo banco ético e íntegro é sua.</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Exercícios</div>
+  <h2>Exercícios de Fixação - Fácil</h2>
+  <div class="callout green">
+    <div class="callout-title">01. Moldando o Objeto</div>
+    <p><strong>Descrição:</strong> Liste 4 atributos comuns para uma classe Cliente em Python e escreva ao lado qual seria o Tipo de Dado correspondente em SQL (ex: TEXT, INTEGER, REAL).</p>
+    <p><strong>Entrega:</strong> Texto simples ou rascunho em papel.</p>
+  </div>
+  <div class="callout green">
+    <div class="callout-title">02. O DDL Inicial</div>
+    <p><strong>Descrição:</strong> Escreva manualmente a instrução SQL CREATE TABLE para uma tabela chamada tb_categoria contendo um id e a descricao da categoria.</p>
+    <p><strong>Entrega:</strong> Script SQL no formato texto (.sql).</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Exercícios</div>
+  <h2>Exercícios de Fixação - Médio (Parte 1)</h2>
+  <div class="callout green">
+    <div class="callout-title">3. O Script de Mapeamento</div>
+    <p><strong>Descrição:</strong> Crie um script Python que executa o DDL elaborado no Exercício 2, salvando a tabela num arquivo chamado estoque.db.</p>
+    <p><strong>Entrega:</strong> Arquivo setup_banco.py.</p>
+  </div>
+  <div class="callout green">
+    <div class="callout-title">4. Módulo de Conexão Base</div>
+    <p><strong>Descrição:</strong> Crie o arquivo conexao.py usando o bloco try/except demonstrado na aula. Faça o sistema retornar a conexão.</p>
+    <p><strong>Entrega:</strong> Arquivo conexao.py.</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Exercícios</div>
+  <h2>Exercícios de Fixação - Médio (Parte 2)</h2>
+  <div class="callout green">
+    <div class="callout-title">5. Tratamento Customizado</div>
+    <p><strong>Descrição:</strong> Altere o seu conexao.py para que, no bloco except, além de dar o print do erro, ele grave essa string de erro dentro de um arquivo .txt chamado erros_log.txt.</p>
+    <p><strong>Entrega:</strong> Arquivo conexao.py atualizado com sistema básico de log.</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Exercícios</div>
+  <h2>Exercícios de Fixação - Difícil (Parte 1)</h2>
+  <div class="callout green">
+    <div class="callout-title">6. Conexão Dinâmica</div>
+    <p><strong>Descrição:</strong> Modifique a função criar_conexao para receber não apenas o caminho do banco, mas devolver uma tupla contendo (Status, Conexao). Ex: (True, &lt;sqlite3.Connection&gt;) ou (False, Mensagem_de_Erro).</p>
+    <p><strong>Entrega:</strong> Arquivo Python com a nova função validada no terminal.</p>
+  </div>
+  <div class="callout green">
+    <div class="callout-title">7. Fábrica de Tabelas</div>
+    <p><strong>Descrição:</strong> Crie uma função executar_ddl(conexao, query_sql) no arquivo de conexão. Essa função deve receber o objeto de conexão, e tentar executar o CREATE TABLE de qualquer query passada, também usando try/except.</p>
+    <p><strong>Entrega:</strong> Arquivo modular contendo a nova função e seu tratamento de erro.</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Exercícios</div>
+  <h2>Exercícios de Fixação - Difícil (Parte 2)</h2>
+  <div class="callout green">
+    <div class="callout-title">8. Mapeamento Completo de Entidades</div>
+    <p><strong>Descrição:</strong> Crie duas tabelas relacionalmente ligadas via Python: tb_autor (id, nome) e tb_livro (id, titulo, id_autor). Defina a chave primária e a chave estrangeira (FOREIGN KEY) no seu script de DDL.</p>
+    <p><strong>Entrega:</strong> Script modelagem.py executável sem erros.</p>
+  </div>
+  <div class="callout green">
+    <div class="callout-title">9. O Teste de Resiliência</div>
+    <p><strong>Descrição:</strong> Importe seu módulo conexao.py em outro arquivo. Faça um loop de 10 tentativas simulando abrir o banco. Na tentativa número 5, force intencionalmente uma falha (alterando a variável do caminho). O programa NÃO pode "crashar", deve apenas imprimir o erro e continuar o loop.</p>
+    <p><strong>Entrega:</strong> Script de teste comprovando a resiliência do sistema.</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Exercícios</div>
+  <h2>Exercícios de Fixação - Difícil (Parte 3)</h2>
+  <div class="callout green">
+    <div class="callout-title">10. Recriando a Estrutura (DROP / CREATE)</div>
+    <p><strong>Descrição:</strong> Crie um script chamado resetar_banco.py. Ele deve conectar no banco, tentar excluir uma tabela tb_usuario existente com o comando DROP TABLE IF EXISTS e logo em seguida executar o comando CREATE TABLE com novos atributos inseridos por você.</p>
+    <p><strong>Entrega:</strong> Arquivo resetar_banco.py com o fluxo completo e seguro (try/except para o drop e para o create).</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Conclusão</div>
+  <h2>Fechamento</h2>
+  <div class="callout blue">
+    <div class="callout-title">Conexão com a Situação de Aprendizagem:</div>
+    <p>Todo esse esforço de modularização e estruturação não é atoa. O módulo conexao.py que construímos hoje será literalmente o "coração" da sua Situação de Aprendizagem.</p>
+    <p>Quando formos criar os endpoints da API ou as telas HTML, nós iremos simplesmente invocar criar_conexao() em todas as páginas, abstraindo totalmente a complexidade.</p>
+    <p>Não haverá mais dados sumindo quando fecharmos o VS Code, porque agora temos as fundações do nosso Mapeamento Relacional!</p>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-label">Próximos Passos</div>
+  <h2>Próxima Aula</h2>
+  <div class="callout blue">
+    <div class="callout-title">Conexão com a Próxima Aula:</div>
+    <p>Na nossa próxima aula, vamos dar vida a essas estruturas. O banco está criado, mas as tabelas estão vazias!</p>
+    <p>Vamos avançar para o "Persistência de Dados e Operações CRUD". Aprenderemos como injetar os dados digitados na tela da nossa aplicação para dentro dessas colunas usando INSERT, e aprender a buscar essas informações com o comando SELECT.</p>
+    <p>Preparem seus scripts de conexão, pois vamos usar muito!</p>
+  </div>
+</div>
+
+<nav>
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 35</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+</script>
+
+</body>
+</html>
