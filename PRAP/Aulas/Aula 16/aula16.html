@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 16 - Testes de Persistência e Rastreabilidade</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d2a4a;
+    --ink-light: #1e4976;
+    --accent: #1565c0;
+    --accent2: #1976d2;
+    --accent3: #0288d1;
+    --bg: #e8f0fe;
+    --surface: #ffffff;
+    --border: #b3cde8;
+    --code-bg: #eaf2fb;
+    --tag-bg: #dceefb;
+    --tag-border: #1976d2;
+    --slide-max: 100%;
+    --slide-title-max: 90%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #c5d8f0;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── IMAGENS DE FUNDO ── */
+  .slide-cover {
+    background-image: url('https://i.ibb.co/fzwwYWW6/img-frente01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.82);
+    border-radius: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-cover > * { position: relative; z-index: 1; }
+
+  .slide-section {
+    background-image: url('https://i.ibb.co/1tBjw9p9/img-tit01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.80);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-section > * { position: relative; z-index: 1; }
+
+  .slide-common {
+    background-image: url('https://i.ibb.co/m1J6vPd/img-frente02.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-common::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.88);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-common > * { position: relative; z-index: 1; }
+
+  /* ── NAV ── */
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(13,42,74,.28);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.12); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* ── PROGRESS ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent2);
+    transition: width .3s ease;
+  }
+
+  /* ── SLIDE WRAPPER ── */
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── SLIDES GENÉRICOS ── */
+  .slide {
+    display: none;
+    width: var(--slide-max);
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 4px 32px rgba(13,42,74,.12);
+    padding: 7vh 8vw;
+    animation: fadeIn .3s ease;
+    margin: 0 auto;
+  }
+  .slide.active { display: block; }
+
+  .slide.slide-section,
+  .slide.slide-cover {
+    width: var(--slide-title-max);
+    max-width: var(--slide-title-max);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent2);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(1.5rem, 2vw, 1.5rem);
+    line-height: 1.75;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul, .slide ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  .slide li {
+    font-size: clamp(1.5rem, 2vw, 1.2rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .slide li strong { color: var(--ink); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── COVER ── */
+  .cover-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(1.2rem, 1.6vw, 1rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: clamp(1.7rem, 2vw, 1.5rem);
+    line-height: 1.7;
+  }
+  .callout.blue {
+    background: #dceefb;
+    border-left: 4px solid var(--accent2);
+    color: var(--ink);
+  }
+  .callout.green {
+    background: #e1f5e8;
+    border-left: 4px solid #2e7d32;
+    color: #1a3a28;
+  }
+  .callout.red {
+    background: #e3f0fb;
+    border-left: 4px solid var(--accent);
+    color: var(--ink);
+  }
+  .callout.yellow {
+    background: #e8f4fd;
+    border-left: 4px solid var(--accent3);
+    color: var(--ink);
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-family: 'Roboto', sans-serif;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+
+  /* ── TWO COLUMN ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  .col-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .col-card h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(1.5rem, 1.8vw, 1.5rem);
+  }
+  thead th {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: .85rem;
+    letter-spacing: .04em;
+  }
+  tbody tr:nth-child(even) { background: var(--code-bg); }
+  tbody tr:hover { background: #d0e8f8; }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-light);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  tbody td strong { color: var(--ink); }
+
+  /* ── FAQ ── */
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .faq-q {
+    background: var(--code-bg);
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: clamp(4rem, 2vw, 1.5rem);
+    color: var(--ink);
+    border-left: 4px solid var(--accent2);
+  }
+  .faq-a {
+    padding: 12px 18px;
+    font-size: clamp(3rem, 1.9vw, 1.5rem);
+    color: var(--ink-light);
+    line-height: 1.7;
+    background: var(--surface);
+  }
+
+  /* ── NUMBERED STEPS ── */
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    background: var(--accent2);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: .9rem;
+    font-family: 'Source Code Pro', monospace;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body p { margin: 0; }
+
+  /* ── SECTION HEADER SLIDES ── */
+  .section-header {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .section-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    color: #b3cde8;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .section-header h2 {
+    border: none;
+    padding: 0;
+    text-align: center;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: var(--ink);
+  }
+  .section-header p {
+    max-width: 560px;
+    margin: 16px auto 0;
+    text-align: center;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .slide { padding: 28px 22px 36px; width: 97%; max-width: 97%; }
+    .slide.slide-section, .slide.slide-cover { width: 97%; max-width: 97%; }
+    #nav button { padding: 0 14px; font-size: .9rem; }
+  }
+  @media (max-width: 400px) {
+    .slide { padding: 20px 14px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<div id="stage">
+
+  <div class="slide slide-cover active">
+    <div class="slide-label">Aula 16</div>
+    <h1>Testes de Persistência e Rastreabilidade</h1>
+    <p class="cover-desc">Descrição: Focando em garantir que o Back-End está 100% confiável antes de iniciar a interface Web. Aplica-se a competência de Teste Unitário e Depuração. Uso do módulo unittest para validar as operações do DAO. Rastreabilidade de código: identificar onde os dados se perdem entre o objeto Python e a linha da tabela SQL. Criação do arquivo test_dao.py.</p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Teste Unitário</div>
+      <div class="topic-chip">Depuração</div>
+      <div class="topic-chip">Módulo unittest</div>
+      <div class="topic-chip">Padrão DAO</div>
+      <div class="topic-chip">Rastreabilidade</div>
+    </div>
+    <div class="cover-meta">
+      <span>Aula 16</span>
+      <span>Back-End First</span>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Abertura</div>
+    <h2>Cenário Real:</h2>
+    <p>Pense no aplicativo do seu banco. Se houver uma falha de comunicação entre o aplicativo no seu celular (Front-End) e os servidores do banco (Back-End), o máximo que acontece é um erro na tela.</p>
+    <p>Mas, se houver uma falha silenciosa na camada de persistência de dados do Back-End onde o objeto que representa o seu depósito de R$ 500 não for gravado corretamente na tabela física do banco de dados, o dinheiro simplesmente desaparece.</p>
+    <p>No mercado de desenvolvimento atual, adotamos a abordagem "Back-End First". Isso significa que não construímos nenhuma tela ou interface sem antes provarmos tecnicamente que nossos dados estão salvos e rastreáveis.</p>
+    <p>Hoje, as IAs Generativas podem nos ajudar a gerar estruturas de testes rapidamente, mas exige-se ética e responsabilidade do desenvolvedor (Soft Skill) para revisar criticamente cada linha de asserção, garantindo que a IA não gere falsos positivos que escondam bugs perigosos.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Abertura</div>
+    <h2>Pergunta:</h2>
+    <div class="callout yellow">
+      <div class="callout-title">Pergunta Desafiadora</div>
+      Você confiaria os dados confidenciais dos seus usuários (ou o dinheiro deles) a um sistema que você "acha" que funciona, mas que nunca foi submetido a uma bateria automatizada de testes extremos?
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>Fundamentos do Teste Unitário e o Padrão DAO</h2>
+      <p>Entendendo a base da confiabilidade de um sistema.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Fundamentos do Teste Unitário e o Padrão DAO</div>
+    <h2>A. Conceito:</h2>
+    <p>Para construirmos sistemas robustos e que suportem a realidade do mercado de trabalho, precisamos adotar o conceito de Teste Unitário no desenvolvimento Back-End.</p>
+    <p>Um teste de unidade é um procedimento que verifica se um aspecto específico do comportamento de uma função ou classe está correto.</p>
+    <p>Ele foca na validação de unidades individuais do sistema, garantindo que o Back-End funcione corretamente antes da integração com outras camadas.</p>
+    <p>Ao escrevermos esses testes antes de criarmos as telas gráficas, nós nos certificamos de que o alicerce do nosso aplicativo é sólido, identificando problemas antes que os usuários finais os encontrem.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Fundamentos do Teste Unitário e o Padrão DAO</div>
+    <h2>A. Conceito: (Continuação)</h2>
+    <p>O padrão de projeto DAO (Data Access Object) atua como um intermediário vital entre a aplicação e o banco de dados.</p>
+    <p>Ao isolarmos o acesso a dados no DAO, conseguimos separar as operações de SQL do resto do código Python, tornando o sistema modular e muito mais fácil de ser testado.</p>
+    <p>Na nossa jornada, nós só vamos apresentar um sistema visual ao cliente depois de garantirmos a confiabilidade (reliability), pois sem a garantia de que a base funciona, qualquer erro na interface será exponencialmente mais difícil de diagnosticar.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Fundamentos do Teste Unitário e o Padrão DAO</div>
+    <h2>B. Visualizando:</h2>
+    <p>Imagine uma ponte de três pilares. O primeiro pilar é o Objeto Python na memória RAM. Ο segundo é a classe DAO (o intermediário). O terceiro é a Tabela SQL no disco.</p>
+    <p>O Teste Unitário é o inspetor que garante que a "carga" (os dados) cruze a ponte sem perder nenhum pedaço.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Fundamentos do Teste Unitário e o Padrão DAO</div>
+    <h2>B. Visualizando:</h2>
+<img src="img01.png" style="max-width: 90%; height:auto;">
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Fundamentos do Teste Unitário e o Padrão DAO</div>
+    <h2>C. Exemplo de Código:</h2>
+    <div class="code-block">import unittest
+
+# Simulando um comportamento de DAO para o teste
+def verificar_tipo_entrada(idade):
+    if not isinstance(idade, int):
+        raise TypeError("A idade deve ser um número inteiro.")
+    return True
+
+class TesteConfiabilidade (unittest.TestCase):
+    def test_falha_tipo_entrada(self):
+        # Valida se o DAO levanta TypeError ao receber string em campo numérico
+        # self.assertRaises (exceção_esperada, função, argumentos...)
+        self.assertRaises(TypeError, verificar_tipo_entrada, 'texto_invalido')
+
+if __name__ == '__main__':
+    unittest.main()</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Fundamentos do Teste Unitário e o Padrão DAO</div>
+    <h2>D. Explicação linha por linha:</h2>
+    <p>Esse código é um exemplo clássico de Teste de Unidade em Python. O objetivo dele é garantir que o sistema se comporte corretamente (ou seja, "quebre" do jeito certo) quando recebe um dado inválido.</p>
+    <p>Aqui está a explicação detalhada de cada parte:</p>
+    <div class="callout blue">
+      <div class="callout-title">A Função "Vulnerável" (verificar_tipo_entrada)</div>
+      <p>Esta função simula uma regra de negócio ou uma validação de banco de dados (DAO).</p>
+      <ul>
+        <li><strong>O que ela faz:</strong> Recebe o parâmetro idade.</li>
+        <li><strong>A trava:</strong> Ela verifica se idade é um número inteiro (isinstance(idade, int)).</li>
+        <li><strong>O erro:</strong> Se você passar qualquer coisa que não seja um número (como uma string "25"), ela dispara um erro proposital chamado TypeError.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Fundamentos do Teste Unitário e o Padrão DAO</div>
+    <h2>D. Explicação linha por linha: (Continuação)</h2>
+    <ul>
+      <li><strong>A Estrutura do Teste (unittest):</strong> O código utiliza o framework padrão do Python para testes, o unittest.</li>
+      <li><strong>class TesteConfiabilidade (unittest.TestCase):</strong> Ao herdar de TestCase, você ganha acesso a várias ferramentas de verificação (chamadas de assertions).</li>
+      <li><strong>def test_falha_tipo_entrada(self):</strong> Todo método de teste deve começar com o prefixo test_. Isso avisa ao Python que este bloco deve ser executado como um experimento.</li>
+      <li><strong>A Verificação Principal (assertRaises):</strong> Esta é a linha mais importante: <code>self.assertRaises(TypeError, verificar_tipo_entrada, 'texto_invalido')</code>. O que ela diz: "Eu espero que, ao executar verificar_tipo_entrada('texto_invalido'), ocorra um erro do tipo TypeError."</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Fundamentos do Teste Unitário e o Padrão DAO</div>
+    <h2>D. Explicação linha por linha: (Resultados)</h2>
+    <ul>
+      <li><strong>Resultado:</strong></li>
+      <li>Se o erro ocorrer: O teste passa (sucesso), porque o sistema provou que está protegido contra dados errados.</li>
+      <li>Se o erro não ocorrer: O teste falha, indicando que sua função está aceitando lixo sem reclamar.</li>
+      <li><strong>Execução (unittest.main()):</strong> As linhas finais garantem que, ao rodar o arquivo diretamente, o Python procure todas as classes de teste e exiba o relatório (ex: Ran 1 test in 0.001s / OK).</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Fundamentos do Teste Unitário e o Padrão DAO</div>
+    <h2>Por que isso é importante?</h2>
+    <p>Imagine que esse código faz parte de um sistema de cadastro.</p>
+    <p>Esse teste garante que, se um programador no futuro tentar salvar uma string no campo de idade, o sistema vai barrar a operação imediatamente, evitando que dados corrompidos cheguem ao seu banco de dados.</p>
+    <div class="callout red">
+      <div class="callout-title">Em resumo</div>
+      Você não está testando se o código funciona quando tudo vai bem, mas sim se ele sabe se defender quando algo vai mal.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Fundamentos do Teste Unitário e o Padrão DAO</div>
+    <h2>E. Exercícios Rápidos:</h2>
+    <ul>
+      <li>1. Qual é o papel da biblioteca unittest no Back-End?</li>
+      <li>2. Por que devemos testar a aplicação no Back-End antes de criar as telas gráficas?</li>
+      <li>3. Explique a finalidade do padrão arquitetural DAO.</li>
+      <li>4. O que a função self.assertRaises verifica?</li>
+      <li>5. Reescreva a função verificar_tipo_entrada para testar se um salario é do tipo float.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>Implementando o Ciclo de Vida de Teste e Rastreabilidade</h2>
+      <p>Entendendo as 4 fases de um teste unitário rigoroso.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Ciclo de Vida de Teste e Rastreabilidade</div>
+    <h2>A. Conceito:</h2>
+    <p>A implementação prática de testes no Python gira em torno da construção de cenários (Test Cases) que cumprem rigorosamente o ciclo de vida do dado.</p>
+    <p>Um ciclo bem estruturado deve seguir quatro passos:</p>
+    <ul>
+      <li><strong>Setup</strong> (Abrir a conexão),</li>
+      <li><strong>Action</strong> (Salvar um objeto),</li>
+      <li><strong>Query</strong> (Buscar esse mesmo objeto através do seu ID) e</li>
+      <li><strong>Assert</strong> (Verificar se os atributos do objeto recuperado são idênticos aos do objeto original salvo).</li>
+    </ul>
+    <p>A etapa de asserção é o coração do teste unitário, pois é nela que validamos se o resultado obtido é o esperado.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Ciclo de Vida de Teste e Rastreabilidade</div>
+    <h2>A. Conceito: (Continuação)</h2>
+    <p>Se a asserção falhar, entra em cena a Rastreabilidade e a Depuração (Debugging).</p>
+    <p>A rastreabilidade é a habilidade de descobrir a história da característica do sistema, enquanto a depuração é o processo técnico de encontrar defeitos no código.</p>
+    <p>Utilizando ferramentas como o Git e mecanismos de debug (como breakpoints em nossa IDE), nós somos capazes de investigar a fundo a raiz do problema (root cause) para mapear o momento exato em que o dado se "perde" no trajeto entre a Memória RAM e o Disco.</p>
+    <p>Os blocos try-except são cruciais nessa etapa para lidar com dados ausentes ou corrompidos, impedindo que a aplicação trave brutalmente.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Ciclo de Vida de Teste e Rastreabilidade</div>
+    <h2>B. Visualizando:</h2>
+    <p>Pense em um fluxograma cíclico: Setup() (Criação de Banco em Memória) -> Instanciação de Objeto Python -> salvar() (Gera instrução SQL INSERT) -> buscar_por_id() (Gera instrução SQL SELECT) -> assertEqual() (O Tribunal do Teste: Compara o objeto instanciado com o retornado) -> tearDown() (Limpa o banco e finaliza).</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Ciclo de Vida de Teste e Rastreabilidade</div>
+    <h2>B. Visualizando:</h2>
+<img src="img02.png" style="max-width: 90%; height:auto;">
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Ciclo de Vida de Teste e Rastreabilidade</div>
+    <h2>C. Exemplo de Código (test_dao.py):</h2>
+    <div class="code-block">import unittest
+import sqlite3
+
+class Usuario:
+    def __init__(self, nome, email):
+        self.id = None
+        self.nome = nome
+        self.email = email
+
+class UsuarioDAO:
+    def __init__(self, conexao):
+        self.conexao = conexao
+
+    def salvar(self, usuario):
+        cursor = self.conexao.cursor()
+        # Execução SQL via substituição de parâmetros
+        cursor.execute("INSERT INTO usuarios (nome, email) VALUES (?, ?)", (usuario.nome, usuario.email))
+        self.conexao.commit()
+        usuario.id = cursor.lastrowid # Rastreia o ID gerado pelo Banco
+        return usuario</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Ciclo de Vida de Teste e Rastreabilidade</div>
+    <h2>C. Exemplo de Código (test_dao.py - Parte 2):</h2>
+    <div class="code-block">    def buscar_por_id(self, id_usuario):
+        cursor = self.conexao.cursor()
+        cursor.execute("SELECT id, nome, email FROM usuarios WHERE id =?", (id_usuario,))
+        linha = cursor.fetchone()
+        if linha:
+            user = Usuario(linha[1], linha[2])
+            user.id = linha[0]
+            return user
+        return None
+
+class TestUsuarioDAO(unittest.TestCase):
+    def setUp(self):
+        #1. Abrir conexão e preparar o ambiente
+        self.conexao = sqlite3.connect(':memory:')
+        self.conexao.execute("CREATE TABLE usuarios (id INTEGER PRIMARY KEY, nome TEXT, email TEXT)")
+        self.dao = UsuarioDAO(self.conexao)</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Ciclo de Vida de Teste e Rastreabilidade</div>
+    <h2>C. Exemplo de Código (test_dao.py - Parte 3):</h2>
+    <div class="code-block">    def test_salvar_e_buscar_objeto(self):
+        #2. Salvar um objeto (Objeto Python Original)
+        usuario_original = Usuario("Ana Silva", "ana@email.com")
+        usuario_salvo = self.dao.salvar(usuario_original)
+
+        #3. Buscar o objeto pelo ID
+        usuario_recuperado = self.dao.buscar_por_id(usuario_salvo.id)
+
+        #4. Verificar se os dados buscados são iguais aos salvos (Rastreabilidade garantida)
+        self.assertIsNotNone(usuario_recuperado)
+        self.assertEqual(usuario_original.nome, usuario_recuperado.nome)
+        self.assertEqual(usuario_original.email, usuario_recuperado.email)
+
+    def tearDown(self):
+        self.conexao.close()
+
+if __name__ == '__main__':
+    unittest.main()</div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Ciclo de Vida de Teste e Rastreabilidade</div>
+    <h2>D. Explicação linha por linha:</h2>
+    <ul>
+      <li><strong>1-8.</strong> Declaração da classe de modelo Usuario com seus atributos básicos.</li>
+      <li><strong>10-20.</strong> Criação do UsuarioDAO. A função salvar insere no banco utilizando parâmetros seguros (?) para evitar injeções de SQL. Note a linha 19, onde o ID gerado pelo banco é rastreado e associado ao objeto em memória.</li>
+      <li><strong>22-30.</strong> Método buscar_por_id que executa um SELECT e transforma a "linha" relacional crua novamente em um objeto Python orientado a objetos.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Ciclo de Vida de Teste e Rastreabilidade</div>
+    <h2>D. Explicação linha por linha: (Continuação)</h2>
+    <ul>
+      <li><strong>32-37.</strong> A função setUp no unittest roda antes de qualquer teste. Nela usamos sqlite3.connect(':memory:') para criar um banco falso e ultrarrápido apenas na memória RAM para testes limpos.</li>
+      <li><strong>39-43.</strong> (Action) O teste cria um usuário em memória e pede para o DAO salvá-lo no banco.</li>
+      <li><strong>45-46.</strong> (Query) Pede-se ao DAO que faça o resgate através do ID gerado.</li>
+      <li><strong>48-51.</strong> (Assert) O tribunal: Afirmamos que o usuário retornado não é nulo e comparamos o nome e o email do objeto em memória com o objeto resgatado do SQL.</li>
+      <li><strong>53-54.</strong> tearDown é executado ao final do teste para fechar a conexão, limpando os detritos.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Ciclo de Vida de Teste e Rastreabilidade</div>
+    <h2>E. Exercícios Rápidos:</h2>
+    <ul>
+      <li>1. Qual a vantagem de se testar um DAO usando uma conexão em RAM (:memory:) ao invés do arquivo de banco principal da aplicação?</li>
+      <li>2. Identifique quais são as 4 fases lógicas do test_salvar_e_buscar_objeto.</li>
+      <li>3. O que acontece se removermos o self.conexao.commit() do DAO? Tente prever o erro.</li>
+      <li>4. Por que utilizamos a verificação self.assertIsNotNone antes dos assertEqual?</li>
+      <li>5. Se uma falha for detectada neste teste, como o conceito de Rastreabilidade nos ajudaria a localizar a causa raiz?</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>FAQ - Dúvidas Reais</h2>
+      <p>Perguntas frequentes sobre testes, depuração e confiabilidade.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <h2>Dúvidas Reais</h2>
+    <div class="faq-item">
+      <div class="faq-q">1. FAQ: Se o teste passou no banco em memória, ele pode falhar no banco real em produção?</div>
+      <div class="faq-a"><strong>Resposta:</strong> Sim. Bancos como SQLite em memória possuem regras brandas, enquanto um MySQL de produção possui tipagem mais rígida. Testes em memória servem para validar a "Lógica", mas os testes de integração devem refletir o banco real.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <h2>Dúvidas Reais</h2>
+    <div class="faq-item">
+      <div class="faq-q">2. FAQ: Devo testar os métodos get e set (Getters/Setters) do meu modelo Python?</div>
+      <div class="faq-a"><strong>Resposta:</strong> Não. Testes unitários devem focar em Regras de Negócio e Persistência. Testar funções de linguagem triviais gera perda de produtividade.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <h2>Dúvidas Reais</h2>
+    <div class="faq-item">
+      <div class="faq-q">3. FAQ: O que é um falso-positivo em testes unitários?</div>
+      <div class="faq-a"><strong>Resposta:</strong> É quando o seu código possui uma falha gravíssima, mas o seu script de teste dá "OK", porque a asserção (assertEqual) foi mal elaborada ou incompleta. A IA muitas vezes gera falsos-positivos se você não ler o código.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <h2>Dúvidas Reais</h2>
+    <div class="faq-item">
+      <div class="faq-q">4. FAQ: Para que serve a depuração (Debug) se eu posso encher o código de print()?</div>
+      <div class="faq-a"><strong>Resposta:</strong> O print() polui o console e não para a execução. Um Breakpoint num Debugger paralisa o tempo, permitindo inspecionar cada variável na memória, rastreando o momento exato em que o dado diverge do banco de dados.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <h2>Dúvidas Reais</h2>
+    <div class="faq-item">
+      <div class="faq-q">5. FAQ: Eu posso criar a interface Web e testar só visualmente navegando na página?</div>
+      <div class="faq-a"><strong>Resposta:</strong> O "teste visual de cliques" mascara problemas de lógica profunda. Erros de concorrência no banco podem não aparecer para 1 usuário clicando, mas vão destruir seu Back-End quando 1000 usuários acessarem ao mesmo tempo. Daí a importância do Unit Test isolado.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Exercícios de Fixação</h2>
+      <p>Para entrega no AVA.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>Fundamentos do Teste</h2>
+    <ul>
+      <li><strong>1. O Primeiro Assert.</strong><br>
+        Descrição: Crie um arquivo chamado teste_simples.py usando unittest que possua uma função com erro matemático intencional (ex: soma(2,2) retornando 5) e veja o console alertar o erro.<br>
+        Entrega: Script .py rodando com log de "FAILED" com sucesso de execução técnica.
+      </li>
+      <li><strong>2. O Corretor.</strong><br>
+        Descrição: Pegue o código anterior e altere o assertEqual ou o código para que o console mude o resultado de "FAILED" para "OK".<br>
+        Entrega: Print da tela com o resultado do console em estado verde/sucesso.
+      </li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>Ciclo de Vida e Exceções</h2>
+    <ul>
+      <li><strong>3. setup & tearDown.</strong><br>
+        Descrição: Em um script de teste, insira print("Preparando ambiente") dentro do setUp e print("Limpando") no tearDown. Adicione 3 funções de teste vazias e observe a ordem de impressão no terminal para comprovar a teoria do ciclo de vida.<br>
+        Entrega: Relatório visual da saída do console confirmando as repetições do ciclo.
+      </li>
+      <li><strong>4. Tratamento de Exceções I.</strong><br>
+        Descrição: Modele uma função dividir(a, b) e construa um caso de teste utilizando self.assertRaises(ZeroDivisionError) validando a divisão de 10 por 0.<br>
+        Entrega: Arquivo .py funcional com a captura isolada do erro matemático.
+      </li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>O Padrão DAO em Testes</h2>
+    <ul>
+      <li><strong>5. Estrutura Teste DAO Produto.</strong><br>
+        Descrição: Baseado no exemplo test_dao.py, crie uma estrutura básica de DAO e Teste para uma entidade "Produto" contemplando nome e quantidade_estoque.<br>
+        Entrega: Esboço do código no repositório.
+      </li>
+      <li><strong>6. O Teste de Deleção (Action & Query).</strong><br>
+        Descrição: No test_dao.py que modelamos em aula, adicione um novo caso de teste: test_deletar_objeto. Salve um registro, use o DAO para deletar, faça a busca do ID apagado e utilize o self.assertIsNone para garantir que o retorno do banco foi nulo.<br>
+        Entrega: Nova def de Teste Unitário integrada e rodando.
+      </li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>Rastreabilidade e Investigação</h2>
+    <ul>
+      <li><strong>7. Rastreabilidade com UPDATE.</strong><br>
+        Descrição: Implemente o método atualizar(id, novo_nome) no DAO. No teste: Salve, Atualize, Busque novamente, e aplique o Assert para confirmar que o novo_nome realmente sobrescreveu a linha física na tabela RAM.<br>
+        Entrega: Classe de teste expandida com sucesso validando atualização relacional.
+      </li>
+      <li><strong>8. Depuração e Investigação.</strong><br>
+        Descrição: Com a função de UPDATE criada no desafio anterior, insira um erro proposital (esqueça o commit no DAO de UPDATE). Execute o teste (que vai falhar) e use o Debugger (Breakpoint) na IDE para mapear exatamente onde o dado em memória dessincroniza do banco SQL.<br>
+        Entrega: Um breve texto explicativo ("Diário do Bug") relatando o milissegundo rastreado.
+      </li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>Garantia Definitiva</h2>
+    <ul>
+      <li><strong>9. Bloqueando a Base Corrompida.</strong><br>
+        Descrição: Insira uma regra de negócio que levante erro ValueError caso um Produto tente ser salvo com preço menor que zero. Use o método assertRaises para provar que a base rejeita lixo.<br>
+        Entrega: Teste de confiabilidade e validação de bloqueio rodando perfeitamente.
+      </li>
+      <li><strong>10. O Inspetor Definitivo.</strong><br>
+        Descrição: Aplique a estrutura de test_dao.py integralmente nas tabelas e no projeto que o seu grupo desenhou nas aulas passadas para a Situação de Aprendizagem. Valide todas as entidades centrais.<br>
+        Entrega: Commit na branch principal do projeto da equipe contendo as suítes de testes prontas para o avaliador.
+      </li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Conclusão</div>
+    <h2>Conexão com a Situação de Aprendizagem:</h2>
+    <p>Todos os conceitos abordados hoje - setUp, asserções lógicas e persistência monitorada devem ser implantados obrigatoriamente no projeto de vocês a partir de agora.</p>
+    <p>A avaliação final exige robustez no sistema, e a única maneira ético-profissional de garantir que os registros não corrompam na entrega do projeto é possuindo suítes de testes unitários varrendo cada milímetro do seu Back-End.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Conclusão</div>
+    <h2>Conexão com a Próxima Aula:</h2>
+    <p>Com o nosso Back-End blindado e testado, nós superamos o mundo invisível dos dados lógicos.</p>
+    <p>A partir da próxima aula, iniciaremos a jornada da Interface!</p>
+    <p>Nosso sistema finalmente vai ganhar rosto e interatividade quando conectarmos toda essa inteligência estável de bancos de dados a uma camada Web com uso do framework Flask.</p>
+  </div>
+
+</div>
+
+<nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 34</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe
+  let touchX = 0;
+  document.addEventListener('touchstart', e => touchX = e.changedTouches[0].screenX);
+  document.addEventListener('touchend', e => {
+    if (e.changedTouches[0].screenX < touchX - 50) changeSlide(1);
+    if (e.changedTouches[0].screenX > touchX + 50) changeSlide(-1);
+  });
+  
+  // Init
+  showSlide(0);
+</script>
+
+</body>
+</html>
