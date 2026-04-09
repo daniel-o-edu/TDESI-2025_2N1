@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 17 - Estrutura Web (HTML5)</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d2a4a;
+    --ink-light: #1e4976;
+    --accent: #1565c0;
+    --accent2: #1976d2;
+    --accent3: #0288d1;
+    --bg: #e8f0fe;
+    --surface: #ffffff;
+    --border: #b3cde8;
+    --code-bg: #eaf2fb;
+    --tag-bg: #dceefb;
+    --tag-border: #1976d2;
+    --slide-max: 100%;
+    --slide-title-max: 90%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #c5d8f0;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── IMAGENS DE FUNDO ── */
+  .slide-cover {
+    background-image: url('https://i.ibb.co/fzwwYWW6/img-frente01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.82);
+    border-radius: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-cover > * { position: relative; z-index: 1; }
+
+  .slide-section {
+    background-image: url('https://i.ibb.co/1tBjw9p9/img-tit01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.80);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-section > * { position: relative; z-index: 1; }
+
+  .slide-common {
+    background-image: url('https://i.ibb.co/m1J6vPd/img-frente02.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-common::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.88);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide-common > * { position: relative; z-index: 1; }
+
+  /* ── NAV ── */
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(13,42,74,.28);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.12); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* ── PROGRESS ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent2);
+    transition: width .3s ease;
+  }
+
+  /* ── SLIDE WRAPPER ── */
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── SLIDES GENÉRICOS ── */
+  .slide {
+    display: none;
+    width: var(--slide-max);
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 4px 32px rgba(13,42,74,.12);
+    padding: 7vh 8vw;
+    animation: fadeIn .3s ease;
+    margin: 0 auto;
+  }
+  .slide.active { display: block; }
+
+  .slide.slide-section,
+  .slide.slide-cover {
+    width: var(--slide-title-max);
+    max-width: var(--slide-title-max);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent2);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(1.5rem, 2vw, 1.5rem);
+    line-height: 1.75;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul, .slide ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  .slide li {
+    font-size: clamp(1.5rem, 2vw, 1.2rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .slide li strong { color: var(--ink); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── COVER ── */
+  .cover-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(.78rem, 1.6vw, .88rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre-wrap;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: clamp(1.7rem, 2vw, 1.5rem);
+    line-height: 1.7;
+  }
+  .callout.blue {
+    background: #dceefb;
+    border-left: 4px solid var(--accent2);
+    color: var(--ink);
+  }
+  .callout.green {
+    background: #e1f5e8;
+    border-left: 4px solid #2e7d32;
+    color: #1a3a28;
+  }
+  .callout.red {
+    background: #e3f0fb;
+    border-left: 4px solid var(--accent);
+    color: var(--ink);
+  }
+  .callout.yellow {
+    background: #e8f4fd;
+    border-left: 4px solid var(--accent3);
+    color: var(--ink);
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-family: 'Roboto', sans-serif;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+
+  /* ── TWO COLUMN ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  .col-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .col-card h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(1.5rem, 1.8vw, 1.5rem);
+  }
+  thead th {
+    background: var(--ink);
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: .85rem;
+    letter-spacing: .04em;
+  }
+  tbody tr:nth-child(even) { background: var(--code-bg); }
+  tbody tr:hover { background: #d0e8f8; }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-light);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  tbody td strong { color: var(--ink); }
+
+  /* ── FAQ ── */
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .faq-q {
+    background: var(--code-bg);
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: clamp(2rem, 2vw, 1.5rem);
+    color: var(--ink);
+    border-left: 4px solid var(--accent2);
+  }
+  .faq-a {
+    padding: 12px 18px;
+    font-size: clamp(1.8rem, 1.9vw, 1.5rem);
+    color: var(--ink-light);
+    line-height: 1.7;
+    background: var(--surface);
+  }
+
+  /* ── NUMBERED STEPS ── */
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    background: var(--accent2);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: .9rem;
+    font-family: 'Source Code Pro', monospace;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body p { margin: 0; }
+
+  /* ── SECTION HEADER SLIDES ── */
+  .section-header {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .section-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    color: #b3cde8;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .section-header h2 {
+    border: none;
+    padding: 0;
+    text-align: center;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: var(--ink);
+  }
+  .section-header p {
+    max-width: 560px;
+    margin: 16px auto 0;
+    text-align: center;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .slide { padding: 28px 22px 36px; width: 97%; max-width: 97%; }
+    .slide.slide-section, .slide.slide-cover { width: 97%; max-width: 97%; }
+    #nav button { padding: 0 14px; font-size: .9rem; }
+  }
+  @media (max-width: 400px) {
+    .slide { padding: 20px 14px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<div id="stage">
+
+  <div class="slide slide-cover active">
+    <div class="slide-label">Aula 17</div>
+    <h1>Aula 17 - Estrutura Web (HTML5)</h1>
+    <p class="cover-desc">
+      Descrição: Vamos trabalhar com a criação de páginas estáticas para Listagem e Cadastro.
+      Conectar os atributos do formulário (name="") com os conceitos de chaves de Dicionários e atributos de Objetos, mostrando que a interface é apenas uma ponte para alimentar as classes.
+    </p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Esqueleto da Aplicação e Semântica</div>
+      <div class="topic-chip">O Formulário como Alimentador de Classes</div>
+    </div>
+    <div class="cover-meta">
+      <span>HTML5</span>
+      <span>Front-End</span>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Abertura</div>
+    <h2>Cenário Real:</h2>
+    <p>No desenvolvimento de software profissional, os sistemas que operam "por trás dos panos" (Back-End) dependem de uma estrutura sólida "na frente" (Front-End) para interagir com o usuário.</p>
+    <p>Sistemas corporativos modernos, como os de gestão de inventário ou controle financeiro, não abrem várias janelas soltas.</p>
+    <p>Em vez disso, a tendência é integrar a listagem de dados e o formulário de cadastro em uma única tela dinâmica.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Abertura</div>
+    <p>Essa integração melhora a fluidez e a eficiência da experiência do usuário.</p>
+    <p>Toda essa mágica da interação começa com um esqueleto sólido e bem arquitetado usando o HTML5, que servirá de ponte para que os dados preenchidos cheguem às nossas Classes e Dicionários no Python.</p>
+    
+    <div class="callout yellow">
+      <div class="callout-title">Pergunta:</div>
+      Quando vocês preenchem um formulário online, como vocês acham que o sistema sabe exatamente qual dado pertence ao "Nome", ao "E-mail" ou à "Senha" na hora de salvar no banco de dados?
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>O Esqueleto da Aplicação e Semântica</h2>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <h2>A. Conceito:</h2>
+    <p>Todo documento HTML5 exige uma estrutura básica que atua como o esqueleto da interface, informando ao navegador como interpretar e renderizar o conteúdo.</p>
+    <p>Elementos como &lt;!DOCTYPE html&gt;, &lt;html lang="pt-br"&gt;, &lt;head&gt; e &lt;body&gt; são os pilares indispensáveis desse documento.</p>
+    <p>A tag &lt;head&gt; carrega metadados fundamentais para configuração (como charset e viewport), mas invisíveis diretamente ao usuário, enquanto o &lt;body&gt; contém tudo o que será visualizado na tela, incluindo nossos formulários e tabelas.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <p>A transição para o HTML5 trouxe a "Semântica", o que significa que o código deve ter significado além da estrutura.</p>
+    <p>Em vez de agrupamentos genéricos, tags como &lt;header&gt;, &lt;main&gt; e &lt;section&gt; devem ser aplicadas.</p>
+    <p>Isso facilita a manutenção do código para outros desenvolvedores e torna a aplicação legível por leitores de tela e robôs de busca (SEO).</p>
+    
+    <div class="callout blue">
+      <div class="callout-title">Dica:</div>
+      Lembre-se que a semântica não é apenas para nós, humanos. Quando você usa &lt;main&gt; e &lt;table&gt; corretamente, você está ajudando o Google a entender o que é importante no seu site e permitindo que pessoas com deficiência visual naveguem melhor usando leitores de tela.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <h2>B. Visualizando:</h2>
+    <p>Imagine a planta de uma casa. O &lt;head&gt; é o manual técnico da construção (fiação elétrica, encanamento).</p>
+    <p>O &lt;body&gt; é a casa em si, com a &lt;header&gt; sendo o telhado, o &lt;main&gt; como os cômodos principais, abrigando uma &lt;table&gt; para mostrar o estoque na sala de estar, e um &lt;form&gt; na cozinha para adicionar novos ingredientes (dados).</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <h2>B. Visualizando:</h2>
+    <div class="callout blue">
+        <img src="img01.png" style="max-width: 90%; height:auto;">
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <h2>C. Exemplo de Código:</h2>
+    <div class="code-block">HTML
+&lt;!DOCTYPE html&gt;
+&lt;html lang="pt-br"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;Sistema de Gestão - Inventário&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;main&gt;
+    &lt;section id="listagem"&gt;
+      &lt;h2&gt;Produtos Cadastrados&lt;/h2&gt;
+      &lt;button&gt;Novo Produto&lt;/button&gt;
+      &lt;table&gt;
+        &lt;thead&gt;
+          &lt;tr&gt;
+            &lt;th scope="col"&gt;ID&lt;/th&gt;
+            &lt;th scope="col"&gt;Nome do Produto&lt;/th&gt;
+            &lt;th scope="col"&gt;Ações&lt;/th&gt;
+          &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td&gt;1&lt;/td&gt;
+            &lt;td&gt;Monitor 24 polegadas&lt;/td&gt;
+            &lt;td&gt;
+              &lt;button&gt;Editar&lt;/button&gt;
+              &lt;button&gt;Excluir&lt;/button&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <h2>D. Explicação linha por linha:</h2>
+    <ul>
+      <li>&lt;!DOCTYPE html&gt;: Define a versão do HTML (HTML5) para o navegador.</li>
+      <li>&lt;html lang="pt-br"&gt;: Tag raiz indicando o idioma principal.</li>
+      <li>&lt;head&gt;: Bloco contendo as configurações de metadados da página.</li>
+      <li>• &lt;meta charset="UTF-8"&gt;: Permite o uso de acentuação e caracteres especiais.</li>
+      <li>• &lt;body&gt;: Onde inserimos o conteúdo visível da aplicação.</li>
+      <li>&lt;section&gt;: Tag semântica que organiza o conteúdo em blocos lógicos.</li>
+      <li>&lt;table&gt;: Cria a tabela de listagem de dados, essencial para a função "Read" do CRUD.</li>
+      <li>&lt;button&gt;: Elemento de gatilho que chamará o JavaScript para orquestrar ações futuras.</li>
+      <li>&lt;th scope="col"&gt;: Define um cabeçalho para a coluna, prática importante para acessibilidade.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <h2>E. Exercícios Rápidos:</h2>    
+    <div class="callout green">
+      <div class="callout-title">1. Identificação de Papéis (Teórico)</div>
+      Olhando para o código de exemplo, qual tag você utilizaria para envolver o título "Sistema de Gestão - Inventário" caso ele devesse aparecer no topo da página, acima de todo o conteúdo principal, funcionando como o "telhado" ou fachada da aplicação?<br>
+      • () &lt;section&gt;<br>
+      • () &lt;header&gt;<br>
+      • () &lt;footer&gt;
+    </div>
+  </div>
+  
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <h2>E. Exercícios Rápidos:</h2>
+    <div class="callout green">
+      <div class="callout-title">2. O Detetive do &lt;head&gt;</div>
+      O código atual possui metadados para caracteres e responsividade. Sua tarefa é adicionar uma nova informação técnica ao "manual da construção" (o &lt;head&gt;): Adicione uma tag que define o ícone da página (favicon) utilizando o caminho fictício img/favicon.png.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <h2>E. Exercícios Rápidos:</h2>    
+    <div class="callout green">
+      <div class="callout-title">3. Expansão da Tabela</div>
+      A &lt;table&gt; na sala de estar (o estoque) está incompleta. No corpo da tabela (&lt;tbody&gt;), adicione uma segunda linha (&lt;tr&gt;) representando um novo item:<br>
+      ID: 2<br>
+      Nome do Produto: Teclado Mecânico<br>
+      • Ações: Dois botões (Editar e Excluir).
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <h2>E. Exercícios Rápidos:</h2>
+    <div class="callout green">
+      <div class="callout-title">4. Organização Semântica</div>
+      O código utiliza uma &lt;section id="listagem"&gt;. Imagine que agora você quer criar uma área separada para o rodapé da página, com os direitos autorais. Onde você deve inserir a tag &lt;footer&gt;: dentro ou fora da tag &lt;main&gt;?<br>
+      Justifique sua resposta com base no conceito de "conteúdo principal".
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Esqueleto da Aplicação e Semântica</div>
+    <h2>E. Exercícios Rápidos:</h2>    
+    <div class="callout green">
+      <div class="callout-title">5. Desafio do Formulário (A Cozinha)</div>
+      Seguindo sua analogia, falta o formulário para adicionar ingredientes. Abaixo da tabela, mas ainda dentro do &lt;main&gt;, crie a estrutura básica de um &lt;form&gt; que contenha:<br>
+      1. Um campo de texto (&lt;input type="text"&gt;) para o nome do produto.<br>
+      2. Um botão (&lt;button&gt;) com o texto "Salvar Produto".
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>O Formulário como Alimentador de Classes</h2>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Formulário como Alimentador de Classes</div>
+    <h2>A. Conceito:</h2>
+    <p>O formulário HTML (&lt;form&gt;) não existe isoladamente; ele é o principal canal de comunicação entre o usuário e o nosso código Back-End para operações de Create e Update.</p>
+    <p>Para que as classes em Python recebam os dados corretamente, o segredo reside no atributo name dos inputs.</p>
+    <p>O valor definido no name ("nome_produto", por exemplo) atuará exatamente como as chaves do nosso Dicionário ou como os atributos da nossa Classe.</p>
+    <p>Ao integrar um botão de "Salvar" neste formulário, nosso sistema poderá determinar a ação: se houver um campo oculto com um "ID" vazio, é um novo registro;</p>
+    <p>se o campo "ID" estiver preenchido via ação de "Editar", o sistema atualiza um registro existente.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Formulário como Alimentador de Classes</div>
+    <h2>Resumo da Operação:</h2>
+    <ul>
+      <li>1. Usuário preenche: Digita "Teclado" no campo com name="nome_produto".</li>
+      <li>2. Botão Salvar: Dispara o envio.</li>
+      <li>3. Back-End recebe: O Python lê a "etiqueta" nome_produto e guarda o valor "Teclado".</li>
+      <li>4. Verificação de ID: Se houver um ID, ele sobrescreve o antigo; se não, cria um novo "Teclado" no estoque.</li>
+    </ul>
+
+    <h2>B. Visualizando:</h2>
+    <p>Um funil. O usuário digita "Teclado" em um input que tem o rótulo "Produto" no formulário. Esse input possui name="nome_produto".</p>
+    <p>Esse funil (o envio do formulário) leva essa informação ao Back-End, onde uma variável Python produto = Produto(nome_produto="Teclado") o recepciona perfeitamente.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Formulário como Alimentador de Classes</div>
+    <h2>B. Visualizando:</h2>
+    <div class="callout blue">
+        <img src="img02.png" style="max-width: 90%; height:auto;">
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Formulário como Alimentador de Classes</div>
+    <h2>C. Exemplo de Código:</h2>
+    <div class="code-block">
+&lt;section id="cadastro"&gt;
+  &lt;h2&gt;Gerenciar Produto&lt;/h2&gt;
+  &lt;form action="/salvar" method="POST"&gt;
+    &lt;input type="hidden" name="id" value=""&gt;
+    
+    &lt;label for="nome"&gt;Nome do Produto:&lt;/label&gt;
+    &lt;input type="text" id="nome" name="nome_produto" required&gt;
+    
+    &lt;label for="preco"&gt;Preço (R$):&lt;/label&gt;
+    &lt;input type="number" id="preco" name="valor_venda" step="0.01" required&gt;
+    
+    &lt;button type="submit"&gt;Salvar&lt;/button&gt;
+  &lt;/form&gt;
+&lt;/section&gt;
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Formulário como Alimentador de Classes</div>
+    <h2>D. Explicação linha por linha:</h2>
+    <ul>
+      <li>&lt;form&gt;: Estrutura que agrupa elementos de entrada de dados.</li>
+      <li>• &lt;input type="hidden" name ="id" value=""&gt;: Campo invisível. Se estiver vazio na submissão, cria item; se estiver com ID, atualiza.</li>
+      <li>&lt;label&gt;: Rótulo semântico associado a um input pelo seu id para melhorar a usabilidade.</li>
+      <li>• &lt;input type="text" name="nome_produto"&gt;: O atributo name obrigatoriamente deve combinar com o nome do atributo da nossa classe em Python.</li>
+      <li>&lt;button type="submit"&gt;: Ao ser clicado, submete todos os names e values atrelados a este formulário.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Formulário como Alimentador de Classes</div>
+    <h2>E. Exercícios Rápidos:</h2>    
+    <div class="callout green">
+      <div class="callout-title">1. O Elo Perdido (Preenchimento)</div>
+      No código Python abaixo, o desenvolvedor espera receber o preço de um item. Olhando para o Exemplo de Código acima, qual valor deve preencher a lacuna para que o sistema reconheça o dado?<br>
+      • Python: preco_recebido = request.form["_ "]
+    </div>
+  </div>  
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Formulário como Alimentador de Classes</div>
+    <h2>E. Exercícios Rápidos:</h2>
+    <div class="callout green">
+      <div class="callout-title">2. Criar ou Atualizar? (Lógica)</div>
+      Um usuário clicou em "Salvar". O Back-End verificou o formulário e encontrou o seguinte:<br>
+      &lt;input type="hidden" name="id" value="15"&gt;<br>
+      Com base no conceito de "Alimentador de Classes", o sistema deve:<br>
+      () Criar um novo registro no banco de dados.<br>
+      • () Atualizar o registro existente que possui o ID 15.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Formulário como Alimentador de Classes</div>
+    <h2>E. Exercícios Rápidos:</h2>    
+    <div class="callout green">
+      <div class="callout-title">3. Batismo de Atributos (Correção)</div>
+      Você criou uma classe em Python chamada Usuario que possui o atributo email_cliente. No seu HTML, o input está assim:<br>
+      &lt;input type="email" name="email"&gt;<br>
+      Pergunta: Por que o Python terá dificuldade em "recepcionar" esse dado automaticamente e qual seria a correção necessária no atributo name?
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Formulário como Alimentador de Classes</div>
+    <h2>E. Exercícios Rápidos:</h2>
+    <div class="callout green">
+      <div class="callout-title">4. A Função do Botão (Múltipla Escolha)</div>
+      O que acontece exatamente no momento em que o usuário clica em &lt;button type="submit"&gt;Salvar&lt;/button&gt;?<br>
+      • A) O navegador apenas limpa os campos do formulário.<br>
+      • B) O navegador agrupa todos os valores dos inputs que possuem o atributo name e os envia para a rota definida no action.<br>
+      • C) O navegador salva os dados diretamente no banco de dados, sem precisar do Back-End.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">O Formulário como Alimentador de Classes</div>
+    <h2>E. Exercícios Rápidos:</h2>
+    
+    <div class="callout green">
+      <div class="callout-title">5. Desafio de Escrita (Mão na Massa)</div>
+      Escreva uma linha de código HTML para um campo de entrada onde o usuário digita a Quantidade do produto. Lembre-se que o nome do atributo na classe Python será estoque_atual.
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">FAQ</div>
+      <h2>FAQ - Dúvidas Reais:</h2>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ - Dúvidas Reais:</div>
+    <div class="faq-item">
+      <div class="faq-q">1. FAQ: Professor, preciso decorar todas as tags do HTML5?</div>
+    </div>
+  </div> 
+
+  <div class="slide slide-common">
+      <div class="slide-label">FAQ - Dúvidas Reais:</div>
+    <div class="faq-item">
+      <div class="faq-a">Resposta: Não. É importante entender as principais estruturais (main, section, form, table). Com o tempo e o uso diário, elas se tornam naturais. Consulte sempre a documentação.</div>
+    </div>
+  </div>  
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ - Dúvidas Reais:</div>    
+    <div class="faq-item">
+      <div class="faq-q">2. FAQ: Por que o id e o name num &lt;input&gt; frequentemente têm valores parecidos ou iguais?</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ - Dúvidas Reais:</div>    
+    <div class="faq-item">
+      <div class="faq-a">Resposta: O id é usado no Front-End, por CSS e para associar a tag &lt;label&gt; ao input. O name é a variável despachada para o Back-End ler. Para evitar confusão, muitos adotam o mesmo valor para ambos, embora sirvam para coisas diferentes.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ - Dúvidas Reais:</div>
+    <div class="faq-item">
+      <div class="faq-q">3. FAQ: O que acontece se o &lt;input&gt; estiver fora de uma tag &lt;form&gt;?</div>
+    </div>
+  </div>  
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ - Dúvidas Reais:</div>
+    <div class="faq-item">
+      <div class="faq-a">Resposta: Ele aparecerá na tela e poderá ser editado, mas ao clicar num botão de "Salvar", os dados daquele input específico não serão empacotados e enviados ao servidor.</div>
+    </div>
+  </div>  
+
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ - Dúvidas Reais:</div>
+    <div class="faq-item">
+      <div class="faq-q">4. FAQ: Na vida real, a listagem e o cadastro ficam sempre na mesma página?</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ - Dúvidas Reais:</div>
+    <div class="faq-item">
+      <div class="faq-a">Resposta: Para aplicações corporativas e dashboards administrativos (SPA - Single Page Applications), isso é quase um padrão pois agiliza o trabalho do usuário, evitando o recarregamento excessivo de novas páginas.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ - Dúvidas Reais:</div>
+    <div class="faq-item">
+      <div class="faq-q">5. FAQ: Como o JavaScript manipula aquele campo ID oculto que vimos no exemplo?</div>
+    </div>
+  </div>
+  
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ - Dúvidas Reais:</div>
+    <div class="faq-item">
+      <div class="faq-a">Resposta: Ao clicar no botão "Editar" de uma linha na &lt;table&gt;, o JavaScript (futuramente) pega o ID daquele produto e o insere automaticamente no campo &lt;input type="hidden"&gt; do nosso &lt;form&gt;. Isso prepara o sistema para um Update.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>Exercícios:</h2>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios:</div>
+    <div class="callout green">
+      <div class="callout-title">Exercício 1: O Esqueleto Fundamental</div>
+      • Descrição: Crie um arquivo chamado exercicio1.html. Neste arquivo, digite a estrutura básica indispensável de um documento HTML5, incluindo as tags &lt;!DOCTYPE html&gt;, &lt;html&gt;, &lt;head&gt; e &lt;body&gt;. No cabeçalho, configure o charset para UTF-8 (para aceitar acentuação) e defina o título da página como "Meu Primeiro Sistema".<br>
+      • Entrega: Arquivo exercicio1.html.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Exercício 2: Construindo a Semântica</div>
+      • Descrição: Em um arquivo exercicio2.html, partindo da estrutura do exercício anterior, organize o corpo (&lt;body&gt;) utilizando as tags semânticas adequadas. Crie um "telhado" ou fachada usando a tag &lt;header&gt;, o conteúdo principal da página usando a tag &lt;main&gt; e defina o rodapé usando a tag &lt;footer&gt;.<br>
+      • Entrega: Arquivo exercicio2.html.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios:</div>
+    <div class="callout green">
+      <div class="callout-title">Exercício 3: Listagem de Dados (Tabela Simples)</div>
+      • Descrição: No arquivo exercicio3.html, dentro de uma tag &lt;section id="listagem"&gt;, crie uma tabela (&lt;table&gt;) para listar as informações de 3 clientes fictícios. A tabela deve ser dividida entre cabeçalho (&lt;thead&gt;) com as colunas "ID" e "Nome", e o corpo (&lt;tbody&gt;) contendo as linhas (&lt;tr&gt;) com os dados.<br>
+      • Entrega: Arquivo exercicio3.html.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Exercício 4: Acessibilidade na Prática</div>
+      • Descrição: Copie a tabela do exercício anterior para um novo arquivo exercicio4.html. Para ajudar os leitores de tela e robôs de busca (SEO), adicione o atributo scope="col" em todas as tags de cabeçalho (&lt;th&gt;) da sua tabela.<br>
+      • Entrega: Arquivo exercicio4.html.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios:</div>
+    <div class="callout green">
+      <div class="callout-title">Exercício 5: O Formulário Base</div>
+      • Descrição: Crie exercicio5.html. Construa uma tag &lt;form&gt; simples para capturar o "E-mail" e a "Senha" de um usuário. Lembre-se de utilizar a tag &lt;label&gt; atrelada ao id do &lt;input&gt; correspondente para melhorar a usabilidade da página.<br>
+      • Entrega: Arquivo exercicio5.html.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Exercício 6: Preparando o Funil para o Python (O Atributo Name)</div>
+      • Descrição: O formulário é a ponte para o Back-End em Python. Em exercicio6.html, crie um formulário de cadastro de um "Paciente". Sabendo que a classe no Python espera os atributos nome_completo, data_nascimento e cpf_paciente, crie três inputs e garanta que o atributo name de cada um seja idêntico a esses atributos da classe.<br>
+      • Entrega: Arquivo exercicio6.html.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios:</div>
+    <div class="callout green">
+      <div class="callout-title">Exercício 7: Inputs Específicos e Validação</div>
+      • Descrição: No arquivo exercicio7.html, crie um formulário para cadastrar uma venda. Adicione um campo para o valor da venda (&lt;input type="number"&gt;). Para permitir a inserção de centavos (frações numéricas), utilize o atributo step ="0.01" e marque o preenchimento como obrigatório usando o atributo required.<br>
+      • Entrega: Arquivo exercicio7.html.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Exercício 8: O Segredo da Atualização (Input Oculto)</div>
+      • Descrição: Crie o arquivo exercicio8.html com um formulário de edição. Para que o Python saiba que a ação é atualizar um registro existente (Update) e não criar um novo, insira um campo invisível na página usando &lt;input type="hidden"&gt; com o name="id". Atribua um valor numérico fictício a ele, como value ="10".<br>
+      • Entrega: Arquivo exercicio8.html.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios:</div>
+    <div class="callout green">
+      <div class="callout-title">Exercício 9: Ações da Tabela</div>
+      • Descrição: Copie a tabela do Exercício 4 para o arquivo exercicio9.html. Adicione uma terceira coluna no cabeçalho chamada "Ações". Em cada linha de dados (&lt;tr&gt;), adicione a respectiva célula (&lt;td&gt;) contendo dois elementos &lt;button&gt;: um com o texto "Editar" e outro com "Excluir".<br>
+      • Entrega: Arquivo exercicio9.html.
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Exercício 10: Integração Single Page (Listagem e Cadastro)</div>
+      • Descrição: Para consolidar tudo em exercicio10.html, simule a interface real de uma aplicação corporativa moderna (SPA). Dentro do &lt;main&gt;, coloque duas seções: a primeira (&lt;section id="listagem"&gt;) deve conter a tabela desenvolvida no Exercício 9. Imediatamente abaixo, a segunda (&lt;section id="cadastro"&gt;) deve conter um formulário completo. O formulário deve ter um botão &lt;button type="submit"&gt;Salvar&lt;/button&gt; para despachar as informações.<br>
+      • Entrega: Arquivo exercicio10.html (o arquivo mais completo da aula).
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Conclusão</div>
+    <h2>Como usaremos na Situação de Aprendizagem:</h2>
+    <p>Hoje iniciamos a fundação da interface visual do sistema que vocês estão construindo.</p>
+    <p>A estrutura index.html criada hoje e formatada através de tabela e formulários será a interface real do usuário no projeto final.</p>
+    <p>Se o HTML estiver bem semântico e os atributos name estiverem idênticos aos atributos das suas classes em Python que já codificamos nas aulas anteriores, a integração com o Banco de Dados será quase automática quando ligarmos o Back-End.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Próximos Passos</div>
+    <h2>Conexão com a Próxima Aula:</h2>
+    <p>Na próxima etapa do nosso cronograma, avançaremos para o bloco Web Framework!</p>
+    <p>Na Aula 18, pegaremos esse HTML estático e daremos vida a ele criando o estilo visual com o CSS adicionando cores e bordas nas tabelas.</p>
+  </div>
+
+</div>
+
+<nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 1</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe
+  let touchX = 0;
+  document.addEventListener('touchstart', e => touchX = e.changedTouches[0].screenX);
+  document.addEventListener('touchend', e => {
+    let diff = e.changedTouches[0].screenX - touchX;
+    if (diff > 50) changeSlide(-1);
+    else if (diff < -50) changeSlide(1);
+  });
+
+  // Init
+  showSlide(0);
+</script>
+
+</body>
+</html>
