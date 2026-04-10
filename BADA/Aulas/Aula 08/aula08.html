@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 08 - Dependência Funcional e 1FN / 2FN</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d2a4a;
+    --ink-light: #1e4976;
+    --accent: #1565c0;
+    --accent2: #1976d2;
+    --accent3: #0288d1;
+    --bg: #e8f0fe;
+    --surface: #ffffff;
+    --border: #b3cde8;
+    --code-bg: #eaf2fb;
+    --tag-bg: #dceefb;
+    --tag-border: #1976d2;
+    --slide-max: 100%;
+    --slide-title-max: 90%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #c5d8f0;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .slide-cover {
+    background-image: url('https://i.ibb.co/fzwwYWW6/img-frente01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.82);
+    z-index: 0;
+  }
+  .slide-cover > * { position: relative; z-index: 1; }
+
+  .slide-section {
+    background-image: url('https://i.ibb.co/1tBjw9p9/img-tit01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.80);
+    z-index: 0;
+  }
+  .slide-section > * { position: relative; z-index: 1; }
+
+  .slide-common {
+    background-image: url('https://i.ibb.co/m1J6vPd/img-frente02.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-common::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.88);
+    z-index: 0;
+  }
+  .slide-common > * { position: relative; z-index: 1; }
+
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(13,42,74,.28);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.12); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent2);
+    transition: width .3s ease;
+  }
+
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .slide {
+    display: none;
+    width: var(--slide-max);
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    padding: 7vh 8vw;
+    animation: fadeIn .3s ease;
+    margin: 0 auto;
+  }
+  .slide.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent2);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(1.1rem, 1.8vw, 1.3rem);
+    line-height: 1.6;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul, .slide ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  .slide li {
+    font-size: clamp(1rem, 1.6vw, 1.2rem);
+    line-height: 1.6;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+  .cover-meta {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius:  source code pro;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(.78rem, 1.6vw, .88rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+  .callout.blue { background: #dceefb; border-left: 4px solid var(--accent2); color: var(--ink); }
+  .callout.green { background: #e1f5e8; border-left: 4px solid #2e7d32; color: #1a3a28; }
+  .callout.red { background: #fdeaea; border-left: 4px solid #c62828; color: #4e1010; }
+  .callout.yellow { background: #fff9db; border-left: 4px solid #f59f00; color: #5f370e; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  .col-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    background: var(--ink);
+    color: #fff;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: .85rem;
+  }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-light);
+  }
+  .section-header { text-align: center; padding: 40px 0; }
+  .section-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    color: #b3cde8;
+    margin-bottom: 12px;
+  }
+  .faq-item { border: 1px solid var(--border); border-radius: 3px; margin-bottom: 12px; }
+  .faq-q { background: var(--code-bg); padding: 12px 18px; font-weight: 700; border-left: 4px solid var(--accent2); }
+  .faq-a { padding: 12px 18px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<div id="stage">
+
+  <div class="slide slide-cover active">
+    <div class="slide-label">Aula 08</div>
+    <h1>Dependência Funcional e 1FN / 2FN</h1>
+    <p class="cover-desc">
+      Descrição: Compreender o conceito de dependência funcional para identificar redundâncias e anomalias, aplicando na prática a normalização até a primeira (1FN) e segunda (2FN) formas normais.
+    </p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Dependência Funcional</div>
+      <div class="topic-chip">Normalização de Dados</div>
+      <div class="topic-chip">1ª Forma Normal (1FN)</div>
+      <div class="topic-chip">2ª Forma Normal (2FN)</div>
+      <div class="topic-chip">Anomalias de Dados</div>
+    </div>
+    <div class="cover-meta">
+      <span>Banco de Dados</span>
+      <span>Engenharia de Software</span>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Abertura</div>
+    <h2>Cenário Real</h2>
+    <div class="callout yellow">
+      <div class="callout-title">Mercado de TI</div>
+      <p>Imaginem que nós fomos contratados como Analistas de Sistemas por uma grande rede de varejo.</p>
+      <p>O cliente nos envia um "relatorião sujo" de Excel gigante com todas as vendas de 2025. Cada vez que um produto muda de nome ou preço, o analista precisa dar um "Localizar e Substituir" em 50.000 linhas de vendas.</p>
+      <p>Se ele esquecer de atualizar uma única linha, o financeiro entra em colapso.O mercado de tecnologia lida com essa "sujeira" e redundância de dados diariamente, o que gera anomalias crônicas e prejuízos operacionais.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Abertura</div>
+    <h2>Pergunta Desafiadora</h2>
+    <div class="callout blue">
+      <div class="callout-title">Reflexão</div>
+      Como nós podemos garantir logicamente e matematicamente, através do código, que um banco de dados jamais sofra com informações repetidas, desordem e anomalias na hora de atualizar ou deletar dados?
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>Dependência Funcional (DF)</h2>
+      <p>O alicerce da integridade dos dados.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Dependência Funcional</div>
+    <h2>A. Conceito</h2>
+    <p><strong>O que é Dependência Funcional (DF)?</strong></p>
+    <p>De forma simples, a DF ocorre quando o valor de uma coluna define obrigatoriamente o valor de outra coluna. Se você conhece o "X", você automaticamente descobre o "Y".</p>
+    <p>A Dependência Funcional é a regra que diz que certas informações estão "amarradas" umas às outras. Entender essas amarras é o que permite organizar os dados em tabelas perfeitas (Normalização).</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Dependência Funcional</div>
+    <h2>1. A Estrutura (X  ->  Y)</h2>
+    <ul>
+      <li><strong>X (Determinante):</strong> É a "chave". Ele manda na relação.</li>
+      <li><strong>Y (Dependente):</strong> É a informação que "segue" o determinante.</li>
+    </ul>
+    <h3>2. Exemplo Prático: O CPF</h3>
+    <p>Pense em uma tabela de pessoas: Se eu te der o número do CPF (X), você consegue me dizer exatamente qual é o Nome (Y) daquela pessoa.</p>
+    <p>Dizemos que: <strong>CPF → Nome</strong>.</p>
+    <p>O contrário nem sempre é verdade (existem muitas pessoas com o mesmo nome, então o Nome não determina o CPF).</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Dependência Funcional</div>
+    <h2>3. Por que isso é o "Alicerce"?</h2>
+    <p>A DF serve para garantir a saúde dos dados. Se não respeitarmos essas regras, o banco de dados adoece com as chamadas anomalias:</p>
+    <ul>
+      <li><strong>Repetição desnecessária:</strong> Escrever a mesma informação várias vezes.</li>
+      <li><strong>Erro de atualização:</strong> Mudar o nome de uma pessoa em uma linha, mas esquecer de mudar na outra (causando confusão).</li>
+      <li><strong>Exclusão acidental:</strong> Apagar um dado e acabar perdendo outra informação importante por tabela.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Dependência Funcional</div>
+    <h2>B. Visualizando</h2>
+    <p>Visualizem uma seta saindo do campo CPF e apontando para o Nome. O CPF é o determinante. Sabendo o CPF, o banco de dados tem a certeza matemática de qual é o Nome.</p>
+      </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Dependência Funcional</div>
+    <h2>B. Visualizando</h2>
+     <img src="img01.png" style="max-width: 90%; height:auto;">
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Dependência Funcional</div>
+    <h2>C. Exemplo de Código</h2>
+    <p>Criando uma tabela para demonstrar a Dependência Funcional:</p>
+    <div class="code-block">
+-- SQL
+CREATE TABLE Funcionario (
+    CPF VARCHAR(11) PRIMARY KEY, -- Determinante (X)
+    Nome VARCHAR(100) NOT NULL,  -- Dependente (Y)
+    Setor VARCHAR(50)            -- Dependente (Y)
+);
+
+-- Representação: CPF -> Nome, Setor
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Dependência Funcional</div>
+    <h2>D. Explicação linha por linha</h2>
+    <ul>
+      <li><strong>Linha 2:</strong> Iniciamos a definição de nossa entidade, baseada na regra de negócio.</li><br>
+      <li><strong>Linha 3:</strong> O CPF atua como Chave Primária (PK). No mundo das DFs, ele é o nosso Determinante. É impossível haver dois registros com CPFs iguais e nomes diferentes.</li><br>
+      <li><strong>Linhas 4 e 5:</strong> Nome e Setor são os nossos atributos Dependentes. Ao consultarmos a PK, recuperamos estes dados com exatidão, assegurando a integridade lógica do nosso mundo real no SGBD.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Dependência Funcional</div>
+    <h2>E. Exercícios de Conceito</h2>
+    <div class="callout green">
+      <div class="callout-title">Prática</div>
+      <ol>
+        <li>Qual é a função do "Determinante" em uma Dependência Funcional?</li><br>
+        <li>Explique com suas palavras a diferença matemática e lógica entre Determinante e Dependente.</li><br>
+        <li>Forneça um exemplo de DF utilizando veículos.</li><br>
+        <li>O que é uma DF Não-Trivial?</li><br>
+        <li>Como as anomalias de atualização acontecem quando ignoramos as DFs em uma tabela mal construída?</li><br>
+      </ol>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>A Normalização</h2>
+      <p>A Regra de Ouro: Um lugar para cada coisa.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">A Normalização</div>
+    <h2>Conceito e Regra de Ouro</h2>
+    <p>A Normalização é o processo de organizar as colunas e tabelas para garantir que as Dependências Funcionais sejam respeitadas. O objetivo é evitar a redundância (repetir dados) e as anomalias.</p>
+    <div class="callout yellow">
+      <p><strong>A Regra de Ouro: "Um lugar para cada coisa"</strong></p>
+    </div>  
+      <p>Em um banco de dados bem projetado, cada fato deve ser armazenado em apenas um lugar. Se um atributo depende de uma chave, ele deve estar na tabela daquela chave.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">A Normalização</div>
+    <h2>Exemplo de uma Tabela "Doente"</h2>
+    <p>Exemplo de uma tabela não normalizada:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID_Venda</th>
+            <th>Produto</th>
+            <th>Categoria_Produto</th>
+            <th>Preço</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Teclado</td>
+            <td>Periféricos</td>
+            <td>150</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Mouse</td>
+            <td>Periféricos</td>
+            <td>80</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Teclado</td>
+            <td>Periféricos</td>
+            <td>150</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">A Normalização</div>
+    <h2>O Problema (Anomalia)</h2>
+    <div class="callout red">
+      <div class="callout-title">Análise</div>
+      <p>Note que a Categoria_Produto depende do Produto (Produto -> Categoria).</p>
+      <p>Se você precisar mudar o nome da categoria "Periféricos" para "Acessórios", terá que alterar várias linhas. Se esquecer uma, o banco de dados fica inconsistente.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">A Normalização</div>
+    <h2>A Solução via Normalização</h2>
+    <p>Nós "quebramos" a tabela para respeitar as Dependências Funcionais:</p>
+    <div class="two-col">
+      <div class="col-card">
+        <h4>Tabela PRODUTOS</h4>
+        <div class="table-wrap">
+          <table>
+            <tr><th>ID_Prod (X)</th><th>Nome</th><th>Categoria (Y)</th></tr>
+            <tr><td>101</td><td>Teclado</td><td>Periféricos</td></tr>
+            <tr><td>102</td><td>Mouse</td><td>Periféricos</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="col-card">
+        <h4>Tabela VENDAS</h4>
+        <div class="table-wrap">
+          <table>
+            <tr><th>ID_Venda</th><th>ID_Prod</th><th>Data</th></tr>
+            <tr><td>1</td><td>101</td><td>10/10</td></tr>
+            <tr><td>2</td><td>102</td><td>11/10</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">A Normalização</div>
+    <h2>As 3 Primeiras Formas Normais</h2>
+    <p>Para um esquema ser considerado "virtuoso", ele geralmente segue estes níveis:</p>
+    <ol>
+      <p><strong>1ª Forma Normal (1FN):</strong> Sem grupos repetidos. Cada célula tem apenas um valor (nada de "Lista de telefones" em uma única célula).</p>
+      <p><strong>2ª Forma Normal (2FN):</strong> Já está na 1FN e todos os atributos dependem da chave inteira, não apenas de parte dela (importante em chaves compostas).</p>
+      <p><strong>3ª Forma Normal (3FN):</strong> Já está na 2FN e não existem dependências "transitivas" (tipo: A determina B, que determina C. O C deve sair dali e ir para outra tabela).</p>
+    </ol>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>Primeira Forma Normal (1FN)</h2>
+      <p>Atomicidade e a eliminação de grupos repetitivos.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">1ª Forma Normal (1FN)</div>
+    <h2>A. Conceito: Atomicidade</h2>
+    <p>A 1FN exige uma única regra de ouro: a atomicidade. Todo cruzamento de linha e coluna deve conter um dado atômico, ou seja, único e indivisível, eliminando qualquer grupo repetitivo ou atributo multivalorado.</p>
+    <p>Não podemos ter uma célula com vários e-mails ou telefones. Quando detectamos um atributo multivalorado, como um Telefone, devemos transformar em uma nova entidade (ou tabela auxiliar).</p>
+    <p>O design deve seguir a regra do dado mínimo: "tudo o que é necessário está lá, e tudo o que está lá é necessário".</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">1ª Forma Normal (1FN)</div>
+    <h2>B. Visualizando</h2>
+    <p>Visualizem uma tabela Cliente com uma coluna Contatos contendo os números "(11) 9999-9999/(11) 8888-8888". Ao aplicar a 1FN, nós "quebramos" esse bloco indivisível.</p>
+    <p>Criamos uma tabela Cliente_Telefone, onde cada linha armazena apenas um único número por cliente, ligando-os via Foreign Key (FK).</p>
+      </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">1ª Forma Normal (1FN)</div>
+    <h2>B. Visualizando</h2>
+     <img src="img02.png" style="max-width: 90%; height:auto;">
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">1ª Forma Normal (1FN)</div>
+    <h2>C. Exemplo de Código</h2>
+    <div class="code-block">
+-- TABELA FORA DA 1FN (ERRADO: Atributo multivalorado)
+CREATE TABLE Cliente (ID INT, Nome VARCHAR(50), Telefones VARCHAR(100));
+
+-- TABELA NA 1FN (CORRETO: Decomposição sem perdas)
+CREATE TABLE Cliente (
+    ID_Cliente INT PRIMARY KEY,
+    Nome VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Cliente_Telefone (
+    ID_Telefone INT PRIMARY KEY AUTO_INCREMENT,
+    ID_Cliente INT,
+    Numero VARCHAR(15) NOT NULL,
+    FOREIGN KEY (ID_Cliente) REFERENCES Cliente(ID_Cliente)
+);
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">1ª Forma Normal (1FN)</div>
+    <h2>D. Explicação linha por linha</h2>
+    <ul>
+      <li><strong>Linhas 5-8:</strong> Estruturamos a entidade Cliente apenas com atributos atômicos (indivisíveis). Retiramos os telefones daqui.</li><br>
+      <li><strong>Linha 10:</strong> Criamos uma nova entidade relacional para tratar a multiplicidade de contatos.</li><br>
+      <li><strong>Linhas 11-13:</strong> Definimos uma PK própria para o telefone (ID_Telefone) e guardamos o número de forma puramente atômica (Numero).</li><br>
+      <li><strong>Linha 14:</strong> Aplicamos a Foreign Key para amarrar cada telefone registrado à sua entidade de origem, garantindo a decomposição sem perdas de informação.</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">1ª Forma Normal (1FN)</div>
+    <h2>E. Exercícios</h2>
+    <div class="callout green">
+      <div class="callout-title">Prática</div>
+      <ol>
+        <li>Defina "Atomicidade" no contexto da 1FN.</li><br>
+        <li>Por que o armazenamento de "Rua X, 123, Bairro Y" em uma única coluna pode violar os princípios da boa modelagem relacional dependendo do sistema?</li><br>
+        <li>Descreva como transformar um atributo multivalorado em uma estrutura que atenda à 1FN.</li><br>
+        <li>Explique o conceito da "Regra do Dado Mínimo".</li><br>
+        <li>Qual tipo de anomalia é diretamente prevenida ao adotar a 1FN em listas de e-mails?</li><br>
+      </ol>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Segunda Forma Normal (2FN)</h2>
+      <p>O fim da Dependência Parcial.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2ª Forma Normal (2FN)</div>
+    <h2>A. Conceito: Dependência Parcial</h2>
+    <p>O teste e aprofundamento da 2FN só podem ser aplicados a tabelas que já estão na 1FN e que possuem obrigatoriamente Chaves Primárias Compostas (duas ou mais colunas formando a PK).</p>
+    <p>O objetivo da 2FN é erradicar a Dependência Parcial. Isso significa que todos os atributos não-chave da tabela devem depender da chave primária inteira, e não apenas de um "pedaço" dela.</p>
+    <p>Se um campo como "Nome do Produto" depende apenas do "ID_Produto" e ignora o "ID_Pedido" em uma tabela associativa, nós dividimos a tabela.</p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2ª Forma Normal (2FN)</div>
+    <h2>B. Visualizando</h2>
+    <p>Imaginem a entidade relacional Item_Venda com a chave composta (ID_Venda, ID_Produto). Se a coluna Descricao_Produto estiver dentro dessa tabela, ela depende parcialmente da chave (apenas do ID do Produto).</p>
+    <p>A normalização arranca a descrição daí e cria a tabela mãe Produto isolada.</p>
+      </div>
+      
+  <div class="slide slide-common">
+    <div class="slide-label">2ª Forma Normal (2FN)</div>
+    <h2>B. Visualizando</h2>
+     <img src="img03.png" style="max-width: 90%; height:auto;">
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2ª Forma Normal (2FN)</div>
+    <h2>C. Exemplo de Código</h2>
+    <div class="code-block">
+-- TABELA EM 1FN, MAS FORA DA 2FN (Dependência parcial existente)
+-- PK Composta: (ID_Venda, ID_Produto) -> 'Nome_Produto' depende só do Produto.
+
+-- REFATORANDO PARA 2FN:
+CREATE TABLE Produto (
+    ID_Produto INT PRIMARY KEY,
+    Nome_Produto VARCHAR(100) NOT NULL -- Dependência TOTAL da PK
+);
+
+CREATE TABLE Item_Venda (
+    ID_Venda INT,
+    ID_Produto INT,
+    Quantidade INT NOT NULL, -- Depende da chave composta INTEIRA!
+    PRIMARY KEY (ID_Venda, ID_Produto),
+    FOREIGN KEY (ID_Produto) REFERENCES Produto(ID_Produto)
+);
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2ª Forma Normal (2FN)</div>
+    <h2>D. Explicação linha por linha</h2>
+    <ul>
+      <li><strong>Linhas 5-8:</strong> Isola-se o atributo Nome_Produto em sua respectiva entidade mestre, pois ele dependia apenas parcialmente da chave do pedido original.</li><br>
+      <li><strong>Linha 10:</strong> Criamos a tabela onde ocorrerá a associação transacional.</li><br>
+      <li><strong>Linhas 11-12:</strong> Definimos as chaves que irão compor a transação.</li><br>
+      <li><strong>Linha 13:</strong> O atributo Quantidade permanece aqui porque ele só tem sentido e dependência funcional com a existência de ambas as chaves combinadas.</li><br>
+      <li><strong>Linhas 14-15:</strong> Configuramos a PK Composta e asseguramos o relacionamento (FK).</li>
+    </ul>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">2ª Forma Normal (2FN)</div>
+    <h2>E. Exercícios</h2>
+    <div class="callout green">
+      <div class="callout-title">Prática</div>
+      <ol>
+        <li>Qual é o pré-requisito absoluto para testarmos uma tabela na 2FN?</li><br>
+        <li>Defina "Dependência Parcial".</li><br>
+        <li>Se uma tabela já está na 1FN e possui uma Chave Primária Simples, ela sofre com dependência parcial? Por quê?</li><br>
+        <li>Cite um exemplo de atributo que dependeria integralmente das chaves compostas (ID_Aluno, ID_Turma).</li><br>
+        <li>Como a 2FN otimiza as anomalias de atualização no exemplo do "Nome do Produto"?</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>FAQ - Dúvidas Reais</h2>
+      <p>Esclarecendo pontos comuns sobre normalização.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <div class="faq-item">
+      <div class="faq-q">1. Podemos pular direto para a 2FN porque é "mais rápido"?</div>
+      <div class="faq-a">Resposta: Nunca. A normalização é um processo estrito e iterativo. A 2FN só é válida porque a tabela já teve seus valores convertidos em dados atômicos na 1FN.</div>
+    </div>
+  </div>
+  
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>    
+    <div class="faq-item">
+      <div class="faq-q">2. Como sei se preciso criar uma nova tabela para um atributo?</div>
+      <div class="faq-a">Resposta: Observe o domínio da informação. O cliente pode ter mais de um telefone? Se sim, é multivalorado. A 1FN exige a criação da entidade fraca/auxiliar conectada por FK.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <div class="faq-item">
+      <div class="faq-q">3. Muitas tabelas geradas na normalização não deixam a consulta (SELECT) mais lenta devido aos JOINS?</div>
+      <div class="faq-a">Resposta: É uma balança técnica. No projeto Lógico, nós evitamos anomalias e redundâncias através das FNs. Se houver lentidão física futura, aplicam-se "desnormalizações intencionais". Mas primeiro: normalize!</div>
+    </div>
+  </div>  
+    
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>   
+    <div class="faq-item">
+      <div class="faq-q">4. Devo decorar essas formas matemáticas $(X \rightarrow Y)$?</div>
+      <div class="faq-a">Resposta: Não deve decorar, deve entender o princípio. O determinante é o identificador, e o dependente é a informação gerada a partir dele. Isso moldará seu raciocínio lógico em qualquer SGBD.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <div class="faq-item">
+      <div class="faq-q">5. A Inteligência Artificial pode modelar meu banco de dados sozinha?</div>
+      <div class="faq-a">Resposta: A IA generativa consegue ler estruturas e gerar excelentes DDLs. Mas quem possui o entendimento humano e lógico do que é uma "dependência parcial" na regra de negócios específica é o desenvolvedor. Use a IA para rascunhar, e o seu conhecimento para homologar e refinar.</div>
+    </div>
+  </div>
+
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>Exercícios de Fixação</h2>
+      <p>Exercícios para entrega no AVA.</p>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>1. O Filtro de Atomicidade</h2>
+    <p><strong>Descrição:</strong> Analise a coluna Habilidades: "Java, Python, C++". Explique, em dois parágrafos, por que esse campo não está na 1FN e qual a consequência disso para pesquisas no banco de dados.</p>
+    <p><strong>Entrega:</strong>Texto com a explicação técnica.</p>
+    <hr class="divider">
+    <h2>2. Caçadores de PK Composta</h2>
+    <p><strong>Descrição:</strong> Dada a tabela associativa Alocacao_Projeto (ID_Dev, ID_Proj, Horas_Atribuidas, Nome_Projeto), identifique qual é a Chave Primária Composta e quem é o "intruso" gerando dependência parcial.</p>
+    <p><strong>Entrega:</strong>Texto apontando as chaves e o intruso.<p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>3. Esculpindo a 1FN</h2>
+    <p><strong>Descrição:</strong> Escreva um script SQL que transforme a modelagem falha Empresa (CNPJ, Nome, Diretores_Multivalorados) em um banco aderente à 1FN.</p>
+  <p><strong>Entrega:</strong>Script SQL (DDL) com CREATE TABLE e relacionamentos (FK).<p>    
+    <hr class="divider">
+    <h2>4. Auditor de Código</h2>
+    <p><strong>Descrição:</strong>Leia o seguinte comando: <code>CREATE TABLE Pedido_Prod (ID_Ped INT, ID_Prod INT, Valor_Unitario DECIMAL, PRIMARY KEY(ID_Ped, ID_Prod));</code>. Avalie e explique se Valor_Unitario fere a 2FN.</p>
+  <p><strong>Entrega:</strong>Parecer técnico documentado.<p> 
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>5. A Divisão 2FN</h2>
+    <p><strong>Descrição:</strong> Um sistema hospitalar possui a tabela Plantao (ID_Medico, ID_Ala, Data_Plantao, CRM_Medico). Refatore essa estrutura para a 2FN.</p>
+    <p><strong>Entrega:</strong>Script DDL criando as tabelas corretas.<p>
+    <hr class="divider">
+    <h2>6. Desafio do "Relatórião"</h2>
+    <p><strong>Descrição:</strong> Realize o processo passo a passo com os dados [Matricula_Aluno, Nome_Aluno, ID_Disciplina, Nome_Disciplina, Nota_Final], garantindo decomposição da 1FN até a 2FN (Script DDL).</p>
+        <p><strong>Entrega:</strong>Script DDL em SQL das 3 tabelas resultantes.<p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>7. Arquitetura de E-Commerce</h2>
+    <p><strong>Descrição:</strong> Projete a estrutura DDL (até a 2FN) para gerenciar "Clientes, Múltiplos Endereços de Entrega, e Itens de Compra". Cuidado com dependências parciais.</p>
+    <p><strong>Entrega:</strong>Script DDL (Mínimo de 4 tabelas conectadas).<p>
+    <hr class="divider">
+    <h2>8. O Laboratório de Anomalias</h2>
+    <p><strong>Descrição:</strong> Crie uma tabela Biblioteca_Suja unindo Autor, Nacionalidade e Livro. Mostre, com INSERT e DELETE, como anomalias destroem os dados sem a 2FN.</p>
+    <p><strong>Entrega:</strong>Código SQL da tabela, das transações DML falhas e uma breve explicação do desastre.<p>
+
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>9. Refatoração Mestre</h2>
+    <p><strong>Descrição:</strong> Modele desde a 0FN até a 2FN um sistema onde um Aluno registra "Certificados_Anteriores" (multivalorado) ao se matricular.</p>
+    <p><strong>Entrega:</strong>Desenho da evolução do MER e Script DDL final estruturado.<p>    
+    <hr class="divider">
+    <h2>10. Prompt Engineering e o Revisor Ético</h2>
+    <p><strong>Descrição:</strong> Peça a uma IA para criar uma tabela suja (Livro, Categoria, ID_Aluno, Nome_Aluno). Corrija a modelagem aplicando a 2FN.</p>
+   <p><strong>Entrega:</strong>O prompt que você enviou, o código "sujo" que a IA respondeu, e o seu código refatorado e limpo como versão final.<p>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Conclusão</div>
+    <h2>Conexão com a Prática e SA</h2>
+    <p>No final deste semestre, a SA exigirá o projeto de Banco de Dados de um sistema funcional. A Banca cobrará rigorosamente que <strong>"O modelo está livre de grupos repetitivos (1FN)" e "Todas as dependências parciais foram eliminadas (2FN)".</strong></p>
+    <p>Se mantiverem anomalias hoje, os scripts travarão as consultas operacionais amanhã. Estamos montando a fundação!</p>
+    <hr class="divider">
+    <h3>Conexão com a Próxima Aula</h3>
+    <p>Na nossa próxima aula, avançaremos para a Terceira Forma Normal (3FN), onde conheceremos e caçaremos o nosso último problema lógico de dependência: a Dependência Transitiva.</p>
+  </div>
+
+</div>
+
+<nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 40</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  showSlide(0);
+</script>
+
+</body>
+</html>
