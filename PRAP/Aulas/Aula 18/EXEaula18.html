@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Aula 18 - Desafio Integrado</title>
+    </head>
+<body>
+    <div class="dashboard-container">
+        <h1>Dashboard de Produtos</h1>
+        
+        <form>
+            <div class="form-row">
+                <label>Produto:</label>
+                <input type="text" required placeholder="Nome do item">
+            </div>
+            <div class="form-row">
+                <label>Preço:</label>
+                <input type="number" required placeholder="0.00">
+            </div>
+            <div class="form-row">
+                <label>Descrição:</label>
+                <textarea placeholder="Detalhes técnicos..."></textarea>
+            </div>
+            <button type="submit" class="btn-ghost">Salvar Produto</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Teclado</td>
+                    <td>R$ 200</td>
+                    <td><span class="status ativo">Disponível</span></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Mouse</td>
+                    <td>R$ 100</td>
+                    <td><span class="status inativo">Esgotado</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
