@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 18 - Estilização (CSS)</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d2a4a;
+    --ink-light: #1e4976;
+    --accent: #1565c0;
+    --accent2: #1976d2;
+    --accent3: #0288d1;
+    --bg: #e8f0fe;
+    --surface: #ffffff;
+    --border: #b3cde8;
+    --code-bg: #eaf2fb;
+    --tag-bg: #dceefb;
+    --tag-border: #1976d2;
+    --slide-max: 100%;
+    --slide-title-max: 90%;
+  }
+
+  html, body {
+    font-family: 'Roboto', sans-serif;
+    background: #c5d8f0;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .slide-cover {
+    background-image: url('https://i.ibb.co/fzwwYWW6/img-frente01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.82);
+    z-index: 0;
+  }
+  .slide-cover > * { position: relative; z-index: 1; }
+
+  .slide-section {
+    background-image: url('https://i.ibb.co/1tBjw9p9/img-tit01.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.80);
+    z-index: 0;
+  }
+  .slide-section > * { position: relative; z-index: 1; }
+
+  .slide-common {
+    background-image: url('https://i.ibb.co/m1J6vPd/img-frente02.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .slide-common::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.88);
+    z-index: 0;
+  }
+  .slide-common > * { position: relative; z-index: 1; }
+
+  #nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    box-shadow: 0 -2px 12px rgba(13,42,74,.28);
+  }
+  #nav button {
+    background: none; border: none;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 24px;
+    height: 52px;
+    transition: background .15s;
+  }
+  #nav button:hover { background: rgba(255,255,255,.12); }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #slide-counter {
+    color: rgba(255,255,255,.65);
+    font-size: .85rem;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  #progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 101;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent2);
+    transition: width .3s ease;
+  }
+
+  #stage {
+    min-height: 100vh;
+    padding: 0 0 52px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .slide {
+    display: none;
+    width: var(--slide-max);
+    max-width: var(--slide-max);
+    min-height: calc(100vh - 52px);
+    background: var(--surface);
+    padding: 7vh 8vw;
+    animation: fadeIn .3s ease;
+    margin: 0 auto;
+  }
+  .slide.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .slide h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .slide h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent2);
+    padding-left: 14px;
+  }
+  .slide h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: var(--ink-light);
+    margin: 20px 0 10px;
+  }
+  .slide p {
+    font-size: clamp(1.1rem, 1.8vw, 1.3rem);
+    line-height: 1.6;
+    color: var(--ink-light);
+    margin-bottom: 14px;
+  }
+  .slide ul, .slide ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+  .slide li {
+    font-size: clamp(1rem, 1.6vw, 1.2rem);
+    line-height: 1.6;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 24px 0;
+  }
+  .cover-desc {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.7;
+    color: var(--ink-light);
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    margin: 24px 0;
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topic-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+  .cover-meta {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px;
+  }
+  .cover-meta span {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: .8rem;
+    padding: 4px 12px;
+    color: var(--ink-light);
+  }
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(.78rem, 1.6vw, .88rem);
+    line-height: 1.65;
+    color: var(--ink);
+    overflow-x: auto;
+    margin: 16px 0;
+    white-space: pre;
+  }
+  .callout {
+    border-radius: 3px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: .75;
+  }
+  .callout.blue { background: #dceefb; border-left: 4px solid var(--accent2); color: var(--ink); }
+  .callout.green { background: #e1f5e8; border-left: 4px solid #2e7d32; color: #1a3a28; }
+  .callout.red { background: #fdeaea; border-left: 4px solid #c62828; color: #4e1010; }
+  .callout.yellow { background: #fff9db; border-left: 4px solid #f59f00; color: #5f370e; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  .col-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    background: var(--ink);
+    color: #fff;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: .85rem;
+  }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-light);
+  }
+  .section-header { text-align: center; padding: 40px 0; }
+  .section-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    color: #b3cde8;
+    margin-bottom: 12px;
+  }
+  .faq-item { border: 1px solid var(--border); border-radius: 3px; margin-bottom: 12px; }
+  .faq-q { background: var(--code-bg); padding: 12px 18px; font-weight: 700; border-left: 4px solid var(--accent2); }
+  .faq-a { padding: 12px 18px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<div id="stage">
+
+  <!-- SLIDE 1: CAPA -->
+  <div class="slide slide-cover active">
+    <div class="slide-label">Aula 18</div>
+    <h1>Estilização (CSS)</h1>
+    <p class="cover-desc">
+      Aplicação prática do CSS (Modelo de Caixa, pseudo-classes e propriedades de tabela) para transformar estruturas HTML brutas em interfaces de entrada e visualização de dados acessíveis, interativas e visualmente agradáveis para o usuário.
+    </p>
+    <hr class="divider">
+    <h3>Tópicos desta aula</h3>
+    <div class="topics-grid">
+      <div class="topic-chip">Box Model (Modelo de Caixa)</div>
+      <div class="topic-chip">Pseudo-classes CSS</div>
+      <div class="topic-chip">Estilização de Formulários</div>
+      <div class="topic-chip">Estilização de Tabelas</div>
+      <div class="topic-chip">border-collapse</div>
+      <div class="topic-chip">Zebra Striping</div>
+    </div>
+    <div class="cover-meta">
+      <span>Front-end</span>
+      <span>CSS</span>
+      <span>UX / Interface</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: CENÁRIO REAL -->
+  <div class="slide slide-common">
+    <div class="slide-label">Abertura</div>
+    <h2>Cenário Real</h2>
+    <div class="callout yellow">
+      <div class="callout-title">Mercado de TI</div>
+      <p>Grandes plataformas como Nubank, Instagram e Spotify investem milhões em Experiência do Usuário (UX). Quando você entra em um aplicativo, a cor muda quando você passa o mouse, a borda do campo de texto brilha quando você vai digitar e as tabelas de faturas são fáceis de ler.</p>
+      <p>Isso não é apenas estética — é retenção de usuários. Formulários confusos e tabelas desorganizadas fazem com que os usuários abandonem o sistema. O segredo por trás dessa magia visual no front-end é o CSS estruturado.</p>
+      <p>Além disso, no mercado atual, usamos ferramentas de Inteligência Artificial Generativa para criar o esqueleto básico do HTML e CSS rapidamente, mas a habilidade essencial do desenvolvedor está em entender profundamente o "Modelo de Caixa" para corrigir problemas de layout que a IA não consegue resolver sozinha.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: PERGUNTA -->
+  <div class="slide slide-common">
+    <div class="slide-label">Abertura</div>
+    <h2>Pergunta Desafiadora</h2>
+    <div class="callout blue">
+      <div class="callout-title">Reflexão</div>
+      Vocês já desistiram de preencher um cadastro online ou de ler um extrato porque a tela era confusa, os botões eram pequenos demais ou você não sabia qual campo estava selecionado? Como nós podemos usar o código para garantir que o usuário do nosso sistema jamais passe por essa frustração?
+    </div>
+  </div>
+
+  <!-- SLIDE 4: SEÇÃO 01 -->
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>O Modelo de Caixa (Box Model)</h2>
+      <p>Fundamentos visuais do CSS.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: BOX MODEL - CONCEITO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Box Model</div>
+    <h2>A. Conceito</h2>
+    <p>O <strong>Box Model (Modelo de Caixa)</strong> é o conceito central do CSS onde absolutamente cada elemento HTML é renderizado pelo navegador como uma caixa retangular. Precisamos dominar isso porque é o que rege como as dimensões e os espaçamentos são calculados na tela.</p>
+    <p>Ele é composto por quatro camadas fundamentais:</p>
+    <ul>
+      <li><strong>Content</strong> — o conteúdo em si, como um texto ou imagem;</li>
+      <li><strong>Padding</strong> — o espaço interno entre o conteúdo e a borda, que dá "respiro" ao elemento;</li>
+      <li><strong>Border</strong> — a moldura, linha visível;</li>
+      <li><strong>Margin</strong> — o espaço externo, que empurra as outras caixas para longe.</li>
+    </ul>
+    <p>Dominar o Box Model nos permite construir interfaces modulares e flexíveis, substituindo a "bagunça" de elementos colados por uma estrutura onde cada bloco respeita seu espaço.</p>
+  </div>
+
+  <!-- SLIDE 6: BOX MODEL - VISUALIZANDO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Box Model</div>
+    <h2>B. Visualizando</h2>
+    <p>Imagine um quadro na parede:</p>
+    <ul>
+      <li><strong>A pintura</strong> é o <strong>Content</strong>.</li>
+      <li><strong>O espaço em branco</strong> entre a pintura e a moldura é o <strong>Padding</strong>.</li>
+      <li><strong>A moldura de madeira</strong> é a <strong>Border</strong>.</li>
+      <li><strong>A distância entre esse quadro e outro quadro</strong> na mesma parede é a <strong>Margin</strong>.</li>
+    </ul>
+    <div class="callout blue">
+      <div class="callout-title">Regra prática</div>
+      Usamos margens e paddings adequados para garantir que o usuário não clique no botão errado porque eles estavam grudados.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Box Model</div>
+    <h2>B. Visualizando</h2>
+	<img src="img01.png" style="max-width: 90%; height: auto;">
+  </div>
+
+  <!-- SLIDE 7: BOX MODEL - CÓDIGO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Box Model</div>
+    <h2>C. Exemplo de Código</h2>
+    <div class="code-block">/* Exemplo aplicado ao Container do Dashboard */
+.dashboard-container {
+    width: 80%;
+    margin: 50px auto; /* Centraliza e afasta do topo */
+    padding: 20px;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Efeito de profundidade */
+}</div>
+  </div>
+
+  <!-- SLIDE 8: BOX MODEL - EXPLICAÇÃO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Box Model</div>
+    <h2>D. Explicação Detalhada do Código</h2>
+    <ul>
+      <li><strong>.dashboard-container {</strong> — Inicia a seleção de um elemento HTML através de sua classe. Tudo o que estiver dentro das chaves se aplicará aos elementos que possuírem <code>class="dashboard-container"</code>.</li><br>
+      <li><strong>width: 80%;</strong> — Define a largura da área de conteúdo (Content) do elemento como 80% da largura total da tela ou do elemento pai.</li><br>
+      <li><strong>margin: 50px auto;</strong> — O valor <code>50px</code> aplica espaçamento externo no topo e na base; o valor <code>auto</code> nas laterais centraliza o bloco horizontalmente na página.</li><br>
+      <li><strong>padding: 20px;</strong> — Adiciona espaçamento interno entre o conteúdo e a borda, dando "respiro" ao elemento e impedindo que textos ou imagens encostem na moldura.</li><br>
+      <li><strong>border: 1px solid #ddd;</strong> — Cria uma moldura visível: <code>1px</code> de espessura, linha sólida, cor cinza clara.</li><br>
+      <li><strong>box-shadow: 0 4px 8px rgba(0,0,0,0.1);</strong> — Adiciona uma sombra externa para criar efeito de profundidade, fazendo o container "flutuar" na tela.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 9: BOX MODEL - EXERCÍCIOS -->
+  <div class="slide slide-common">
+    <div class="slide-label">Box Model</div>
+    <h2>E. Perguntas</h2>
+    <div class="callout green">
+      <div class="callout-title">Prática</div>
+      <ol>
+        <li>Altere o valor do <code>padding</code> no código acima para <code>50px</code>. O que acontece com o tamanho total da caixa?</li><br>
+        <li>Mude a propriedade <code>border</code> para criar uma borda tracejada (<code>dashed</code>) da cor vermelha.</li><br>
+        <li>Adicione um novo parágrafo fora da caixa-exemplo e use a propriedade <code>margin</code> para afastá-los em 40px.</li><br>
+        <li>Qual a diferença prática percebida entre aplicar cor de fundo num elemento com <code>padding</code> alto vs <code>margin</code> alto?</li><br>
+        <li>Como você faria para aplicar margens diferentes: 10px em cima, 20px na direita, 30px embaixo e 0 na esquerda?</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: SEÇÃO 02 -->
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>Estilização de Formulários e Pseudo-classes</h2>
+      <p>Feedback visual imediato e interatividade.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: PSEUDO-CLASSES - CONCEITO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Formulários e Pseudo-classes</div>
+    <h2>A. Conceito</h2>
+    <p>Formulários não podem ser elementos estáticos. Nós utilizamos as <strong>Pseudo-classes</strong> do CSS para fornecer um <strong>feedback visual imediato</strong> ao usuário, transformando inputs brutos em elementos interativos. As pseudo-classes verificam o estado atual do elemento.</p>
+    <p>Por exemplo:</p>
+    <ul>
+      <li><strong>:hover</strong> — altera a aparência quando o cursor passa por cima (ideal para botões);</li>
+      <li><strong>:focus</strong> — acionado quando o usuário clica dentro de um campo de texto (<code>&lt;input&gt;</code>) para digitar.</li>
+    </ul>
+    <p>É através dessa estilização que <strong>guiamos a atenção</strong> do usuário no fluxo de preenchimento, melhorando a acessibilidade e garantindo que ele saiba exatamente onde está a ação. Além disso, com o <code>padding</code>, evitamos que o texto digitado "encoste" na linha do campo.</p>
+  </div>
+
+  <!-- SLIDE 12: PSEUDO-CLASSES - VISUALIZANDO BOTÃO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Formulários e Pseudo-classes</div>
+    <h2>B. Visualizando — Fluxo do Botão</h2>
+    <p>Imagine um fluxo lógico de estado de um botão:</p>
+    <div class="callout blue">
+      <div class="callout-title">Fluxo de Estado</div>
+      <strong>Estado Normal (Cinza)</strong> → Usuário passa o mouse <strong>(:hover)</strong> → Botão fica Azul e ganha uma sombra (<code>box-shadow</code>) indicando que é clicável.
+    </div>
+    <p>Para o campo de texto:</p>
+    <div class="callout blue">
+      <div class="callout-title">Fluxo de Estado</div>
+      <strong>Estado Normal (Borda fina)</strong> → Usuário clica para digitar <strong>(:focus)</strong> → Borda fica grossa e colorida, destacando o local de foco.
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Formulários e Pseudo-classes</div>
+    <h2>B. Visualizando — Fluxo do Botão</h2>
+	<img src="img02.png" style="max-width: 90%; height: auto;">
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Formulários e Pseudo-classes</div>
+    <h2>B. Visualizando — Fluxo do Botão</h2>
+	<img src="img03.png" style="max-width: 90%; height: auto;">
+  </div>
+
+  <!-- SLIDE 13: PSEUDO-CLASSES - CÓDIGO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Formulários e Pseudo-classes</div>
+    <h2>C. Exemplo de Código</h2>
+    <div class="code-block">/* Feedback visual ao digitar */
+input:focus {
+    border: 2px solid #4CAF50;
+    outline: none; /* Remove o azul nativo */
+}
+
+/* Efeito no botão */
+.btn-ghost:hover {
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+}</div>
+  </div>
+
+  <!-- SLIDE 14: PSEUDO-CLASSES - EXPLICAÇÃO INPUT:FOCUS -->
+  <div class="slide slide-common">
+    <div class="slide-label">Formulários e Pseudo-classes</div>
+    <h2>D. Explicação — Bloco input:focus</h2>
+    <p>Este bloco trata do estado em que o usuário clica dentro de um campo de texto para começar a digitar.</p>
+    <ul>
+      <li><strong>input:focus {</strong> — Define uma regra para a pseudo-classe <code>:focus</code>. Ela é acionada apenas quando o elemento <code>&lt;input&gt;</code> recebe o foco do teclado ou do clique.</li><br>
+      <li><strong>border: 2px solid #4CAF50;</strong> — Altera a borda do campo para uma linha sólida de 2 pixels na cor verde. Isso destaca visualmente qual campo está selecionado, guiando a atenção do usuário.</li><br>
+      <li><strong>outline: none;</strong> — Remove o contorno azul (ou preto) padrão que os navegadores adicionam automaticamente. É uma boa prática para garantir que apenas o seu design personalizado seja exibido.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 15: PSEUDO-CLASSES - EXPLICAÇÃO .BTN-GHOST:HOVER -->
+  <div class="slide slide-common">
+    <div class="slide-label">Formulários e Pseudo-classes</div>
+    <h2>D. Explicação — Bloco .btn-ghost:hover</h2>
+    <p>Este bloco define o comportamento visual quando o usuário passa o ponteiro do mouse sobre o botão.</p>
+    <ul>
+      <li><strong>.btn-ghost:hover {</strong> — Seleciona elementos com a classe <code>.btn-ghost</code> durante o estado da pseudo-classe <code>:hover</code>.</li><br>
+      <li><strong>cursor: pointer;</strong> — Muda o formato do cursor para a "mãozinha" de clique, indicando ao usuário que aquele elemento é clicável e interativo.</li><br>
+      <li><strong>background-color: #4CAF50;</strong> — Altera a cor de fundo do botão para verde. Em botões "fantasma" (com fundo transparente), isso cria um efeito de preenchimento visual.</li><br>
+      <li><strong>color: white;</strong> — Muda a cor do texto para branco, garantindo o contraste necessário para leitura sobre o novo fundo verde.</li>
+    </ul>
+    <div class="callout blue">
+      <div class="callout-title">UX</div>
+      Essas técnicas são fundamentais para a Experiência do Usuário, pois fornecem feedback imediato, confirmando que o sistema está reagindo às ações de quem o utiliza.
+    </div>
+  </div>
+
+  <!-- SLIDE 16: PSEUDO-CLASSES - EXERCÍCIOS -->
+  <div class="slide slide-common">
+    <div class="slide-label">Formulários e Pseudo-classes</div>
+    <h2>E. Perguntas</h2>
+    <div class="callout green">
+      <div class="callout-title">Prática</div>
+      <ol>
+        <li>Crie uma pseudo-classe <code>:focus</code> para um <code>&lt;textarea&gt;</code> que mude a cor do texto para azul.</li><br>
+        <li>Modifique o <code>:hover</code> do botão para que, além da sombra, ele fique ligeiramente transparente (dica: pesquise sobre <code>opacity</code>).</li><br>
+        <li>O que acontece se removermos o <code>outline: none</code> do input focado em navegadores diferentes (teste no Chrome e Firefox)?</li><br>
+        <li>Use CSS para mudar a cor de fundo de um botão que contenha o atributo HTML <code>disabled</code> (pesquise a pseudo-classe <code>:disabled</code>).</li><br>
+        <li>Reduza o <code>padding</code> do input para <code>0px</code> e tente digitar. Descreva o impacto na usabilidade.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: SEÇÃO 03 -->
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>Estilização de Tabelas HTML</h2>
+      <p>border-collapse e Zebra Striping.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: TABELAS - CONCEITO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Tabelas HTML</div>
+    <h2>A. Conceito</h2>
+    <p>Tabelas HTML puras (<code>&lt;table&gt;</code>, <code>&lt;tr&gt;</code>, <code>&lt;td&gt;</code>) são estruturalmente corretas, mas visualmente terríveis: os navegadores adicionam um "espaçamento duplo" entre as células por padrão.</p>
+    <p>Nós utilizamos a propriedade essencial <strong>border-collapse</strong> para unir essas bordas, criando uma grade unificada e profissional.</p>
+    <p>Além disso, ao lidarmos com relatórios longos ou listas de clientes, a leitura se torna cansativa. Aplicamos o conceito de <strong>"Zebra Striping" (linhas zebradas)</strong> usando a pseudo-classe <code>:nth-child(even)</code> para alternar as cores do fundo de cada linha, facilitando o escaneamento visual da informação.</p>
+  </div>
+
+  <!-- SLIDE 19: TABELAS - VISUALIZANDO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Tabelas HTML</div>
+    <h2>B. Visualizando</h2>
+    <p>Pense numa planilha: se cada célula fosse uma caixinha solta flutuando com um pequeno espaço entre elas, seria horrível de ler.</p>
+    <div class="callout blue">
+      <div class="callout-title">Analogia</div>
+      O <strong>border-collapse</strong> é o que pega essas caixas soltas e "cola" todas elas pelas bordas, formando a grade perfeita — semelhante ao visual de uma planilha do Excel.
+    </div>
+    <div class="two-col">
+      <div class="col-card">
+        <h3>Sem border-collapse</h3>
+        <p style="font-size:1rem;">Células soltas com espaço duplo entre elas. Bordas individuais por célula. Muito difícil de ler.</p>
+      </div>
+      <div class="col-card">
+        <h3>Com border-collapse</h3>
+        <p style="font-size:1rem;">Grades unidas. Sem espaços entre células. Borda compartilhada. Estilo profissional.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide slide-common">
+    <div class="slide-label">Tabelas HTML</div>
+    <h2>B. Visualizando</h2>
+	<img src="img04.png" style="max-width: 90%; height: auto;">
+  </div>
+
+
+  <!-- SLIDE 20: TABELAS - CÓDIGO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Tabelas HTML</div>
+    <h2>C. Exemplo de Código — Tabela de Inventário Profissional</h2>
+    <div class="code-block">/* Tabela Unificada e Profissional */
+table {
+    width: 100%;
+    border-collapse: collapse; /* Remove o espaço duplo nativo entre células */
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin-top: 20px;
+}
+
+/* Aplicando Box Model nas células */
+th, td {
+    padding: 12px 15px; /* Espaçamento interno para o texto não tocar na borda */
+    border: 1px solid #dddddd;
+    text-align: left;
+}
+
+/* Destaque do Cabeçalho */
+th {
+    background-color: #004d40;
+    color: white;
+    text-transform: uppercase;
+}
+
+/* Zebra Striping */
+tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Feedback de Navegação na Linha */
+tbody tr:hover {
+    background-color: #e0f2f1;
+    cursor: default;
+}</div>
+  </div>
+
+  <!-- SLIDE 21: TABELAS - EXPLICAÇÃO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Tabelas HTML</div>
+    <h2>D. Explicação Detalhada</h2>
+    <ul>
+      <li><strong>border-collapse: collapse;</strong> — Por padrão, o HTML renderiza células como "caixas soltas" com espaços entre elas. Esta propriedade "cola" as bordas, criando uma grade única e limpa.</li><br>
+      <li><strong>padding: 12px 15px;</strong> — Utiliza o Box Model para criar uma zona de respiro dentro de cada célula. Sem isso, o texto encostaria nas bordas, tornando a leitura cansativa e desorganizada.</li><br>
+      <li><strong>th (Table Header)</strong> — O uso de fundo escuro e texto branco aplica o princípio de Design de Alto Contraste, separando claramente os títulos dos dados.</li><br>
+      <li><strong>tr:nth-child(even)</strong> — Esta pseudo-classe é a base do "Zebra Striping". Ela aplica uma cor de fundo apenas às linhas pares, o que ajuda o olho humano a seguir a informação horizontalmente em relatórios longos.</li><br>
+      <li><strong>tr:hover</strong> — É uma ferramenta de acessibilidade e UX. Ao mudar a cor da linha sob o mouse, o sistema confirma para o usuário exatamente qual registro ele está analisando no momento.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 22: TABELAS - EXERCÍCIOS -->
+  <div class="slide slide-common">
+    <div class="slide-label">Tabelas HTML</div>
+    <h2>E. Perguntas</h2>
+    <div class="callout green">
+      <div class="callout-title">Prática</div>
+      <ol>
+        <li>Comente a linha <code>border-collapse: collapse;</code>. Recarregue a página e observe as bordas duplas.</li><br>
+        <li>Mude o alinhamento de texto (<code>text-align</code>) da célula de cabeçalho (<code>th</code>) para <code>center</code>.</li><br>
+        <li>Altere o "Zebra striping" de <code>even</code> (par) para <code>odd</code> (ímpar) e veja o resultado.</li><br>
+        <li>Aplique a propriedade <code>text-transform: uppercase;</code> ao cabeçalho.</li><br>
+        <li>Adicione um <code>border-radius</code> à tabela inteira. Desafio oculto: você precisará descobrir por que o radius pode bugar se o <code>collapse</code> estiver ativado e como resolver!</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- SLIDE 23: SEÇÃO 04 -->
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>FAQ — Dúvidas Reais</h2>
+      <p>Esclarecendo pontos comuns sobre CSS.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 24: FAQ 1 -->
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <div class="faq-item">
+      <div class="faq-q">1. Por que minha "margin" superior ou inferior não está funcionando?</div>
+      <div class="faq-a">Provavelmente você está tentando aplicar margem em um elemento inline (como <code>&lt;span&gt;</code> ou <code>&lt;a&gt;</code>). Margens verticais só funcionam em elementos do tipo bloco (<code>display: block</code> ou <code>inline-block</code>).</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 25: FAQ 2 -->
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <div class="faq-item">
+      <div class="faq-q">2. Qual a diferença entre margin e padding na prática?</div>
+      <div class="faq-a">O <code>padding</code> afasta o conteúdo da parede de dentro da sua casa. A <code>margin</code> afasta a sua casa da casa do vizinho. Se o seu elemento tiver um fundo colorido, o padding expande essa cor, a margin não.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 26: FAQ 3 -->
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <div class="faq-item">
+      <div class="faq-q">3. Como centralizar uma tabela inteira no meio da página?</div>
+      <div class="faq-a">Defina uma <code>width</code> (largura) menor que 100% para a tabela e aplique a regra <code>margin: 0 auto;</code>. O navegador dividirá o espaço que sobrar igualmente na esquerda e na direita.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 27: FAQ 4 -->
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <div class="faq-item">
+      <div class="faq-q">4. Por que meu botão continua com uma linha feia azul quando eu clico nele, mesmo com CSS?</div>
+      <div class="faq-a">Isso é o comportamento de acessibilidade padrão de navegadores (como o Chrome). Para remover ou trocar, você deve estilizar a propriedade <code>outline</code> (ex: <code>outline: none;</code>) na pseudo-classe <code>:focus</code>.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 28: FAQ 5 -->
+  <div class="slide slide-common">
+    <div class="slide-label">FAQ</div>
+    <div class="faq-item">
+      <div class="faq-q">5. Posso usar o ChatGPT para gerar o CSS da minha tabela?</div>
+      <div class="faq-a">Deve! É excelente para produtividade gerar a base (tr, td, cores). Porém, quando o layout quebrar na tela do celular, a IA dificilmente fará os micro-ajustes perfeitos sem que você entenda o Box Model para dizer a ela o que há de errado com as margens.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 29: SEÇÃO 05 -->
+  <div class="slide slide-section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>Exercícios de Fixação</h2>
+      <p>Desafio da Interface Profissional.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 30: EXERCÍCIO 1 e 2 -->
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>1. O Container do Dashboard</h2>
+    <p><strong>Descrição:</strong> Crie a div principal que envolverá todo o conteúdo. Utilize o Box Model para definir uma largura fixa, centralizá-la na tela com <code>margin</code> e aplicar uma <code>box-shadow</code> para dar profundidade e destaque visual.</p>
+    <p><strong>Entrega:</strong> Código CSS do seletor <code>.dashboard-container</code> aplicado à div principal.</p>
+    <hr class="divider">
+    <h2>2. Linhas de Formulário Zebradas</h2>
+    <p><strong>Descrição:</strong> Organize os campos do seu formulário (label e input) dentro de divs com a classe <code>.form-row</code>. Utilize a pseudo-classe <code>:nth-child(even)</code> para alternar a cor de fundo dessas linhas, melhorando a organização visual do formulário.</p>
+    <p><strong>Entrega:</strong> Regra CSS para <code>.form-row:nth-child(even)</code>.</p>
+  </div>
+
+  <!-- SLIDE 31: EXERCÍCIO 3 e 4 -->
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>3. Inputs Gordinhos e Acessíveis</h2>
+    <p><strong>Descrição:</strong> Aplique um <code>padding</code> generoso (pelo menos 12px) em todos os campos de entrada (<code>input</code> e <code>textarea</code>). Isso evita que o texto encoste nas bordas e torna o campo mais fácil de clicar em dispositivos móveis.</p>
+    <p><strong>Entrega:</strong> Propriedade <code>padding</code> aplicada aos seletores de entrada no CSS.</p>
+    <hr class="divider">
+    <h2>4. Validação de Campo Inválido</h2>
+    <p><strong>Descrição:</strong> Utilize a pseudo-classe <code>:invalid</code> nos inputs. Configure o HTML com o atributo <code>required</code> e faça com que o CSS mude a cor da borda para vermelho caso o campo esteja vazio ou com dados incorretos.</p>
+    <p><strong>Entrega:</strong> Trecho de código CSS para <code>input:invalid</code>.</p>
+  </div>
+
+  <!-- SLIDE 32: EXERCÍCIO 5 e 6 -->
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>5. O Botão Fantasma Interativo</h2>
+    <p><strong>Descrição:</strong> Estilize o botão de cadastro com fundo transparente e borda verde. Use a pseudo-classe <code>:hover</code> para inverter as cores (fundo verde e texto branco) e adicione uma <code>transition</code> para que a mudança seja suave.</p>
+    <p><strong>Entrega:</strong> Estilos CSS para <code>button</code> e <code>button:hover</code>.</p>
+    <hr class="divider">
+    <h2>6. Foco e Animação de Borda</h2>
+    <p><strong>Descrição:</strong> No campo de descrição (<code>textarea</code>), remova o contorno padrão do navegador usando <code>outline: none</code>. Crie uma estilização para a pseudo-classe <code>:focus</code> que destaque apenas a borda inferior do campo quando ele for clicado.</p>
+    <p><strong>Entrega:</strong> Código CSS focado no <code>textarea:focus</code>.</p>
+  </div>
+
+  <!-- SLIDE 33: EXERCÍCIO 7 e 8 -->
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>7. A Grade Unificada (Tabela)</h2>
+    <p><strong>Descrição:</strong> Configure a tabela de produtos utilizando a propriedade <code>border-collapse: collapse</code>. Isso eliminará o espaço duplo entre as células, criando uma grade única, limpa e profissional.</p>
+    <p><strong>Entrega:</strong> Propriedade <code>border-collapse</code> aplicada ao seletor <code>table</code>.</p>
+    <hr class="divider">
+    <h2>8. Escaneamento Visual (Zebra Striping)</h2>
+    <p><strong>Descrição:</strong> Aplique a técnica de "Zebra Striping" na tabela de produtos. Utilize <code>:nth-child(even)</code> nas linhas (<code>tr</code>) para que as linhas pares recebam uma cor de fundo cinza claro, facilitando a leitura de dados tabulares.</p>
+    <p><strong>Entrega:</strong> Regra CSS para <code>tr:nth-child(even)</code> da tabela.</p>
+  </div>
+
+  <!-- SLIDE 34: EXERCÍCIO 9 e 10 -->
+  <div class="slide slide-common">
+    <div class="slide-label">Exercícios de Fixação</div>
+    <h2>9. Linha de Destaque Interativa</h2>
+    <p><strong>Descrição:</strong> Adicione um feedback visual para o usuário ao navegar pela tabela. Use a pseudo-classe <code>:hover</code> nas linhas (<code>tr</code>) para mudar a cor de fundo e transformar o texto em negrito (<code>font-weight: bold</code>) ao passar o mouse.</p>
+    <p><strong>Entrega:</strong> Código CSS para o efeito <code>tr:hover</code>.</p>
+    <hr class="divider">
+    <h2>10. Badges de Status Coloridos</h2>
+    <p><strong>Descrição:</strong> Crie classes CSS chamadas <code>.ativo</code> e <code>.inativo</code> para estilizar elementos <code>&lt;span&gt;</code> dentro da coluna de status. Use cores de fundo distintas (verde e vermelho), texto branco, padding pequeno e <code>border-radius</code> para criar etiquetas (badges).</p>
+    <p><strong>Entrega:</strong> Classes CSS de status aplicadas aos elementos da tabela.</p>
+  </div>
+
+  <!-- SLIDE 35: FECHAMENTO -->
+  <div class="slide slide-common">
+    <div class="slide-label">Conclusão</div>
+    <h2>Conexão com a Situação de Aprendizagem</h2>
+    <p>Lembra do sistema backend em Python que estamos planejando e modelando ao longo do curso? Todas aquelas funções de <code>salvar_cliente</code> e consultar banco de dados não podem ser apresentadas em uma tela preta de terminal para o cliente real.</p>
+    <ul>
+      <li>A <strong>tabela estilizada</strong> que vocês dominaram hoje será o painel administrativo (Dashboard) onde o sistema listará os dados vindos do banco.</li>
+      <li>O <strong>formulário</strong> que vocês deram vida hoje com pseudo-classes será exatamente a tela de inserção de dados do nosso aplicativo final integrado ao Flask.</li>
+    </ul>
+    <div class="callout blue">
+      <div class="callout-title">Síntese</div>
+      Nós construímos o motor (Python), e hoje aprendemos a desenhar a carenagem (CSS).
+    </div>
+    <hr class="divider">
+    <h3>Próxima Aula</h3>
+    <p>Na próxima aula, vamos desmistificar o Flask e entender que rotas nada mais são do que funções que "escutam" o navegador e retornam arquivos HTML. Aprenderemos a configurar seu próprio servidor web em Python utilizando o decorador <code>@app.route</code> para conectar URLs às suas páginas.</p>
+    <p>O desafio prático? Fazer com que o endereço <code>localhost:5000/inicio</code> renderize com sucesso o HTML que criaremos juntos em sala!</p>
+  </div>
+
+</div>
+
+<nav id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>← Anterior</button>
+  <span id="slide-counter">1 / 35</span>
+  <button id="btn-next" onclick="changeSlide(1)">Próximo →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'  || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  showSlide(0);
+</script>
+
+</body>
+</html>
