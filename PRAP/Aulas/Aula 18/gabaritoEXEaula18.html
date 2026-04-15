@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gabarito Aula 18 - Desafio Integrado</title>
+    <style>
+        /* Estilos Base */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #e9ecef; 
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        /* DESAFIO 1: Container do Dashboard (Box Model & Sombra) */
+        .dashboard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        h1, h2 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* DESAFIO 2: Formulário Zebrado (nth-child) */
+        .form-row { 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .form-row:nth-child(even) { 
+            background-color: #f8f9fa; 
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        /* DESAFIO 3: Inputs Espaçosos (Padding & Usabilidade) */
+        input, textarea {
+            padding: 14px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            margin-top: 5px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        /* DESAFIO 4: Validação Visual (:invalid) */
+        input:invalid { 
+            border-left: 6px solid #dc3545; 
+        }
+
+        /* DESAFIO 5: Botão Fantasma Interativo (:hover & Transition) */
+        .btn-ghost {
+            background: transparent;
+            border: 2px solid #28a745;
+            color: #28a745;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 6px;
+            margin-top: 20px;
+            transition: 0.4s;
+            display: inline-block;
+        }
+        .btn-ghost:hover { 
+            background: #28a745; 
+            color: white; 
+        }
+
+        /* DESAFIO 6: Limpeza do Foco e Animação (:focus) */
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #28a745;
+        }
+        textarea:focus {
+            border-bottom: 4px solid #28a745;
+        }
+
+        /* DESAFIO 7: Grade Unificada (Border-collapse) */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 40px; 
+        }
+        th, td { 
+            padding: 15px; 
+            border-bottom: 1px solid #dee2e6; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #343a40; 
+            color: white; 
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        /* DESAFIO 8: Tabela Zebrada (nth-child nas linhas) */
+        tbody tr:nth-child(even) { 
+            background-color: #f2f2f2; 
+        }
+
+        /* DESAFIO 9: Linha de Destaque Interativa (:hover na tr) */
+        tbody tr:hover { 
+            background-color: #d4edda; 
+            font-weight: bold; 
+            cursor: default;
+        }
+
+        /* DESAFIO 10: Badges de Status Coloridos (Classes utilitárias) */
+        .status { 
+            padding: 5px 12px; 
+            border-radius: 20px; 
+            color: white; 
+            font-size: 12px; 
+            font-weight: bold;
+            display: inline-block;
+        }
+        .ativo { background-color: #28a745; }
+        .inativo { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <h1>Dashboard de Produtos</h1>
+        
+        <section>
+            <h2>Novo Cadastro</h2>
+            <form action="#">
+                <div class="form-row">
+                    <label for="produto">Produto:</label>
+                    <input type="text" id="produto" required placeholder="Ex: Teclado Mecânico RGB">
+                </div>
+                <div class="form-row">
+                    <label for="preco">Preço (R$):</label>
+                    <input type="number" id="preco" required step="0.01" placeholder="0.00">
+                </div>
+                <div class="form-row">
+                    <label for="descricao">Descrição:</label>
+                    <textarea id="descricao" rows="3" placeholder="Insira os detalhes técnicos do produto..."></textarea>
+                </div>
+                <button type="submit" class="btn-ghost">Salvar Produto</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Produtos em Estoque</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome do Produto</th>
+                        <th>Valor Unitário</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>001</td>
+                        <td>Teclado Gamer K55</td>
+                        <td>R$ 250,00</td>
+                        <td><span class="status ativo">Disponível</span></td>
+                    </tr>
+                    <tr>
+                        <td>002</td>
+                        <td>Mouse Óptico G203</td>
+                        <td>R$ 120,00</td>
+                        <td><span class="status inativo">Esgotado</span></td>
+                    </tr>
+                    <tr>
+                        <td>003</td>
+                        <td>Monitor UltraWide 29"</td>
+                        <td>R$ 1.400,00</td>
+                        <td><span class="status ativo">Disponível</span></td>
+                    </tr>
+                    <tr>
+                        <td>004</td>
+                        <td>Headset 7.1 Surround</td>
+                        <td>R$ 380,00</td>
+                        <td><span class="status ativo">Disponível</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+</body>
+</html>
