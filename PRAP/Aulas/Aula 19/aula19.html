@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 19 - Framework Web (Flask) e Rotas</title>
+<style>
+  body {
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa; 
+    color: #212529;
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh;
+    overflow: hidden;
+  }
+  .slide-container {
+    width: 90vw;
+    height: 90vh;
+    margin: auto;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    padding: 40px; 
+    box-sizing: border-box; 
+    position: relative;
+  }
+  .slide {
+    display: none; 
+    width: 100%; 
+    max-width: 1200px; 
+    max-height: 85vh;
+    background: #ffffff; 
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+    padding: 50px;
+    font-size: 26px; 
+    line-height: 1.6; 
+    overflow-y: auto;
+  }
+  .slide.active { 
+    display: block; 
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  h1, h2, h3 { 
+    color: #0d6efd; 
+    margin-top: 0; 
+  }
+  code, pre { 
+    background: #e9ecef; 
+    padding: 10px 15px; 
+    border-radius: 8px; 
+    font-family: 'Courier New', Courier, monospace; 
+    display: block; 
+    font-size: 22px;
+    overflow-x: auto;
+  }
+  .controls {
+    height: 90px; 
+    background: #ffffff; 
+    border-top: 1px solid #dee2e6;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 0 50px;
+  }
+  button {
+    background: #0d6efd; 
+    color: white; 
+    border: none; 
+    padding: 15px 30px;
+    font-size: 22px; 
+    border-radius: 8px; 
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover {
+    background: #0b5ed7;
+  }
+  button:disabled { 
+    background: #adb5bd; 
+    cursor: not-allowed; 
+  }
+  .progress { 
+    font-size: 22px; 
+    font-weight: bold; 
+    color: #495057;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 22px;
+    margin-top: 10px;
+  }
+  th {
+    background-color: #0d6efd;
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+  }
+  td {
+    padding: 10px 14px;
+    border: 1px solid #dee2e6;
+  }
+  tr:nth-child(even) td {
+    background-color: #f1f3f5;
+  }
+</style>
+</head>
+<body>
+  <div class="slide-container" id="slides">
+
+    <div class="slide active">
+      <h1>Aula 19 - Framework Web (Flask) e Rotas</h1>
+      <p><b>Descrição:</b> Introdução ao Servidor Web Python usando o microframework Flask. Desmistificação do roteamento web (@app.route), mapeamento de endpoints e renderização de arquivos HTML locais. Configuração do ambiente localhost (porta 5000) e modo de depuração para testes no ciclo de desenvolvimento.</p>
+    </div>
+
+    <div class="slide">
+      <h2>Cenário Real</h2>
+      <p>Você já parou para pensar que a internet, no seu núcleo, é apenas uma gigantesca troca de mensagens? Quando você digita "netflix.com" ou abre o aplicativo do seu banco, seu dispositivo atua como um cliente pedindo algo, e um computador robusto do outro lado do mundo, chamado servidor, processa a regra de negócio e responde enviando telas, vídeos ou dados.</p>
+    </div>
+
+    <div class="slide">
+    <h2>Cenário Real (Continuação)</h2>
+      <p>No mercado de desenvolvimento atual, dominar o back-end – o "cérebro" que roda nesse servidor – é uma das habilidades mais requisitadas. Hoje, nós vamos transformar o seu próprio computador nesse cérebro. Usaremos Python junto com o Flask, um microframework de mercado escolhido por sua arquitetura minimalista (conhecida como no-frills), tão poderosa e veloz que é utilizada para levantar microsserviços na Netflix e no Reddit.</p>
+    </div>
+
+    <div class="slide">
+      <h2>Pergunta</h2>
+      <p>Se os nossos algoritmos em Python sempre rodaram isolados e fechados no terminal da nossa IDE, como nós fazemos para criar um "canal" e permitir que o navegador web consiga enviar requisições e receber respostas do nosso código?</p>
+    </div>
+
+    <div class="slide">
+      <h2>Desenvolvimento e Prática</h2>
+      <p>Nós vamos estruturar esta aula em três grandes passos. O foco é entendermos <b>"por que"</b> as coisas​ ​acontecem antes de apenas digitar o código. Se tiverem dúvidas, <b>usem ferramentas de IA Generativa de​ ​forma ética:</b> peçam para a IA explicar um conceito sob uma nova ótica ou analogia, nunca apenas para​ ​copiar a resposta pronta. O conhecimento real vem da prática!</p>
+    </div>
+
+    <div class="slide">
+      <h2>1º Servidor Web e o Microframework Flask</h2>
+      <h3>A. Conceito</h3>
+      <p>O Flask é classificado como um microframework web escrito em Python. Ele recebe o prefixo "micro" não por ser fraco, mas por ser modular e minimalista: ele não traz dezenas de bibliotecas pesadas e desnecessárias instaladas por padrão, permitindo que nós, desenvolvedores, tenhamos total controle para adicionar apenas o que o projeto precisar. Ele constrói nossa base em cima de um kit de ferramentas poderoso chamado Werkzeug (que lida com as requisições web) e o Jinja2 (motor de templates).</p>
+    </div>
+
+    <div class="slide">
+      <h3>A. Conceito (Continuação)</h3>    
+      <p>No ciclo de desenvolvimento que faremos, o nosso próprio computador atuará como servidor local. A isso damos o nome de localhost, cujo endereço de IP interno normalmente é <i>127.0.0.1</i>. Esse ambiente isolado é perfeito porque impede acesso externo durante nossos testes e garante que nossa aplicação "ouça" o navegador através de uma "porta" específica do sistema, que por convenção no Flask é a porta 5000.</p>
+    </div>
+
+    <div class="slide">
+      <h3>B. Visualizando - Fluxo do Servidor Local</h3>
+        <img src="img01.png" style="max-width: 90%; height:auto;">
+    </div>
+
+    <div class="slide">
+      <h3>C. Exemplo de Código</h3>
+      <pre><code>Python
+# Importamos a classe principal do microframework
+from flask import Flask
+
+# Inicializamos a nossa aplicação web (instanciando o objeto)
+app = Flask(__name__)
+
+# Garantimos que o servidor só suba se executarmos este arquivo diretamente
+if __name__ == '__main__':
+    # Ligamos o servidor no localhost, porta padrão, com modo de depuração ativado
+    app.run(debug=True)</code></pre>
+    </div>
+
+    <div class="slide">
+      <h3>D. Explicação linha por linha</h3>
+      <ul>
+        <li><b>from flask import Flask:</b> Trazemos a "caixa de ferramentas" do Flask para o nosso projeto.</li>
+        <li><b>app = Flask(__name__):</b> Criamos uma variável chamada app que representa a nossa aplicação inteira. O __name__ indica ao Flask onde ele deve procurar os recursos e arquivos do projeto.</li>
+        <li><b>if __name__ == '__main__':</b> Boa prática de segurança e organização em Python para garantir que o script não vai tentar subir o servidor se for apenas importado por outro arquivo.</li>
+        <li><b>app.run(debug=True):</b> A mágica acontece! Inicia o servidor local. O debug=True ativa o Modo de Depuração, que exibe erros detalhados (tracebacks) no navegador e reinicia o servidor automaticamente quando nós salvamos o arquivo, acelerando nossa produtividade.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>E. Pesquise e Responda</h3>
+      <ol>
+        <li>Qual o comando via terminal para instalar o Flask no ambiente virtual do seu projeto?</li><br>
+        <li>Defina com suas palavras a diferença entre um framework full-stack (como Django) e um microframework (como Flask).</li><br>
+        <li>O que representa o IP 127.0.0.1?</li><br>
+        <li>Crie o arquivo app.py na sua IDE (VS Code), transcreva o código exemplo e execute. O que aparece no terminal?</li><br>
+        <li>Qual é a utilidade prática do parâmetro debug=True no nosso dia a dia de código?</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h2>2. A Anatomia das Rotas (@app.route)</h2>
+      <h3>A. Conceito</h3>
+      <p>O nosso servidor já está de pé, mas ele não sabe o que fazer quando recebe uma "visita". É aqui que entram as Rotas e os Endpoints. Um endpoint é o URL final mapeado (como /perfil ou /inicio). Para criarmos isso, o Flask usa o conceito de <i>decorator</i> – representado pelo símbolo <b>@</b>.</p>
+    </div>
+
+    <div class="slide">
+      <h3>A. Conceito (Continuação)</h3>
+      <p>Um decorator @app.route() é basicamente um "porteiro" programado para interceptar e escutar ações e requisições HTTP feitas pelo usuário. Quando o navegador tentar acessar o caminho que nós configuramos, o decorator detecta o acesso e executa a função Python que estiver imediatamente abaixo dele. É a fusão perfeita entre a rede e a nossa lógica de programação.</p>
+    </div>
+
+    <div class="slide">
+      <h3>B. Visualizando</h3>
+        <img src="img02.png" style="max-width: 90%; height:auto;">
+    </div>
+
+    <div class="slide">
+      <h3>C. Exemplo de Código</h3>
+      <pre><code>Python
+from flask import Flask
+app = Flask(__name__)
+
+# Definimos o padrão de URL (rota) que o navegador vai acessar
+@app.route('/inicio')
+def pagina_inicial():
+    # A função é ativada pela rota. O return agora devolve dados ao navegador!
+    return "&lt;h1&gt;Olá, Mundo! Este é o back-end respondendo.&lt;/h1&gt;"
+
+if __name__ == '__main__':
+    app.run(debug=True)</code></pre>
+    </div>
+
+    <div class="slide">
+      <h3>D. Explicação linha por linha</h3>
+      <ul>
+        <li><b>@app.route('/inicio'):</b> Nós definimos que, se o usuário digitar /inicio na barra de endereços, esta será a rota interceptada.</li>
+        <li><b>def pagina_inicial():</b> Criamos a lógica (conhecida como view no mercado) atrelada à rota acima. O nome da função pode ser qualquer um que faça sentido para o projeto.</li>
+        <li><b>return "&lt;h1&gt;...&lt;/h1&gt;":</b> Nós modificamos o paradigma do return. Ao invés de retornar uma variável ou número para dentro do próprio algoritmo, o return injeta essa String com tags de título direto na comunicação de rede, e o navegador a converte visualmente.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>E. Experimente e Responda</h3>
+      <ol>
+        <li>Adicione a rota /inicio no seu app.py. Teste no navegador.</li><br>
+        <li>Crie uma segunda rota chamada /contato que retorne seu email na tela.</li><br>
+        <li>Se você criar uma função sem um @app.route em cima dela, o navegador conseguirá acessá-la?</li><br>
+        <li>O que ocorre se você tentar acessar localhost:5000/produtos sem ter mapeado essa rota?</li><br>
+        <li>Mude a rota para @app.route('/'). O que o caractere / sozinho significa na estrutura de pastas da web?</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h2>3. Retorno e Renderização de HTML (O Desafio Prático)</h2>
+      <h3>A. Conceito</h3>
+      <p>Retornar uma String (texto comum) na nossa função funciona, mas nenhum sistema real do mercado – e nem a nossa SA – é feito de textos puros. Nós precisamos de interfaces ricas, botões, tabelas e estilização. Para isso, o Flask promove uma transição técnica: nós usamos a função importável render_template.</p>
+    </div>
+
+    <div class="slide">
+    <h3>A. Conceito (Continuação)</h3>
+      <p>Ela instrui o servidor a buscar um arquivo HTML inteiro e prepará-lo para envio. Contudo, há uma regra arquitetural estrita imposta pelo Flask: por padrão, todos os arquivos .html devem estar obrigatoriamente agrupados dentro de uma pasta na raiz do projeto chamada templates. É a organização da casa.</p>
+    </div>
+
+    <div class="slide">
+      <h3>B. Visualizando</h3>
+        <img src="img03.png" style="max-width: 90%; height:auto;">
+    </div>
+
+    <div class="slide">
+      <h3>C. Exemplo de Código</h3>
+      <pre><code>Python
+# Adicionamos a ferramenta render_template na nossa importação inicial
+from flask import Flask, render_template<br>
+app = Flask(__name__)
+
+# Criamos a rota para o desafio prático
+@app.route('/meusite')
+def apresentar_site():
+    # Encontra o HTML na pasta 'templates', processa e devolve a página estruturada
+    return render_template('index.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)</code></pre>
+    </div>
+
+    <div class="slide">
+      <h3>D. Explicação linha por linha</h3>
+      <ul>
+        <li><b>from flask import render_template:</b> Importamos a habilidade de renderizar arquivos (unindo o back ao front).</li>
+        <li><b>def apresentar_site():</b> Função conectada ao endpoint /meusite.</li>
+        <li><b>return render_template('index.html'):</b> Em vez de enviar uma frase curta, o Flask vasculha a pasta oculta templates, abre o seu index.html e "empurra" o código inteiro estruturado pela porta 5000 para o navegador ler e desenhar o visual completo.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>E. Exercícios Rápidos</h3>
+      <ol>
+        <li>Crie a pasta chamada exatamente templates no mesmo local onde está o seu arquivo app.py.</li><br>
+        <li>Mova o arquivo HTML que você criou na aula anterior de Front-end para dentro da pasta templates.</li><br>
+        <li>Importe o render_template no topo do seu script.</li><br>
+        <li>Modifique o return de uma das suas rotas para renderizar o seu HTML.</li><br>
+        <li>Se você nomear a pasta como "htmls" ou "paginas", o Flask encontrará o arquivo automaticamente? Faça o teste.</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h2>FAQ - Dúvidas Reais</h2>
+      <h3>Pergunta 1</h3>
+      <p><b>E se eu tentar rodar e aparecer a mensagem "Port 5000 is already in use"?</b></p>
+      <p>Isso significa que outro serviço no seu sistema operacional já está usando essa "estrada". O host está ocupado. Você pode contornar isso dizendo ao Flask para usar a porta seguinte:<pre><code>app.run(port=5001, debug=True)</code></pre></p>
+    </div>
+
+    <div class="slide">
+    <h2>FAQ - Dúvidas Reais</h2>
+      <h3>Pergunta 2</h3>
+      <p><b>Por que o arquivo principal costuma se chamar app.py ou main.py?</b></p>
+      <p>É uma convenção entre programadores para facilitar a rastreabilidade do código. Qualquer pessoa da equipe que pegar o projeto saberá que ali está a ignição do sistema.</p>
+    </div>
+
+    <div class="slide">
+    <h2>FAQ - Dúvidas Reais</h2>
+      <h3>Pergunta 3</h3>
+      <p><b>O Flask entende CSS e Imagens, ou só HTML?</b></p>
+      <p>Sim, ele entende! Porém, enquanto os HTMLs ficam na pasta templates, os recursos estáticos (CSS, imagens, fontes) devem ir obrigatoriamente para outra pasta raiz chamada static.</p>
+    </div>
+
+    <div class="slide">
+    <h2>FAQ - Dúvidas Reais</h2>
+      <h3>Pergunta 4</h3>
+      <p><b>O debug=True é seguro para sistemas no ar (produção)?</b></p>
+      <p>Jamais! Em ambiente de desenvolvimento local ele nos salva apontando o local do erro com exatidão. Se for para produção (deploy), deixamos o modo desligado, caso contrário exporemos nosso código-fonte para usuários comuns (ou hackers).</p>
+    </div>
+
+    <div class="slide">
+    <h2>FAQ - Dúvidas Reais</h2>
+      <h3>Pergunta 5</h3>
+      <p><b>Se um projeto Django é mais completo (full-stack), por que a indústria ainda procura devs Flask?</b></p>
+      <p>Justamente pela leveza e flexibilidade de construir apenas APIs ou serviços independentes rápidos (microsserviços). O Flask não força o desenvolvedor a seguir uma arquitetura engessada, promovendo integração fácil entre plataformas diferentes.</p>
+    </div>
+
+    <div class="slide">
+      <h2>Exercícios de Fixação</h2>
+      <p>Com base no conteúdo da Aula 19 - Framework Web (Flask) e Rotas, elaborei uma trilha de 10 exercícios progressivos. Eles foram desenhados para levar você do zero — a instalação e o "olá mundo" — até a integração completa da sua Situação de Aprendizagem (SA).</p>
+    </div>
+
+    <div class="slide">
+      <h3>Exercício 1 - O Despertar do Servidor</h3>
+      <p><b>Descrição:</b> Configure o ambiente e inicie um servidor Flask básico. Certifique-se de que ele só rode se o arquivo for executado diretamente e com o modo de depuração ativado.</p>
+      <p><b>Entrega:</b> Print do terminal exibindo a mensagem "Running on http://127.0.0.1:5000".</p>
+    </div>
+
+    <div class="slide">
+      <h3>Exercício 2 - Rota Ping-Pong</h3>
+      <p><b>Descrição:</b> Crie um endpoint chamado /ping. O objetivo é entender como o decorator @app.route intercepta a requisição e retorna uma resposta simples.</p>
+      <p><b>Entrega:</b> Captura de tela do navegador exibindo o texto "Pong!" ao acessar o endereço.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Exercício 3 - Identidade no Back-end</h3>
+      <p><b>Descrição:</b> Configure a rota raiz (/) para que, ao ser acessada, exiba uma String contendo seu Nome, sua Turma do SENAI e o tema escolhido para sua SA.</p>
+      <p><b>Entrega:</b> Execução comprovada via localhost no navegador.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Exercício 4 - O Menu de Navegação (Múltiplas Rotas)</h3>
+      <p><b>Descrição:</b> Desenvolva um script que possua três rotas simultâneas: /login, /cadastro e /sobre. Cada uma deve retornar um texto orientando o usuário sobre em qual seção ele está.</p>
+      <p><b>Entrega:</b> O código do arquivo app.py completo contendo os três decorators.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Exercício 5 - Arquiteto de Pastas</h3>
+      <p><b>Descrição:</b> Aplique os princípios de organização (CS2) criando a estrutura obrigatória de pastas na raiz do seu projeto: templates (para HTML) e static (para CSS/Imagens).</p>
+      <p><b>Entrega:</b> Print da árvore de arquivos no VS Code estruturada corretamente.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Exercício 6 - A Primeira Renderização</h3>
+      <p><b>Descrição:</b> Use a função render_template para que a rota /teste não retorne apenas um texto, mas sim um arquivo HTML real chamado teste.html guardado na pasta correta.</p>
+      <p><b>Entrega:</b> O código Python utilizando o import e o comando render_template corretamente.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Exercício 7 - Explorando o Traceback (Erro Proposital)</h3>
+      <p><b>Descrição:</b> Com o debug=True ativo, provoque um erro de divisão por zero dentro de uma função de rota. Isso serve para aprender a ler o relatório de erros do Werkzeug.</p>
+      <p><b>Entrega:</b> Print do navegador exibindo o erro detalhado e uma breve descrição de onde o console indica que a lógica quebrou.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Exercício 8 - Mudança de "Estrada" (Portas Customizadas)</h3>
+      <p><b>Descrição:</b> Altere as configurações de inicialização para que o servidor suba na porta 8080 em vez da 5000, simulando a resolução de conflitos de rede.</p>
+      <p><b>Entrega:</b> Captura do navegador acessando o site via localhost:8080.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Exercício 9 - A Rota Perdida (Relatório 404)</h3>
+      <p><b>Descrição:</b> Tente acessar uma rota inexistente (ex: /admin_secreto) e analise a resposta do servidor.</p>
+      <p><b>Entrega:</b> Um pequeno relatório (texto) explicando o que o código de erro 404 significa no contexto de rotas mapeadas.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Exercício 10 - Integração Final: A Ponte da SA</h3>
+      <p><b>Descrição:</b> O desafio mestre! Pegue todo o front-end (HTML/CSS) da sua Situação de Aprendizagem, organize nas pastas templates e static, e crie uma rota /sistema que renderize sua aplicação funcional.</p>
+      <p><b>Entrega:</b> Demonstração do projeto front-end completo sendo servido pelo back-end Python na porta 5000.</p>
+    </div>
+
+    <div class="slide">
+      <h1><b>ENTREGA:</b></h1> <p>Estes exercícios <b>NÃO</b> serão entregues no AVA, você deve apresentar ao professor durante esta aula, toda estrutura de pastas e o servidor funcionando. <b><u>APRESENTAÇÃO INDIVIDUAL.</u></b></p>
+      </div>
+ 
+    <div class="slide">
+      <h2>Fechamento</h2>
+      <h3>Conexão com a Situação de Aprendizagem</h3>
+      <p>Hoje nós construímos a grande "ponte" do nosso projeto final ("Da Ideia ao Código: Construção de Aplicações Funcionais"). O seu banco de dados Python não podia falar diretamente com a tela HTML do usuário. Agora, com a aplicação Flask estruturada, nós já temos o maestro que vai ligar a inteligência, as funções e o armazenamento aos botões e interfaces que o usuário manipula no Front-end.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Próxima Aula</h3>
+      <p>Com o nosso arquivo HTML renderizando pelo servidor, chegou a hora de dar vida a ele! Na próxima aula, aprenderemos a transitar de "arquivos HTML estáticos e mortos" para interfaces que recebem e desenham dados reais do sistema no momento em que a página carrega, explorando o poder das variáveis dinâmicas no Back-end com Jinja2. Preparem-se!</p>
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn" onclick="prevSlide()" disabled>Anterior</button>
+    <div class="progress"><span id="current">1</span> / <span id="total"></span></div>
+    <button id="nextBtn" onclick="nextSlide()">Próximo</button>
+  </div>
+
+  <script>
+    let currentSlideIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const currentIndicator = document.getElementById('current');
+    const totalIndicator = document.getElementById('total');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    totalIndicator.textContent = totalSlides;
+
+    function updateView() {
+      slides.forEach((slide, index) => {
+        slide.classList.remove('active');
+        if (index === currentSlideIndex) {
+          slide.classList.add('active');
+        }
+      });
+      currentIndicator.textContent = currentSlideIndex + 1;
+      prevBtn.disabled = currentSlideIndex === 0;
+      nextBtn.disabled = currentSlideIndex === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < totalSlides - 1) {
+        currentSlideIndex++;
+        updateView();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        currentSlideIndex--;
+        updateView();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+    });
+  </script>
+</body>
+</html>
