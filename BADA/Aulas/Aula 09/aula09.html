@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 09 - 3FN e Revisão Geral da Modelagem</title>
+<style>
+  body {
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa; 
+    color: #212529;
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh;
+    overflow: hidden;
+  }
+  .slide-container {
+    width: 90vw;
+    height: 90vh;
+    margin: auto;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    padding: 40px; 
+    box-sizing: border-box; 
+    position: relative;
+  }
+  .slide {
+    display: none; 
+    width: 100%; 
+    max-width: 1200px; 
+    max-height: 85vh;
+    background: #ffffff; 
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+    padding: 50px;
+    font-size: 26px; 
+    line-height: 1.6; 
+    overflow-y: auto;
+  }
+  .slide.active { 
+    display: block; 
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  h1, h2, h3 { 
+    color: #0d6efd; 
+    margin-top: 0; 
+  }
+  code, pre { 
+    background: #e9ecef; 
+    padding: 10px 15px; 
+    border-radius: 8px; 
+    font-family: 'Courier New', Courier, monospace; 
+    display: block; 
+    font-size: 22px;
+    overflow-x: auto;
+  }
+  .controls {
+    height: 90px; 
+    background: #ffffff; 
+    border-top: 1px solid #dee2e6;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 0 50px;
+  }
+  button {
+    background: #0d6efd; 
+    color: white; 
+    border: none; 
+    padding: 15px 30px;
+    font-size: 22px; 
+    border-radius: 8px; 
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover {
+    background: #0b5ed7;
+  }
+  button:disabled { 
+    background: #adb5bd; 
+    cursor: not-allowed; 
+  }
+  .progress { 
+    font-size: 22px; 
+    font-weight: bold; 
+    color: #495057;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 22px;
+    margin-top: 10px;
+  }
+  th {
+    background-color: #0d6efd;
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+  }
+  td {
+    padding: 10px 14px;
+    border: 1px solid #dee2e6;
+  }
+  tr:nth-child(even) td {
+    background-color: #f1f3f5;
+  }
+</style>
+</head>
+<body>
+  <div class="slide-container" id="slides">
+
+    <div class="slide active">
+      <h1>Aula 09 - 3FN e Revisão Geral da Modelagem</h1>
+      <p><b>Descrição:</b> Aula focada na identificação e eliminação de dependências transitivas para alcançar a Terceira Forma Normal (3FN). Realização de atividade prática de elaboração dos documentos: Ficha de Levantamento de Requisitos, criação do Modelo de Entidade-Relacionamento (MER) seguida da validação final do Diagrama Entidade-Relacionamento (DER) e organização da documentação técnica para a Situação de Aprendizagem.</p>
+    </div>
+
+    <div class="slide">
+      <h2>Cenário Real</h2>
+      <p>Pensem no banco de dados de um aplicativo de delivery que vocês usam todo fim de semana. Imagine que, na tabela de "Pedidos", temos as colunas: ID_Pedido, Nome_Lanche, Bairro_Entrega e Taxa_Entrega.</p>
+      <p>A Taxa_Entrega é definida pelo Bairro_Entrega, e não pelo ID_Pedido. Se o aplicativo decidir aumentar a taxa de entrega do bairro "Centro" de R$ 5,00 para R$ 7,00, o banco de dados precisará varrer e atualizar milhares de pedidos antigos só para manter a consistência, ou pior, teremos dados divergentes. Esse é o caos causado por uma dependência transitiva.</p>
+    </div>
+
+    <div class="slide">
+      <h2>Pergunta</h2>
+      <p>Como podemos reestruturar os dados desse aplicativo para que a alteração da taxa de um bairro seja feita em um único lugar, refletindo instantaneamente para todos os novos pedidos sem corromper o histórico?</p>
+    </div>
+
+    <div class="slide">
+      <h2>Terceira Forma Normal (3FN) e Dependências Transitivas</h2>
+      <h3>A. Conceito</h3>
+      <p>Para que uma tabela esteja na Terceira Forma Normal (3FN), ela precisa obrigatoriamente já estar na 1FN e na 2FN. A regra de ouro da 3FN é clara: <b>toda coluna que não é chave primária deve depender APENAS da chave primária.</b></p>
+      <p>Se um atributo não-chave depende de outro atributo que também não é chave, temos uma dependência transitiva. No nosso dia a dia, isso significa que estamos misturando fatos sobre entidades independentes na mesma tabela, o que gera redundância e anomalias de atualização.</p>
+    </div>
+
+    <div class="slide">
+      <h3>A. Conceito (Continuação)</h3>
+      <p>Para resolver isso, nós pegamos o atributo independente (como o Bairro e sua Taxa) e o transformamos em uma nova tabela, criando um relacionamento via Chave Estrangeira (FK). É aqui que entra o pensamento crítico: questionar sempre a origem do dado.</p>
+      <p>Podemos também utilizar ferramentas de IA Generativa para escanear grandes dicionários de dados e sugerir tabelas candidatas à normalização, mas a validação do modelo de negócios sempre será responsabilidade do desenvolvedor.</p>
+    </div>
+
+    <div class="slide">
+      <h3>B. Visualizando</h3>
+      <img src="img01.png" style="max-width: 90%; height:auto;">
+    </div>
+
+    <div class="slide">
+      <h3>C. Perguntas</h3>
+      <ol>
+        <li>O que caracteriza uma dependência transitiva?</li>
+        <li>Por que a 3FN exige que a tabela já esteja na 2FN?</li>
+        <li>Cite um problema prático causado por manter atributos com dependência transitiva na mesma tabela.</li>
+        <li>No exemplo do código, o que aconteceria se tentássemos excluir um Bairro que já possui pedidos vinculados na tabela Pedidos_Correto?</li>
+        <li>Como uma FK (Chave Estrangeira) ajuda a manter a 3FN?</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h2>Revisão do DER e Documentação Técnica</h2>
+      <h3>A. Conceito</h3>
+      <p>Após aplicar todas as regras de normalização (1FN, 2FN e 3FN), nosso modelo lógico sofreu diversas alterações: tabelas foram divididas e novos relacionamentos nasceram. Agora, nós precisamos revisar o Diagrama Entidade-Relacionamento (DER) para garantir que ele reflita exatamente o banco de dados que será implementado. Isso garante a rastreabilidade do projeto.</p>
+      <p>A preparação para a avaliação exige documentação impecável. Precisamos consolidar o Dicionário de Dados, descrevendo os tipos, tamanhos e restrições de cada coluna. Um profissional de desenvolvimento não entrega apenas código; ele entrega soluções bem documentadas.</p>
+    </div>
+
+    <div class="slide">
+      <h2>Revisão do DER e Documentação Técnica</h2>
+      <h3>B. Visualizando</h3>
+    <img src="img02.png" style="max-width: 90%; height:auto;">
+    </div>
+
+    <div class="slide">
+      <h2>FAQ - Dúvidas Reais</h2>
+      <h3>1. Preciso normalizar o banco de dados até a 5FN em todos os projetos?</h3>
+      <p>Na prática da indústria, normalizar até a 3FN (ou Forma Normal de Boyce-Codd - FNBC) já resolve 95% das anomalias. Formas normais superiores são para casos muito específicos e podem prejudicar a performance.</p>
+      <h3>2. E se a 3FN deixar meu banco lento por causa de muitos JOINS?</h3>
+      <p>Esse é um trade-off clássico. Em bancos de leitura massiva (como Data Warehouses), fazemos a desnormalização controlada. Mas em sistemas transacionais (OLTP) do dia a dia, a 3FN é a regra.</p>
+    </div>
+
+    <div class="slide">
+      <h2>FAQ - Dúvidas Reais</h2>
+      <h3>3. Como sei se um campo é realmente independente para virar uma tabela?</h3>
+      <p>Pergunte-se: "Se eu deletar o registro principal, esse dado deveria continuar existindo no sistema?". Se sim (ex: a categoria de um produto que foi apagado), ele deve ser uma tabela à parte.</p>
+      <h3>4. Posso usar IA para gerar meu dicionário de dados?</h3>
+      <p>Pode e deve para ganhar tempo na estruturação inicial, mas você deve revisar cada tipo de dado, pois a IA não conhece as regras de negócio intrínsecas da sua empresa.</p>
+      <h3>5. Esqueci de colocar a FK no DER, posso criar direto no SQL?</h3>
+      <p>Tecnicamente sim, mas você quebra a rastreabilidade. A boa prática exige que você atualize o DER primeiro.</p>
+    </div>
+
+    <div class="slide">
+      <h2>Atividade de Construção - Documentação da SA</h2>
+      <h3>Fluxo de Trabalho</h3>
+      <p><b>1. Levantamento de Requisitos:</b> Converse com o cliente/usuário para entender a regra de negócio. Documentos a serem apresentados:</p>
+      <ul>
+        <li>Canvas;</li>
+        <li>Ficha de Levantamento de Requisitos (Funcionais, Não Funcionais, Regras de Negócio).</li>
+      </ul>
+      <p><b>2. MER (Modelo Conceitual):</b> Identifique entidades e relacionamentos. É como desenhar a planta baixa de um prédio antes de começar a assentar os tijolos.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Passo a passo para construir um MER:</h3>
+      <ul>
+        <li><b>2.1. Identifique as Entidades (Os Substantivos):</b> Objetos do mundo real (Ex: CLIENTE, PRODUTO). Representadas por retângulos.</li>
+        <li><b>2.2. Defina os Atributos (As Características):</b> (Ex: Nome, CPF). Inclui a <b>Chave Primária (PK)</b>, o identificador único (Ex: ID_Cliente). Representados por elipses ou listados no retângulo.</li>
+        <li><b>2.3. Estabeleça os Relacionamentos (Os Verbos):</b> Como as entidades interagem (Ex: CLIENTE faz PEDIDO). Representados por losangos.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>2.4. Defina a Cardinalidade</h3>
+      <p>Define o "número de ocorrências" no relacionamento:</p>
+      <ul>
+        <li><b>1:1 (Um para Um):</b> Um usuário possui apenas um currículo.</li>
+        <li><b>1:N (Um para Muitos):</b> Um cliente faz vários pedidos, mas cada pedido pertence a um cliente.</li>
+        <li><b>N:N (Muitos para Muitos):</b> Um aluno tem várias disciplinas, e uma disciplina tem vários alunos. <i>Gera uma tabela associativa no modelo lógico.</i></li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>2.5. Exemplo Prático: Sistema de Biblioteca</h3>
+      <ul>
+        <li><b>Entidades:</b> AUTOR, LIVRO.</li>
+        <li><b>Atributos:</b>
+          <ul>
+            <li>AUTOR: ID_Autor (PK), Nome, Nacionalidade.</li>
+            <li>LIVRO: ISBN (PK), Título, Ano_Publicação.</li>
+          </ul>
+        </li>
+        <li><b>Relacionamento:</b> AUTOR escreve LIVRO.</li>
+        <li><b>Cardinalidade:</b> N:N (Um autor escreve N livros; um livro tem N autores).</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h2>3. DER (Diagrama Lógico)</h2>
+      <p>Passagem do Modelo Conceitual para o Modelo Lógico:</p>
+      <ul>
+        <li><b>3.1. Transformar Entidades em Tabelas:</b> Cada retângulo vira uma tabela.</li>
+        <li><b>3.2. Definir as Chaves Primárias (PK):</b> Identificador exclusivo (natural ou auto-incremento).</li>
+        <li><b>3.3. Mapear Atributos para Colunas e Tipos:</b> Definir o que o dado é (Ex: Nome -> VARCHAR, Preço -> DECIMAL, Data -> DATE).</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>3.4. Converter Relacionamentos (Chaves Estrangeiras)</h3>
+      <ul>
+        <li><b>Relacionamento 1:N:</b> A PK do lado "1" viaja para o lado "N" como <b>Foreign Key (FK)</b>.</li>
+        <li><b>Relacionamento N:N:</b> Cria-se uma <b>Tabela Associativa</b> (Ex: AUTOR_LIVRO) contendo as FKs das duas tabelas originais, formando uma chave primária composta.</li>
+        <li><b>Relacionamento 1:1:</b> A PK de uma tabela vai para a outra como FK (geralmente na que depende da existência da outra).</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>3.5. Regras de Integridade e 3.6. Notação</h3>
+      <p><b>Integridade:</b></p>
+      <ul>
+        <li><b>NOT NULL:</b> Obrigatório.</li>
+        <li><b>NULL:</b> Opcional.</li>
+        <li><b>UNIQUE:</b> Valor não pode repetir (mesmo que não seja PK).</li>
+      </ul>
+      <p><b>Notação:</b></p>
+      <ul>
+        <li><b>Pé de Galinha (Crow's Foot):</b> Traço para "1" e ramificações para "Muitos".</li>
+        <li><b>UML:</b> Números (1..1, 1..*) nas pontas.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>Resumo Visual da Conversão</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>No MER (Conceitual)</th>
+            <th>No DER (Lógico)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Entidade</td>
+            <td>Tabela</td>
+          </tr>
+          <tr>
+            <td>Atributo</td>
+            <td>Coluna</td>
+          </tr>
+          <tr>
+            <td>Identificador</td>
+            <td>Chave Primária (PK)</td>
+          </tr>
+          <tr>
+            <td>Relacionamento 1:N</td>
+            <td>Chave Estrangeira (FK) no lado N</td>
+          </tr>
+          <tr>
+            <td>Relacionamento N:N</td>
+            <td>Nova Tabela Associativa</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="slide">
+      <h2>Fechamento</h2>
+      <h3>Conexão com a Situação de Aprendizagem</h3>
+      <p>A normalização até a 3ª forma normal é um critério fundamental da prova prática. Se o modelo tiver dependências transitivas, os relatórios darão resultados errados. O dicionário de dados será o principal documento técnico da apresentação final.</p>
+      <h3>Próxima Aula</h3>
+      <p>Avaliação objetiva para validar o conhecimento. Em seguida, sairemos da DDL (Modelagem) e entraremos na DML (Manipulação): INSERTs baseados no modelo 3FN e consultas reais com SELECT.</p>
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn" onclick="prevSlide()" disabled>Anterior</button>
+    <div class="progress"><span id="current">1</span> / <span id="total"></span></div>
+    <button id="nextBtn" onclick="nextSlide()">Próximo</button>
+  </div>
+
+  <script>
+    let currentSlideIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const currentIndicator = document.getElementById('current');
+    const totalIndicator = document.getElementById('total');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    totalIndicator.textContent = totalSlides;
+
+    function updateView() {
+      slides.forEach((slide, index) => {
+        slide.classList.remove('active');
+        if (index === currentSlideIndex) {
+          slide.classList.add('active');
+        }
+      });
+      currentIndicator.textContent = currentSlideIndex + 1;
+      prevBtn.disabled = currentSlideIndex === 0;
+      nextBtn.disabled = currentSlideIndex === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < totalSlides - 1) {
+        currentSlideIndex++;
+        updateView();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        currentSlideIndex--;
+        updateView();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+    });
+  </script>
+</body>
+</html>
