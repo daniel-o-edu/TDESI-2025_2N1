@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 11 - Instalação e Configuração do SGBD</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #212529;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .slide-container {
+    width: 90vw;
+    height: 90vh;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    box-sizing: border-box;
+    position: relative;
+  }
+  .slide {
+    display: none;
+    width: 100%;
+    max-width: 1200px;
+    max-height: 85vh;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 50px;
+    font-size: 26px;
+    line-height: 1.6;
+    overflow-y: auto;
+  }
+  .slide.active {
+    display: block;
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  h1, h2, h3 {
+    color: #0d6efd;
+    margin-top: 0;
+  }
+  code, pre {
+    background: #e9ecef;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    display: block;
+    font-size: 22px;
+    overflow-x: auto;
+  }
+  ul, ol {
+    padding-left: 1.4em;
+  }
+  li {
+    margin-bottom: 6px;
+  }
+  .controls {
+    height: 90px;
+    background: #ffffff;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 50px;
+  }
+  button {
+    background: #0d6efd;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover  { background: #0b5ed7; }
+  button:disabled { background: #adb5bd; cursor: not-allowed; }
+  .progress {
+    font-size: 22px;
+    font-weight: bold;
+    color: #495057;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 22px;
+    margin-top: 10px;
+  }
+  th {
+    background-color: #0d6efd;
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+  }
+  td {
+    padding: 10px 14px;
+    border: 1px solid #dee2e6;
+  }
+  tr:nth-child(even) td { background-color: #f1f3f5; }
+  blockquote {
+    border-left: 4px solid #0d6efd;
+    margin: 10px 0;
+    padding: 10px 20px;
+    background: #f0f4ff;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+  }
+  .badge {
+    display: inline-block;
+    background: #0d6efd;
+    color: white;
+    border-radius: 6px;
+    padding: 2px 12px;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+  <div class="slide-container" id="slides">
+
+    <div class="slide active">
+      <h1>Aula 11 - Instalação e Configuração do SGBD</h1>
+      <p>Descrição: Realizar a instalação e configuração do SGBD MySQL e a ferramenta Workbench. Criar o banco de dados e as primeiras tabelas. Hoje vamos realizar uma aula prática, com a configuração inicial do SGBD MySQL Workbench que passaremos a utilizar em nossas atividades e no nosso projeto de SA.</p>
+    </div>
+
+    <div class="slide">
+      <h2>CONFIGURAÇÃO INICIAL</h2>
+      <p>1°. Buscar no Windows 11: Abrir o menu Iniciar do Windows 11 e buscar por "MySQL Workbench".</p>
+      <p>2º. Gestão de Serviços (Troubleshooting): Abrir o services.msc no Windows caso o banco não esteja rodando, procurando pelo serviço MySQL80 (ou similar) e garantindo que o status seja "Em Execução".</p>
+    </div>
+
+    <div class="slide">
+      <h2>CONFIGURAÇÃO INICIAL (continuação)</h2>
+      <p>3°. Criando a Conexão:</p>
+      <ul>
+        <li>Clicar no ícone + ao lado de MySQL Connections.</li>
+        <li>Configurar o Connection Name (ex: "Conexao_Local").</li>
+        <li>Manter o Hostname como 127.0.0.1 e a Port como 3306.</li>
+        <li>Configurar o Username (geralmente root).</li>
+        <li>Clicar em Test Connection, criar a senha e marcar a opção "Save password in vault" para facilitar os próximos acessos.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h2>NAVEGAÇÃO E RECONHECIMENTO DA INTERFACE</h2>
+      <p>Dominar o MySQL Workbench é o primeiro passo para se tornar um mestre em bancos de dados. Ele é a nossa "central de controle", onde visualizamos e manipulamos tudo o que acontece no servidor.</p>
+      <p>Vamos explorar as áreas principais:</p>
+      <ul>
+        <li>- Painel Lateral (Navigator)</li>
+      </ul>
+      <p>O Navigator é o seu mapa. Ele é dividido em duas abas principais na parte inferior, e entender a diferença entre elas é fundamental.</p>
+    </div>
+
+    <div class="slide">
+      <h3>1. Aba Management (Administração)</h3>
+      <p>Focada na saúde e no controle do servidor.</p>
+      <ul>
+        <li>Server Status: Mostra se o banco está ligado, consumo de CPU e conexões ativas.</li>
+        <li>Users and Privileges: Onde criamos novos usuários e definimos o que cada um pode fazer.</li>
+        <li>Data Export/Import: Ferramentas cruciais para fazer backup (Export) ou restaurar um banco de dados (Import).</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>2. Aba Schemas (Esquemas / Bancos de Dados)</h3>
+      <p>É aqui que passaremos 90% do nosso tempo.</p>
+      <ul>
+        <li>Exibe todos os bancos de dados criados.</li>
+        <li>Permite expandir cada banco para ver suas Tables (Tabelas), Views (Visões), Stored Procedures e Functions.</li>
+      </ul>
+    </div>
+
+<div class="slide">
+      <h2>NAVEGAÇÃO E RECONHECIMENTO DA INTERFACE (continuação)</h2>
+      <h3>- Área de Script (Query Editor)</h3>
+      <p>A área de script (ou Query Editor) é o coração do MySQL Workbench. É nela que você escreve as instruções que o banco de dados deve seguir. Para utilizá-la com eficiência, pense nela como um editor de texto especializado que "fala" com o servidor.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Aqui está o passo a passo de como tirar o melhor proveito:</h3>
+      <h4>1o. Preparando o Ambiente</h4>
+      <p>Antes de começar a digitar, você precisa dizer ao Workbench em qual banco de dados deseja trabalhar.</p>
+      <ul>
+        <li>No Painel Schemas, dê um duplo clique sobre o nome do banco de dados (ex: meu_banco).</li>
+        <li>O nome ficará em negrito, indicando que ele é o banco padrão. Agora, qualquer comando que você digitar será executado ali dentro.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h4>2o. Escrevendo o Código</h4>
+      <p>O editor possui recursos que facilitam sua vida:</p>
+      <ul>
+        <li><b>Syntax Highlighting:</b> O Workbench colore as palavras-chave (como SELECT, FROM, INSERT) em azul para ajudar na leitura.</li>
+        <li><b>Auto-complete:</b> Se você começar a digitar uma tabela que já existe, ele sugerirá o nome. Aperte Tab para completar.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h4>3o. Executando os Comandos (O Momento da Verdade)</h4>
+      <p>Escrever o código não faz nada sozinho; você precisa "enviar" a instrução para o servidor usando os ícones de raio na barra de ferramentas superior:</p>
+      <ul>
+        <li><b>O Raio com Cursor (Preferido):</b> Coloque a barra de digitação (cursor) em qualquer lugar da linha que você quer rodar e clique neste botão. Ele executa apenas aquela instrução específica.</li>
+        <li><b>O Raio sem Cursor:</b> Ele vai ler o seu arquivo de cima a baixo. Se houver 50 comandos, ele tentará rodar os 50. Use com cuidado!</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h4>Dica de Ouro: Atalho de Teclado</h4>
+      <p>Para ganhar agilidade, em vez de clicar nos botões de raio, você pode usar:</p>
+      <ul>
+        <li><b>Ctrl + Enter:</b> Executa a linha onde o cursor está (equivale ao raio com o cursor).</li>
+        <li><b>Ctrl + Shift + Enter:</b> Executa o script inteiro (equivale ao raio limpo).</li>
+      </ul>
+      <p>Com essas ferramentas, você já consegue navegar, criar e corrigir suas consultas com total controle!</p>
+    </div>
+
+    <div class="slide">
+      <h4>4o. Interpretando os Resultados</h4>
+      <p>Assim que você executa um comando, duas coisas acontecem:</p>
+      <ol>
+        <li><b>Painel de Saída (Output):</b> Verifique se apareceu o ícone verde (sucesso).</li>
+        <li><b>Result Grid:</b> Se você fez uma consulta (SELECT), uma nova aba aparecerá logo abaixo do seu código mostrando os dados em formato de planilha.</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h4>5o. Organização e Salvamento</h4>
+      <p>Você pode abrir várias abas de script clicando no ícone de "+" sobre uma pasta na barra de ferramentas.</p>
+      <ul>
+        <li>Se você escreveu um código complexo e quer guardá-lo para amanhã, vá em File > Save Script As.... Ele salvará um arquivo com extensão .sql que você pode abrir em qualquer outro editor de texto.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>- Painel de Saída (Output)</h3>
+      <p>Localizado na parte inferior, o Output é o "feedback" do MySQL. Ele te diz em tempo real se o que você fez funcionou ou se você cometeu algum erro de digitação.</p>
+      <ul>
+        <li><b>Bolinha Verde (Success):</b> Significa que o MySQL entendeu seu comando e o executou perfeitamente. Geralmente mostra quantas linhas foram afetadas.</li>
+        <li><b>Bolinha Vermelha (Error):</b> Ocorreu um erro. O segredo de um bom programador não é não errar, mas sim ler a mensagem de erro.</li>
+        <li><b>Dica:</b> O código de erro (como o Error Code: 1064) geralmente aponta exatamente onde a sintaxe falhou (perto de qual palavra ou vírgula).</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h2>CRIAÇÃO E CONFIGURAÇÃO DO BANCO DE DADOS (Schema)</h2>
+      <p>Para criar o seu primeiro banco de dados no MySQL Workbench, você tem dois caminhos: o "jeito visual" (clicando em botões) ou o "jeito programador" (escrevendo código).</p>
+      <p>Aqui está o passo a passo para ambos:</p>
+    </div>
+
+    <div class="slide">
+      <h3>Opção 1: O Caminho Visual (Mais fácil para iniciantes)</h3>
+      <p>Na barra de ferramentas superior, logo abaixo dos menus principais, você verá uma série de ícones.</p>
+      <ol>
+        <li>Procure o ícone que parece um cilindro (moeda) com um símbolo de "+" ou um brilho (chamado "Create a new schema in the connected server").</li>
+        <li>Ao clicar nele, abrirá uma aba chamada "New Schema".</li>
+        <li>No campo Name, digite o nome do seu banco (ex: loja_virtual).</li>
+      </ol>
+        <h4><b>Dica:</b> Evite espaços ou acentos em nomes de bancos de dados.</h4>
+    </div>
+
+    <div class="slide">
+      <h3>Opção 1 (continuação)</h3>
+      <ol start="4">
+        <li>Clique no botão Apply no canto inferior direito.</li>
+        <li>Uma janela aparecerá mostrando o código SQL que o Workbench criou para você. Clique em Apply novamente e depois em Finish.</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h3>Opção 2: O Caminho via Script (O "Jeito Programador")</h3>
+      <p>Se você já estiver com a área de script aberta, pode fazer tudo via teclado:</p>
+      <ol>
+        <li>Digite o seguinte comando:</li>
+      </ol>
+      <pre><code>CREATE DATABASE nome_do_seu_banco;</code></pre>
+      <ol start="2">
+        <li>Mantenha o cursor na linha desse comando e aperte Ctrl + Enter (ou clique no raio com o cursor).</li>
+        <li>Verifique no Painel de Saída (Output) se apareceu a bolinha verde.</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h3>O Passo Final Importante: O Refresh</h3>
+      <p>Às vezes, após criar o banco, ele não aparece imediatamente na lista da esquerda (Painel Schemas).</p>
+      <ul>
+        <li>Vá até o painel Schemas.</li>
+        <li>Clique no ícone de duas setinhas em círculo (Refresh) no canto superior direito do painel.</li>
+        <li>Pronto! Seu novo banco aparecerá na lista.</li>
+      </ul>
+      <p>Lembre-se: Após criar o banco, dê um duplo clique sobre o nome dele para deixá-lo em negrito. Isso avisa ao Workbench que todos os próximos comandos (como criar tabelas) devem ser feitos dentro desse banco específico.</p>
+    </div>
+
+    <div class="slide">
+      <h2>CRIANDO AS TABELAS</h2>
+      <p>Agora que você já tem o seu banco de dados (o "container"), é hora de criar as tabelas, que é onde os dados realmente moram. Imagine que o banco de dados é um arquivo e as tabelas são as planilhas dentro dele.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Conceitos Fundamentais (Os "Ingredientes")</h3>
+      <p>Antes de colocar a mão na massa, você precisa entender quatro conceitos que definem como cada coluna da sua tabela vai se comportar:</p>
+      <ul>
+        <li><b>Chave Primária (PK - Primary Key):</b> É o "RG" da linha. Cada registro na tabela deve ter um identificador único para que nunca existam dois itens iguais.</li>
+        <li><b>Auto Incremento (AI):</b> Faz com que o banco de dados gere o próximo número automaticamente (1, 2, 3...). Você não precisa digitar o ID; o MySQL faz isso por você.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>Tipos de Dados:</h3>
+      <ul>
+        <li><b>INT:</b> Números inteiros (ex: idade, quantidade).</li>
+        <li><b>VARCHAR(X):</b> Textos de tamanho variável. O X é o limite de caracteres (ex: um nome pode ter VARCHAR(100)).</li>
+        <li><b>DATE:</b> Para datas no formato AAAA-MM-DD.</li>
+        <li><b>DECIMAL(10,2):</b> Para valores monetários (o 10 é o total de dígitos e o 2 são as casas decimais).</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>Criando a Tabela 1: Via Interface Visual</h3>
+      <p>Essa forma é excelente para quem está começando, pois o Workbench te guia através de campos clicáveis.</p>
+      <ol>
+        <li>No painel Schemas, localize o seu banco de dados e clique na setinha ao lado dele.</li>
+        <li>Clique com o botão direito em Tables e selecione Create Table....</li>
+        <li>No campo Table Name, digite clientes.</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h3>Criando a Tabela 1 (continuação)</h3>
+      <p>4. Na área de colunas abaixo, vamos configurar os campos:</p>
+      <ul>
+        <li><b>id:</b> Tipo INT. Marque os campos PK (Chave Primária), NN (Not Null - não pode ser vazio) e AI (Auto Incremento).</li>
+        <li><b>nome:</b> Tipo VARCHAR(100). Marque NN.</li>
+        <li><b>data_nascimento:</b> Tipo DATE.</li>
+      </ul>
+      <p>5. Clique no botão Apply.</p>
+    </div>
+
+    <div class="slide">
+      <blockquote>
+        Atenção: Antes de o Workbench criar a tabela, ele abrirá uma janela com o código SQL. Leia esse código! Ele é exatamente o que o banco de dados vai executar por trás dos panos.
+      </blockquote>
+      <p>Clique em Apply e depois em Finish.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Criando a Tabela 2: Via Script (O Jeito DDL)</h3>
+      <p>Agora que você viu como a interface funciona, vamos fazer "na raça" usando comandos de DDL (Data Definition Language). Vamos criar uma tabela de produtos como exemplo.</p>
+      <p>1. Abra uma nova aba de script (Ctrl + T).</p>
+      <p>2. Digite o comando abaixo:</p>
+    </div>
+
+    <div class="slide">
+      <pre><code>CREATE TABLE produtos (
+id_produto INT PRIMARY KEY AUTO_INCREMENT,
+nome_produto VARCHAR(45) NOT NULL,
+preco DECIMAL(10,2) NOT NULL,
+estoque INT DEFAULT 0
+);</code></pre>
+      <p>3. Coloque o cursor em qualquer lugar deste código e aperte Ctrl + Enter.</p>
+      <p>4. Confira a bolinha verde no Painel de Saída.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Por que aprender os dois jeitos?</h3>
+      <p>A interface visual é ótima para prototipar rápido e evitar erros de digitação. Já o script é o que você usará no dia a dia como desenvolvedor, pois permite salvar o código, versionar no Git e automatizar a criação do banco em outros servidores.</p>
+      <p>Você conseguiu visualizar a sua primeira tabela na lista à esquerda depois de dar um Refresh?</p>
+    </div>
+
+    <div class="slide">
+      <h2>VISUALIZAR O DER</h2>
+      <p>Visualizar o banco de dados como um DER (Diagrama Entidade-Relacionamento) é um dos recursos mais poderosos do MySQL Workbench. Isso transforma o seu código em um mapa visual, facilitando o entendimento de como as tabelas se conectam.</p>
+      <p>No Workbench, esse processo é chamado de Reverse Engineering (Engenharia Reversa).</p>
+    </div>
+
+    <div class="slide">
+      <h3>Passo a Passo para Gerar o Diagrama</h3>
+      <ol>
+        <li><b>Acesse a Ferramenta:</b> No menu superior do MySQL Workbench, clique em Database e depois em Reverse Engineer... (ou use o atalho Ctrl + R).</li>
+        <li><b>Conexão:</b> Uma janela abrirá perguntando sobre a conexão com o servidor. Se você já estiver conectado, basta clicar em Next.</li>
+        <li><b>Execução:</b> O Workbench se conectará ao banco para ler as informações. Clique em Next novamente após ele concluir os testes.</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h3>Passo a Passo para Gerar o Diagrama (continuação)</h3>
+      <ol start="4">
+        <li><b>Seleção do Banco:</b> Agora, selecione o Schema (o banco de dados) que você criou e deseja visualizar. Clique em Next.</li>
+        <li><b>Importação:</b> Ele lerá os objetos (tabelas, views, etc.). Clique em Next e, na última tela, em Execute.</li>
+        <li><b>Finalização:</b> Clique em Next e depois em Finish.</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h3>O Que Você Verá na Tela (Model Viewer)</h3>
+      <p>O Workbench abrirá uma nova aba chamada "MySQL Model". Nela, você verá suas tabelas representadas por quadros:</p>
+      <ul>
+        <li><b>As Colunas:</b> Todos os nomes e tipos de dados estarão visíveis.</li>
+        <li><b>As Chaves:</b> Você verá um ícone de chave dourada ao lado dos campos que são PK (Chave Primária).</li>
+        <li><b>Relacionamentos:</b> Se você criou chaves estrangeiras (Foreign Keys), o Workbench desenhará linhas conectando as tabelas automaticamente.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>Por que isso é útil?</h3>
+      <ul>
+        <li><b>Documentação:</b> Você pode exportar esse diagrama como uma imagem (File > Export > Export as PNG) para colocar em um trabalho ou apresentação.</li>
+        <li><b>Organização:</b> Você pode arrastar as tabelas para organizar o layout e entender melhor a arquitetura do seu sistema.</li>
+        <li><b>Edição Visual:</b> Se você der dois cliques em uma tabela dentro do diagrama, pode alterar colunas ou cores ali mesmo, e depois "sincronizar" de volta para o banco de dados real.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h4>Dica de Ouro: O Atalho Visual</h4>
+      <p>Se você quiser apenas ver as colunas e os índices de uma tabela rapidamente sem gerar o DER completo, você pode clicar no ícone de ferramenta (chave inglesa) que aparece ao passar o mouse sobre o nome da tabela no painel lateral (Schemas).</p>
+      <p>Conseguiu gerar o desenho das suas tabelas? Se elas não estiverem conectadas por uma linha, é porque ainda não criamos um relacionamento formal entre elas!</p>
+    </div>
+
+    <div class="slide">
+      <hr>
+      <h2>EXPORTAR O BD</h2>
+      <p>Exportar um banco de dados (o famoso Backup ou Dump) é essencial para levar seu trabalho para outro computador ou para enviar ao seu professor. No MySQL Workbench, fazemos isso através da aba Administration.</p>
+      <h3>1. Onde encontrar a ferramenta</h3>
+      <ol>
+        <li>No painel lateral esquerdo (Navigator), clique na aba inferior chamada Administration.</li>
+        <li>Procure a opção Data Export e clique nela.</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h3>2. Configurando a Exportação</h3>
+      <p>Uma nova aba se abrirá com várias opções. Siga esta ordem:</p>
+      <ol>
+        <li><b>Selecionar o Banco:</b> Na lista da esquerda ("Tables to Export"), marque o quadradinho do banco de dados que você quer exportar.</li>
+        <li><b>Selecionar Tabelas:</b> À direita, você pode escolher exportar todas as tabelas (padrão) ou apenas algumas específicas.</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h3>3. Opções de Exportação:</h3>
+      <p>Logo abaixo, você verá duas opções principais:</p>
+      <ul>
+        <li><b>Export to Dump Project Folder:</b> Cria uma pasta com vários arquivos separados (bom para projetos gigantes).</li>
+        <li><b>Export to Self-Contained File (Recomendado):</b> Esta é a melhor opção para estudantes. Ela cria um único arquivo .sql que contém tudo: a criação das tabelas e os dados que estão dentro delas.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>3. Detalhes Importantes (Checklist)</h3>
+      <p>Antes de clicar no botão final, verifique dois detalhes no menu suspenso acima do botão de exportar:</p>
+      <ul>
+        <li><b>Dump Structure and Data:</b> Exporta o desenho das tabelas E os dados que você inseriu. (Geralmente é o que você quer).</li>
+        <li><b>Dump Structure Only:</b> Exporta apenas o "esqueleto" (as tabelas vazias).</li>
+        <li><b>Dump Data Only:</b> Exporta apenas os registros, sem criar as tabelas.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>4. Finalizando</h3>
+      <ol>
+        <li>No campo Export to Self-Contained File, clique nos três pontinhos ... para escolher onde salvar o arquivo no seu computador e dê um nome a ele (ex: backup_aula_01.sql).</li>
+        <li>Clique no botão Start Export no canto inferior direito.</li>
+        <li>Se o Workbench pedir sua senha do banco de dados, digite-a.</li>
+        <li>Quando a barra de progresso chegar ao fim e ficar verde, seu arquivo está pronto!</li>
+      </ol>
+    </div>
+
+    <div class="slide">
+      <h3>Como importar depois?</h3>
+      <p>Se você precisar abrir esse arquivo em outro computador:</p>
+      <ol>
+        <li>Vá em Administration > Data Import/Restore.</li>
+        <li>Selecione Import from Self-Contained File e localize seu arquivo .sql.</li>
+        <li>Escolha o banco de destino (ou crie um novo em New...) e clique em Start Import.</li>
+      </ol>
+      <p><b>Dica de ouro:</b> Sempre verifique se o arquivo .sql foi gerado com um tamanho maior que 0kb. Se ele estiver vazio, algo deu errado na permissão de pasta ou na seleção das tabelas!</p>
+    </div>
+
+    <div class="slide">
+      <h2>ATIVIDADE</h2>
+      <p>Agora que você possui todas as informações e ferramentas para o Banco de Dados do seu projeto de SA, vamos iniciar os trabalhos. Utilizando o MER elaborado na última aula antes da Avaliação Objetiva (Aula 09) vamos criar o Banco de Dados do projeto.</p>
+      <h3>1. Criando o Banco de Dados</h3>
+      <ul>
+        <li>Crie o BD com o nome do projeto, lembrando das boas práticas (nomes sem espaços, uso de underscores, padrões de nomenclatura).</li>
+        <li>Crie TODAS as tabelas, com suas respectivas chaves primárias e atributos.</li>
+        <li>Revisar se os tipos de dados (VARCHAR, INT, DECIMAL) fazem sentido para cada atributo do MER original.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>2. Montando o DER</h3>
+      <ul>
+        <li>Após a criação das tabelas, você deve executar o processo de criação do DER, conforme descrito nesta aula.</li>
+        <li><b>Relacionamentos:</b> Se o MER tinha relacionamentos (1:N, N:M), lembre-os de que no DER isso deve aparecer através das Foreign Keys (FK). Sem as FKs, o diagrama gerado pelo Workbench mostrará apenas tabelas "soltas" no espaço.</li>
+        <li>Com o DER criado, exporte como arquivo png.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>3. Finalizando</h3>
+      <ul>
+        <li>Após todo processo realizado, exporte o Banco de Dados criado e o arquivo png do DER, commitando eles no repositório do seu projeto no GitHub na pasta “Backend”.</li>
+        <li><b>Atenção ao Export:</b> Dica para exportar com a opção "Self-Contained File". Se vocês exportarem como "Project Folder", o GitHub ficará com dezenas de arquivinhos pequenos, o que dificulta a leitura do repositório.</li>
+      </ul>
+    </div>
+    <div class="slide">
+      <p>Atenção: Estou disponibilizando dois Bancos de Dados para estudo, treinamento e testes.</p>
+      <h2>SAKILA</h2>
+      <p>O banco de dados Sakila é um esquema relacional de exemplo amplamente utilizado, criado para simular uma locadora de DVDs/filmes. Ele é ideal para prática de SQL, tutoriais e testes de recursos do MySQL, como Views, Triggers e Stored Procedures. O modelo inclui tabelas para filmes, atores, clientes, aluguéis e pagamentos.</p>
+    </div>
+
+    <div class="slide">
+      <h2>SAKILA - Principais Características e Usos</h2>
+      <ul>
+        <li>Finalidade: Criado originalmente por Mike Hillyer (ex-MySQL) para livros e tutoriais.</li>
+        <li>Estrutura: Bem normalizado, facilitando o aprendizado de joins, agregrações e modelagem de dados.</li>
+        <li>Conteúdo: Contém tabelas de atores, endereços, categorias, cidades, países e tabelas centrais de estoque/locação.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h2>SAKILA - Instalação e Exemplos</h2>
+      <ul>
+        <li>Instalação: Frequentemente usado no MySQL Workbench para demonstrar consultas reais.</li>
+        <li>Exemplos de consultas (Uso):</li>
+        <ul>
+          <li>Listar todos os filmes de um determinado ator.</li>
+          <li>Calcular a receita total de uma loja.</li>
+          <li>Identificar clientes inativos ou com pagamentos pendentes.</li>
+        </ul>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h2>WORLD</h2>
+      <p>O banco de dados de exemplo World é um clássico da MySQL para estudos, contendo dados geográficos e demográficos, como países, cidades e idiomas.</p>
+      <p>Ele é ideal para praticar consultas SQL de leitura, possuindo três tabelas principais: country, city e countrylanguage.</p>
+    </div>
+
+    <div class="slide">
+    <h2>FECHAMENTO</h2>
+    <p>Esta etapa de configuração e criação do Banco de Dados é a mais importante do nosso projeto de SA.</p>
+    <p> A partir de agora, com a estrutura pronta, vamos começar a popular nosso BD.</p>
+    <hr>
+    <p>Na próxima aula (Aula 12) vamos aprender a utilizar a linguagem <b>DDL</B> para criar bancos e tabelas, definindo tipos de dados e constraints.</p> 
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn" onclick="prevSlide()" disabled>Anterior</button>
+    <div class="progress"><span id="current">1</span> / <span id="total"></span></div>
+    <button id="nextBtn" onclick="nextSlide()">Próximo</button>
+  </div>
+
+  <script>
+    let currentSlideIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const currentIndicator = document.getElementById('current');
+    const totalIndicator   = document.getElementById('total');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    totalIndicator.textContent = totalSlides;
+
+    function updateView() {
+      slides.forEach((slide, index) => {
+        slide.classList.remove('active');
+        if (index === currentSlideIndex) slide.classList.add('active');
+      });
+      currentIndicator.textContent = currentSlideIndex + 1;
+      prevBtn.disabled = currentSlideIndex === 0;
+      nextBtn.disabled = currentSlideIndex === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < totalSlides - 1) { currentSlideIndex++; updateView(); }
+    }
+    function prevSlide() {
+      if (currentSlideIndex > 0) { currentSlideIndex--; updateView(); }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+      if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   prevSlide();
+    });
+  </script>
+</body>
+</html>
