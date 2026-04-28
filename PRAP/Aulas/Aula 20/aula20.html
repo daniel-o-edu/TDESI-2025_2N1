@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 20 - Integração Visual (Jinja2)</title>
+<style>
+  body {
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa; 
+    color: #212529;
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh;
+    overflow: hidden;
+  }
+  .slide-container {
+    width: 90vw;
+    height: 90vh;
+    margin: auto;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    padding: 40px; 
+    box-sizing: border-box; 
+    position: relative;
+  }
+  .slide {
+    display: none; 
+    width: 100%; 
+    max-width: 1200px; 
+    max-height: 85vh;
+    background: #ffffff; 
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+    padding: 50px;
+    font-size: 26px; 
+    line-height: 1.6; 
+    overflow-y: auto;
+  }
+  .slide.active { 
+    display: block; 
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  h1, h2, h3 { 
+    color: #0d6efd; 
+    margin-top: 0; 
+  }
+  code, pre { 
+    background: #e9ecef; 
+    padding: 10px 15px; 
+    border-radius: 8px; 
+    font-family: 'Courier New', Courier, monospace; 
+    display: block; 
+    font-size: 22px;
+    overflow-x: auto;
+  }
+  .controls {
+    height: 50px; 
+    background: #ffffff; 
+    border-top: 1px solid #dee2e6;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 0 50px;
+  }
+  button {
+    background: #0d6efd; 
+    color: white; 
+    border: none; 
+    padding: 15px 30px;
+    font-size: 12px; 
+    border-radius: 8px; 
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover {
+    background: #0b5ed7;
+  }
+  button:disabled { 
+    background: #adb5bd; 
+    cursor: not-allowed; 
+  }
+  .progress { 
+    font-size: 12px; 
+    font-weight: bold; 
+    color: #495057;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 22px;
+    margin-top: 10px;
+  }
+  th {
+    background-color: #0d6efd;
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+  }
+  td {
+    padding: 10px 14px;
+    border: 1px solid #dee2e6;
+  }
+  tr:nth-child(even) td {
+    background-color: #f1f3f5;
+  }
+</style>
+</head>
+<body>
+  <div class="slide-container" id="slides">
+
+    <div class="slide active">
+      <h1>Aula 20 - Integração Visual (Jinja2)</h1>
+      <p><b>Descrição:</b> Nesta aula vamos conceituar a renderização dinâmica de dados no HTML com o motor de templates Jinja2. Também faremos um paralelo entre as estruturas de repetição do Python e o Jinja2. Vamos trabalhar a integração do padrão DAO com o Front-end e finalizar a aula com uma atividade de construção de uma tabela dinâmica em HTML.</p>
+    </div>
+
+    <div class="slide">
+      <h2>Renderização Dinâmica de Dados no HTML com Jinja2</h2>
+      <h3>A. Conceito/Definição</h3>
+      <p>O Jinja2 é um motor de templates (ou Template Engine) projetado para a linguagem Python, cujo objetivo é gerar formatos baseados em texto, primariamente HTML5, de forma dinâmica. Ele funciona através de um sistema de marcação que permite que um arquivo de texto comum contenha variáveis e expressões que são substituídas por valores reais no momento em que o template é renderizado pelo servidor.</p>
+    </div>
+
+    <div class="slide">
+      <h3>B. Contexto/Objetivo</h3>
+      <p>A finalidade primordial de um motor de templates é permitir a separação de responsabilidades entre a lógica de programação (back-end) e a estrutura visual (front-end). Sem essa ferramenta, o desenvolvedor teria que concatenar strings HTML manualmente dentro do código Python, o que é ineficiente e propenso a erros.</p>
+    </div>
+
+    <div class="slide">
+      <h3>C. Visualizando</h3>
+        <img src="img01.png" style="max-width: 90%; height:auto;" alt="Visualização do Jinja2">
+    </div>
+
+    <div class="slide">
+      <h3>D. Detalhamento Técnico (Delimitadores)</h3>
+      <p>O Jinja2 opera através de delimitadores específicos que instruem o motor sobre como tratar o conteúdo:</p>
+      <ul>
+        <li><b>{% ... %} (Statements):</b> Utilizado para declarações lógicas, como estruturas de controle e loops.</li>
+        <li><b>{{ ... }} (Expressions):</b> Utilizado para imprimir o resultado de uma expressão ou o valor de uma variável diretamente na saída do template.</li>
+        <li><b>{# ... #} (Comments):</b> Utilizado para comentários que não serão incluídos na saída final do HTML.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>E. Exemplos Práticos/Aplicações</h3>
+      <p>Este exemplo demonstra como o Jinja2 transforma um arquivo HTML estático em uma página web dinâmica, separando completamente o design (Front-end) da lógica de negócios (Back-end).</p>
+      <p><b>O Cenário:</b> Vamos criar uma página simples para um perfil de usuário que exibe o nome, as habilidades e uma mensagem de boas-vindas condicional (se é um usuário novo ou não).</p>
+    </div>
+
+    <div class="slide">
+      <h3>Passo 1 - O Front-end (Estrutura Estática com Marcação Jinja2)</h3>
+      <p>Neste arquivo, o designer HTML cria a estrutura visual normalmente. No entanto, em vez de colocar dados reais, ele usa os "delimitadores" do Jinja2 para indicar onde os dados dinâmicos devem ser inseridos <b>(Abrir arquivo perfil.html com o Template Jinja2 anexo).</b></p>
+    </div>
+      
+    <div class="slide">
+      <p><b>Análise dos Delimitadores no Template:</b></p>
+      <ul>
+        <li><b>{{ nome }} (Expression):</b> Quando a página for "renderizada", o Jinja2 procurará uma variável chamada "nome" no back-end e substituirá este trecho pelo valor real.</li>
+        <li><b>{# ... #} (Comment):</b> Este comentário é apenas para o desenvolvedor e não será enviado para o navegador do usuário.</li>
+        <li><b>{% if usuario_novo %} ... {% else %} ... {% endif %} (Statement):</b> Esta lógica Python-like decide qual bloco HTML imprimir com base no valor booleano da variável usuario_novo.</li>
+        <li><b>{% for habilidade in habilidades %} ... {% endfor %} (Statement):</b> Este loop percorre uma lista (vinda do back-end) e gera um elemento &lt;li&gt; para cada item nela.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>Passo 2 - O Back-end (Lógica de Programação com Python e Jinja2)</h3>
+      <p>O back-end é onde vivem os dados reais. Ele é responsável por conectar os dados com o template HTML e realizar a renderização <b>(Abrir o arquivo app.py anexo).</b></p>
+      <br>
+      <h3>Passo 3 - O Resultado (HTML Renderizado Dinamicamente)</h3>
+      <p>Após rodar o script app.py, o Jinja2 gera o seguinte HTML puro e dinâmico<br>
+      <b>(Abrir arquivo saida_perfil.html gerado após execução do script).</b></p>
+    </div>
+
+    <div class="slide">
+      <h3>Conclusão:</h3>
+      <ul>
+        <li><b>Limpeza no Front-end:</b> O arquivo perfil.html contém apenas HTML puro e marcações de template, tornando-o fácil de ler e estilizar por um designer.</li>
+        <li><b>Limpeza no Back-end:</b> O arquivo app.py contém apenas lógica Python (obter dados, processar dados) e não contém "emaranhados" de strings HTML misturados com o código de programação.</li>
+        <li><b>Flexibilidade:</b> Se Ana Silva tivesse usuario_novo=False e uma lista de habilidades diferente no back-end, o mesmo arquivo perfil.html renderizaria uma página completamente diferente sem a necessidade de reescrever código.</li>
+      </ul>
+      <h3><b>Desafio Técnico:</b> Modifique o texto de saída com seu nome e as habilidades que você aprendeu até hoje no curso.</h3>
+    </div>
+
+    <div class="slide">
+      <h2>Estruturas de Repetição: O Paralelo Python vs. Jinja2</h2>
+      <h3>A. Conceito/Definição</h3>
+      <p>A Iteração de Coleções no Jinja2 é o processo de percorrer sequências de dados (como listas de objetos ou dicionários retornados do banco de dados) para gerar elementos repetitivos no HTML. Embora a lógica seja inspirada diretamente no Python, a sintaxe do Jinja2 é adaptada para coexistir com a marcação HTML.</p>
+    </div>
+
+    <div class="slide">
+      <h3>B. Contexto/Objetivo</h3>
+      <p>O objetivo é automatizar a criação de listas, tabelas ou grids. Em vez de escrever manualmente dez linhas de uma tabela para dez registros, o desenvolvedor define um único bloco de código que se repete conforme o tamanho da coleção.</p>
+     </div>
+     
+     <div class="slide">
+      <h3>C. Visualizando</h3>
+      <img src="img02.png" style="max-width: 90%; height:auto;" alt="Visualizando laços no Jinja2">
+    </div>
+
+    <div class="slide">
+      <h3>D. Detalhamento Técnico (Comparativo Sintático)</h3>
+      <ul>
+        <li><b>Em Python:</b> O laço é definido por <b><i>for item in lista:</i></b> , seguido por um bloco indentado.</li>
+        <li><b>Em Jinja2:</b> O laço utiliza a marcação de controle <b><i>{% for item in lista %}</i></b>, e exige obrigatoriamente a tag de fechamento <b><i>{% endfor %}</i></b>.</li>
+        <li><b>Variável Especial loop:</b> Dentro de um ciclo <i>for</i> no Jinja2, o desenvolvedor tem acesso ao objeto <i>loop</i>, que fornece atributos úteis como:</li>
+        <ul>
+        <li><i>loop.index</i> iteração atual iniciada em 1,</li>
+        <li><i>loop.first</i> booleano para a primeira iteração e</li>
+        <li><i>loop.length</i> tamanho total da sequência.</li>
+        </ul>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>E. Exemplos Práticos/Aplicações</h3>
+      <p>Para tornar este conceito o mais prático possível, vamos imaginar que você está construindo uma Lista de Leitura Acadêmica. O objetivo é transformar uma lista do Python em uma tabela HTML organizada, usando o Jinja2 para numerar os itens automaticamente e destacar o primeiro da lista.</p>
+      </div>
+      
+      <div class="slide">
+      <h3>O Back-end (Python)</h3>
+      <p>Aqui nós preparamos os dados. Imagine que esses livros vieram de um banco de dados.</p>
+      <pre><code># Dados que o Python envia para o Template
+livros = ["Clean Code", "Arquitetura Limpa", "Refatoração", "Design Patterns"]
+
+# No Flask ou Jinja puro, passamos a lista 'livros' para o HTML
+# render_template('compras.html', lista_livros=livros)</code></pre>
+    </div>
+
+    <div class="slide">
+      <h3>O Front-end (Template Jinja2)</h3>
+      <p>Aqui é onde a "mágica" da repetição acontece. Note o uso da variável especial <b><i>loop</i></b>.</p>
+      <pre><code>&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;#&lt;/th&gt;
+&lt;th&gt;Nome do Livro&lt;/th&gt;
+&lt;th&gt;Status&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+{# Iniciando o laço de repetição #}
+{% for livro in lista_livros %}
+&lt;tr&gt;
+&lt;td&gt;{{ loop.index }}&lt;/td&gt;
+
+&lt;td&gt;{{ livro }}&lt;/td&gt;</code></pre>
+    </div>
+    
+    <div class="slide">
+     <h3>O Front-end (Continuação)</h3>
+     <pre><code>
+&lt;td&gt;
+{# Usando loop.first para dar um destaque especial ao primeiro item #}
+{% if loop.first %}
+&lt;strong&gt;PRÓXIMA LEITURA&lt;/strong&gt;
+{% else %}
+Aguardando
+{% endif %}
+&lt;/td&gt;
+&lt;/tr&gt;
+{% endfor %} {# O fechamento é obrigatório! #}
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Total de livros na estante: {{ loop.length }}&lt;/p&gt;
+{# Nota: loop.length funciona apenas dentro do bloco for no Jinja2 clássico #}</code></pre>
+    </div>
+
+    <div class="slide">
+      <h3>O que o usuário verá (Resultado Final)</h3>
+      <p>O Jinja2 vai processar o código acima e entregar ao navegador um HTML estático pronto:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nome do Livro</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Clean Code</td>
+            <td><strong>PRÓXIMA LEITURA</strong></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Arquitetura Limpa</td>
+            <td>Aguardando</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Refatoração</td>
+            <td>Aguardando</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Design Patterns</td>
+            <td>Aguardando</td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+      <p>Total de livros na estante: 4</p>
+    </div>
+
+    <div class="slide">
+      <h3>Por que isso é melhor que Python puro?</h3>
+      <ul>
+        <li><b>Escalabilidade:</b> Se a sua lista tiver 1 ou 1.000 livros, o seu código HTML continua tendo apenas 3 linhas dentro do {% for %}.</li>
+        <li><b>Inteligência Visual:</b> Com o loop.index, você não precisa criar um contador manual (i = i + 1) como faria no Python básico.</li>
+        <li><b>Separação:</b> Se você quiser mudar a cor da tabela, mexe apenas no HTML. Se quiser mudar os nomes dos livros, mexe apenas no Python.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h2>Integração do Padrão DAO com o Frontend (Rotas)</h2>
+      <h3>A. Conceito/Definição</h3>
+      <p>A integração ocorre quando a <b>rota</b> (ou view function) no Flask atua como o Controller em uma arquitetura <b>MVC</b>, servindo de ponte entre a persistência de dados <b>(DAO/DAL)</b> e a apresentação (<b>View</b>).</p>
+      </div>
+      
+    <div class="slide">
+      <h3>B. Contexto/Objetivo</h3>
+      <p>O foco é a <b>Injeção de Dependência Visual</b> (Context Passing). A rota não deve conter regras de acesso ao disco; ela deve apenas acionar os métodos inteligentes da camada de modelo para obter os dados prontos para exibição.</p>
+    </div>
+
+    <div class="slide">
+      <h3>C. Detalhamento Técnico (Fluxo de Dados)</h3>
+      <p>Para explicar a integração entre Flask, Camada de Modelo e Jinja2, vamos usar uma analogia do mundo real: Um Restaurante. Imagine que o seu sistema web é um restaurante organizado. Para ele funcionar bem, cada um tem um papel definido (o famoso MVC - Model, View, Controller).</p>
+      </div>
+      
+      <div class="slide">
+      <h3><b>A Camada de Modelo (O Estoque e a Cozinha):</b></h3>
+      <p>É aqui que os dados vivem (banco de dados, arquivos CSV, etc.). No nosso restaurante, é o estoque e o preparo inicial.</p>
+      <ul>
+        <li><b>O que ela faz:</b> Ela conhece as regras de como pegar o ingrediente bruto (o dado) e deixá-lo pronto para o uso.</li>
+        <li><b>O Princípio:</b> A rota não deve "sujar as mãos" abrindo arquivos ou fazendo consultas SQL complexas. Ela apenas pede: "Modelo, me dê a lista de pratos prontos".</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>A Rota Flask (O Garçom / Controller)</h3>
+      <p>A rota atua como o intermediário. Ela recebe o pedido do cliente (o usuário que acessa a URL) e coordena a entrega.</p>
+      <ul>
+        <li><b>Ponte entre Camadas:</b> O garçom não cozinha (não acessa o banco diretamente) e não monta o prato visualmente (não escreve HTML). Ele: recebe a requisição, chama o Modelo para obter os dados, organiza esses dados em um "tabuleiro" (o Contexto) e entrega esse tabuleiro para a Apresentação.</li>
+        <li><b>Injeção de Dependência Visual:</b> É o ato de o garçom entregar os dados certos para a mesa certa. Ele "injeta" as informações que o template precisa para existir.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>A Apresentação / View (O Empratamento e a Mesa)</h3>
+      <p>É o arquivo HTML com Jinja2. É como o cliente vê a comida.</p>
+      <ul>
+        <li><b>Foco Visual:</b> O template não sabe de onde os dados vieram. Ele apenas recebe uma variável chamada <i>lista_de_compras</i> e a exibe de forma bonita.</li>
+        <li><b>Independência:</b> Se você decidir mudar o banco de dados (o fornecedor de carne), o seu HTML (o prato) não precisa mudar nem uma linha de código.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>Exemplo de Fluxo na Prática</h3>
+      <p><b>1. Usuário:</b> Acessa meusite.com/produtos.</p>
+      <p><b>Rota (Controller):</b></p>
+      <pre><code>@app.route('/produtos')
+def listar_produtos():
+    # Aciona o Modelo (DAO) para pegar dados limpos
+    dados = ProdutoModelo.obter_todos()
+    # Passagem de Contexto: entrega o "tabuleiro" para a View
+    return render_template('produtos.html', produtos=dados)</code></pre>
+     </div>
+      
+     <div class="slide">
+      <p><b>Jinja2 (View):</b> Recebe o contexto e gera o HTML:</p>
+      <pre><code>&lt;ul&gt;
+{% for p in produtos %}
+&lt;li&gt;{{ p.nome }} - R$ {{ p.preco }}&lt;/li&gt;
+{% endfor %}
+&lt;/ul&gt;</code></pre>
+    </div>
+
+    <div class="slide">
+      <h3>Por que isso é importante? (A separação de responsabilidades)</h3>
+      <p>Se você precisar trocar o seu arquivo de dados .txt por um banco de dados profissional, você só altera o Modelo. O seu Controller (rota) e a sua View (HTML) continuam funcionando exatamente como antes. Isso é o que chamamos de código de "baixa acoplagem" e fácil manutenção.</p>
+     </div>
+      
+     <div class="slide">
+      <h3>D. Visualizando</h3>
+      <img src="img03.png" style="max-width: 90%; height:auto;" alt="Fluxo DAO MVC Visualização">
+     </div>
+
+     <div class="slide">
+      <h2>Desafio Prático: A Playlist - Construção de Tabela HTML Dinâmica</h2>
+      <p><b>O Cenário:</b> Você foi encarregado de criar a tela de listagem de um novo aplicativo de streaming de áudio. O back-end já é capaz de obter as informações das faixas, mas a interface do usuário está em branco.</p>
+      <p><b>Seu Objetivo:</b> Transformar dados abstratos (uma lista de músicas no Python) em uma interface legível para o usuário final. Você aplicará o conceito de renderização em grid utilizando Flask e Jinja2 para construir uma tabela dinâmica.</p>
+    </div>
+
+    <div class="slide">
+      <h3>Instruções e Requisitos</h3>
+      <p>Para concluir este desafio, você precisará criar e configurar os seguintes arquivos:</p>
+      <p><b>1. O Back-end (app.py)</b></p>
+      <ul>
+        <li>Configure uma aplicação Flask básica.</li>
+        <li>Crie uma rota principal (/) que atuará como o seu Controller.</li>
+        <li>Esta rota deve renderizar um arquivo HTML passando a lista musicJ como injeção de contexto.</li>
+      </ul>
+      <p><b>2. A Fonte de Dados (Simulação de Banco de Dados)</b></p>
+      <ul>
+        <li>No seu arquivo Python, crie uma variável chamada musicJ que contenha uma lista de dicionários.</li>
+        <li>Adicione pelo menos 3 registros (músicas).</li>
+        <li>Cada dicionário deve conter, no mínimo, as seguintes chaves: titulo, artista, estilo, fileName e duracao.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>Instruções e Requisitos (Continuação)</h3>
+      <p><b>3. O Front-end (Template HTML com Jinja2)</b></p>
+      <ul>
+        <li>Crie um arquivo HTML e estruture uma tabela utilizando as tags semânticas (&lt;table&gt;, &lt;tr&gt;, &lt;td&gt;, &lt;th&gt;).</li>
+        <li><b>Tratamento de Estados Vazios:</b> Envolva a lógica da sua tabela em uma condicional {% if musicJ|length > 0 %}. Se a lista estiver vazia, a tabela não deve ser renderizada; em vez disso, exiba uma mensagem amigável (ex: "Nenhuma música cadastrada no momento.").</li>
+        <li><b>Cabeçalho Estático:</b> Dentro da tag &lt;thead&gt;, crie uma linha com os títulos das colunas: Título, Artista, Estilo, Arquivo e Duração.</li>
+        <li><b>Corpo Dinâmico:</b> Dentro da tag &lt;tbody&gt;, inicie um loop utilizando a estrutura baseada em índices: {% for i in range(musicJ|length) %}.</li>
+        <li><b>Células de Dados:</b> Dentro do loop, crie uma linha (&lt;tr&gt;) e preencha as colunas (&lt;td&gt;) injetando os valores dinâmicos de cada música usando a sintaxe de expressão, como por exemplo: {{ musicJ[i]['fileName'] }}.</li>
+      </ul>
+    </div>
+
+    <div class="slide">
+      <h3>Resultado Esperado</h3>
+      <p>Ao executar o seu app.py e acessar a rota no navegador, você deverá visualizar uma tabela preenchida com os dados da sua lista Python.</p>
+      <br>
+      <h3>Teste de Resiliência</h3>
+      <p>Após concluir e visualizar a tabela, vá até o seu app.py, deixe a sua lista musicJ vazia <i>(musicJ = [ ])</i> e recarregue a página. A sua aplicação não deve apresentar erros de índice, mas sim exibir a mensagem de estado vazio que você configurou.</p>
+    </div>
+
+    <div class="slide">
+      <h2>FECHAMENTO</h2>
+      <p>Ao concluir esta aula, você compreendeu como o motor de templates Jinja2 viabiliza a separação de responsabilidades ao automatizar a renderização dinâmica de dados do back-end para o front-end. Através da integração do padrão DAO com rotas Flask, foi possível transformar dados brutos em interfaces tabulares organizadas e resilientes a falhas. Esta base técnica permite o desenvolvimento de aplicações web com código de baixa acoplagem, facilitando manutenções futuras e a escalabilidade do projeto.</p>
+      </div>
+      
+    <div class="slide">
+      <h3>Na próxima aula:</h3>
+      <p>Vamos abordar o tratamento de dados via <b>POST</b>, exigindo a conversão segura de strings HTML para tipos numéricos com suporte de blocos try/except para prevenir falhas. No desafio, vocês deverão integrar formulários ao banco de dados, utilizando tratamento de exceções para validar entradas e instanciando classes para persistência via DAO.</p>
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn" onclick="prevSlide()" disabled>Anterior</button>
+    <div class="progress"><span id="current">1</span> / <span id="total"></span></div>
+    <button id="nextBtn" onclick="nextSlide()">Próximo</button>
+  </div>
+
+  <script>
+    let currentSlideIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const currentIndicator = document.getElementById('current');
+    const totalIndicator = document.getElementById('total');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    totalIndicator.textContent = totalSlides;
+
+    function updateView() {
+      slides.forEach((slide, index) => {
+        slide.classList.remove('active');
+        if (index === currentSlideIndex) {
+          slide.classList.add('active');
+        }
+      });
+      currentIndicator.textContent = currentSlideIndex + 1;
+      prevBtn.disabled = currentSlideIndex === 0;
+      nextBtn.disabled = currentSlideIndex === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < totalSlides - 1) {
+        currentSlideIndex++;
+        updateView();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        currentSlideIndex--;
+        updateView();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+    });
+  </script>
+</body>
+</html>

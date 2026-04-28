@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil do Desenvolvedor</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .perfil-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        h1 { color: #333; }
+        .msg-boas-vindas { color: green; font-weight: bold; }
+        .msg-padrao { color: blue; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #eee; margin: 5px 0; padding: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="perfil-card">
+        {# ESTE É UM COMENTÁRIO JINJA2 - NÃO APARECERÁ NO HTML #}
+        {# Vamos exibir o nome do usuário usando uma Expressão {{ ... }} #}
+        <h1>Olá, {{ nome }}!</h1>
+
+        {# Vamos usar uma Declaração {% ... %} para lógica condicional (IF) #}
+        {% if usuario_novo %}
+            <p class="msg-boas-vindas">Bem-vindo(a) ao seu primeiro dia! Estamos felizes em tê-lo(a) conosco.</p>
+        {% else %}
+            <p class="msg-padrao">Que bom ver você de volta!</p>
+        {% endif %}
+
+        <h2>Habilidades:</h2>
+        <ul>
+            {# Vamos usar uma Declaração {% ... %} para um loop (FOR) #}
+            {% for habilidade in habilidades %}
+                <li>{{ habilidade }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</body>
+</html>
+
